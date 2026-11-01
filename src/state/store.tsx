@@ -1,0 +1,173 @@
+import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
+import { chordsOf, scaleOf, type Chord, type ChordSize, type ModeIndex, type Scale } from '../core/theory';
+import type { Destination } from '../core/navigation';
+import { MESSAGES, type Lang, type Messages } from '../i18n';
+import { makeNames, namerById, type Names } from '../naming';
+import { audio, chordEvents, progressionEvents, scaleEvents } from '../audio';
+import { loopState } from '../audio/loop';
+
+export interface Position { root: number; mode: ModeIndex; degree: number }
+/** Eén akkoord in het schema: waar het staat plus hoeveel tellen het duurt. */
+export interface PathEntry extends Position { beats: number }
+export type Timbre = 'piano' | 'rhodes' | 'synth';
+export interface State extends Position {
+  size: ChordSize;
+  lang: Lang;
+  namer: string;
+  instrument: string;
+  sound: boolean;
+  timbre: Timbre;
+  /** Blue note (♭5) tonen in de toonladder en op het instrument. */
+  showBlue: boolean;
+  /** Maatsoort: tellen per maat (4 = 4/4, 3 = 3/4). */
+  meter: 3 | 4;
+  path: PathEntry[];
+  /** Het akkoord in het schema dat nu geselecteerd is. */
+  focus: number;
+}
+
+export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue'>>;
+
+export type Action =
+  | { type: 'setRoot'; root: number }
+  | { type: 'setMode'; mode: ModeIndex }
+  | { type: 'relative'; root: number; mode: ModeIndex }
+  | { type: 'select'; degree: number }
+  | { type: 'go'; to: Destination }
+  | { type: 'focusPath'; index: number }
+  | { type: 'setBeats'; index: number; beats: number }
+  | { type: 'removeAt'; index: number }
+  | { type: 'clearPath' }
+  | { type: 'setScale'; root: number; mode: ModeIndex }
+  | { type: 'settings'; patch: SettingsPatch };
+
+const PREFS_KEY = 'tln-prefs';
+function loadPrefs(): Partial<State> {
+  try { return JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}'); } catch { return {}; }
+}
+
+const CHART_KEY = 'tln-chart';
+function loadChart(): PathEntry[] | null {
+  try {
+    const c = JSON.parse(localStorage.getItem(CHART_KEY) ?? 'null');
+    if (Array.isArray(c) && c.length > 0 && c.every((e) => [e.root, e.mode, e.degree, e.beats].every(Number.isInteger))) return c;
+  } catch { /* geen opgeslagen schema */ }
+  return null;
+}
+
+function initial(): State {
+  const p = loadPrefs();
+  const saved = loadChart();
+  const start: PathEntry = saved?.[saved.length - 1] ?? { root: 2, mode: 3, degree: 0, beats: 4 }; // D Dorisch
+  return {
+    root: start.root, mode: start.mode, degree: start.degree,
+    timbre: p.timbre === 'synth' || p.timbre === 'rhodes' ? p.timbre : 'piano',
+    meter: p.meter === 3 ? 3 : 4,
+    showBlue: p.showBlue !== false,
+    focus: (saved?.length ?? 1) - 1,
+    size: p.size === 4 ? 4 : 3,
+    lang: p.lang && p.lang in MESSAGES ? p.lang : 'nl',
+    namer: typeof p.namer === 'string' ? p.namer : 'en',
+    instrument: typeof p.instrument === 'string' ? p.instrument : 'piano',
+    sound: p.sound !== false,
+    path: saved ?? [start],
+  };
+}
+
+const entry = (s: State): PathEntry => ({ root: s.root, mode: s.mode, degree: s.degree, beats: s.meter });
+const MAX_CHORDS = 64;
+function withPush(s: State): State {
+  const last = s.path[s.path.length - 1];
+  if (last && last.root === s.root && last.mode === s.mode && last.degree === s.degree) return { ...s, focus: s.path.length - 1 };
+  const path = [...s.path, entry(s)].slice(-MAX_CHORDS);
+  return { ...s, path, focus: path.length - 1 };
+}
+
+export function reducer(s: State, a: Action): State {
+  switch (a.type) {
+    case 'setRoot': return { ...s, root: a.root };
+    case 'setMode': return { ...s, mode: a.mode };
+    case 'setScale': return { ...s, root: a.root, mode: a.mode };
+    case 'relative': {
+      // zelfde noten, ander middelpunt: houd hetzelfde akkoord geselecteerd
+      const chordRoot = scaleOf(s.root, s.mode).notes[s.degree].pc;
+      const degree = Math.max(0, scaleOf(a.root, a.mode).notes.findIndex((n) => n.pc === chordRoot));
+      return { ...s, root: a.root, mode: a.mode, degree };
+    }
+    case 'select': return withPush({ ...s, degree: a.degree });
+    case 'go': return withPush({ ...s, ...a.to });
+    case 'focusPath': {
+      const p = s.path[a.index];
+      return p ? { ...s, root: p.root, mode: p.mode, degree: p.degree, focus: a.index } : s;
+    }
+    case 'setBeats':
+      return { ...s, path: s.path.map((e, i) => (i === a.index ? { ...e, beats: Math.max(1, Math.min(16, a.beats)) } : e)) };
+    case 'removeAt': {
+      if (s.path.length <= 1) return s;
+      const path = s.path.filter((_, i) => i !== a.index);
+      return { ...s, path, focus: Math.min(s.focus > a.index ? s.focus - 1 : s.focus, path.length - 1) };
+    }
+    case 'clearPath': return { ...s, path: [entry(s)], focus: 0 };
+    case 'settings': return { ...s, ...a.patch };
+  }
+}
+
+interface Ctx {
+  state: State;
+  dispatch: (a: Action) => void;
+  t: Messages;
+  names: Names;
+  scale: Scale;
+  chords: Chord[];
+  scaleLabel: (s: Scale) => string;
+  playScale: () => void;
+  playPath: () => void;
+}
+const AppContext = createContext<Ctx | null>(null);
+
+export function AppProvider({ children }: { children: ReactNode }) {
+  const [state, rawDispatch] = useReducer(reducer, undefined, initial);
+  const t = MESSAGES[state.lang];
+  const names = useMemo(() => makeNames(namerById(state.namer)), [state.namer]);
+  const scale = scaleOf(state.root, state.mode);
+  const chords = useMemo(() => chordsOf(scale, state.size), [scale, state.size]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: state.lang, namer: state.namer, size: state.size, sound: state.sound, instrument: state.instrument, timbre: state.timbre, meter: state.meter, showBlue: state.showBlue }));
+    } catch { /* opslag niet beschikbaar: geen probleem */ }
+    document.documentElement.lang = state.lang;
+    document.title = t.title;
+  }, [state.lang, state.namer, state.size, state.sound, state.instrument, state.timbre, state.meter, state.showBlue, t.title]);
+
+  useEffect(() => {
+    try { localStorage.setItem(CHART_KEY, JSON.stringify(state.path)); } catch { /* niet erg */ }
+  }, [state.path]);
+
+  useEffect(() => { audio.setTimbre(state.timbre); }, [state.timbre]);
+
+  const value = useMemo<Ctx>(() => {
+    const play = (events: Parameters<typeof audio.play>[0]) => { if (state.sound) audio.play(events); };
+    // geluid hoort bij een klik: we spelen het akkoord van de nieuwe toestand direct in de dispatch
+    const dispatch = (a: Action) => {
+      const next = reducer(state, a);
+      rawDispatch(a);
+      const plays = a.type === 'select' || a.type === 'go' || a.type === 'focusPath' || (a.type === 'settings' && (a.patch.sound === true || a.patch.timbre !== undefined));
+      if (plays && next.sound && !loopState.running) audio.play(chordEvents(chordsOf(scaleOf(next.root, next.mode), next.size)[next.degree]));
+    };
+    return {
+      state, dispatch, t, names, scale, chords,
+      scaleLabel: (s: Scale) => `${names.note(s.notes[0])} ${t.modes[s.mode]}`,
+      playScale: () => play(scaleEvents(scale)),
+      playPath: () => play(progressionEvents(state.path.map((p) => ({ chord: chordsOf(scaleOf(p.root, p.mode), state.size)[p.degree], beats: p.beats })))),
+    };
+  }, [state, t, names, scale, chords]);
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+}
+
+export function useApp(): Ctx {
+  const c = useContext(AppContext);
+  if (!c) throw new Error('useApp buiten AppProvider');
+  return c;
+}

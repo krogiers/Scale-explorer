@@ -1,7 +1,7 @@
-import { CHAR_DEGREE, blueNote, fifthsIndex, pcFromFifths, scaleOf, type ModeIndex } from '../core/theory';
-import { LANGS } from '../i18n';
+import { CHAR_DEGREE, blueNote, fifthsIndex, pcFromFifths, scaleOf, transposed, type ModeIndex } from '../core/theory';
+import { fill, LANGS } from '../i18n';
 import { NOTE_NAMERS } from '../naming';
-import { INSTRUMENTS, instrumentById } from '../instruments';
+import { INSTRUMENTS, SAX_KEYS, SAX_TRANSPOSE, instrumentById, type SaxKey } from '../instruments';
 import { useApp, type SettingsPatch } from '../state/store';
 import { signatureLabel, signatureShort } from './util';
 
@@ -75,20 +75,34 @@ export function ModalMap() {
 }
 
 export function InstrumentPanel() {
-  const { state, dispatch, t, names, scale, chords } = useApp();
+  const { state, dispatch, t, names, scale, chords, scaleLabel } = useApp();
   const Instrument = instrumentById(state.instrument).component;
+  // een sax leest geschreven noten: dezelfde modus, getransponeerd naar zijn stemming
+  const shift = state.instrument === 'sax' ? SAX_TRANSPOSE[state.saxKey] : 0;
+  const shown = shift ? transposed(scale, shift) : scale;
+  const chord = new Set([...chords[state.degree].pcs].map((pc) => (pc + shift) % 12));
   return (
     <>
       <div className="instrhead">
         <h2>{t.instrTitle}</h2>
-        <div className="field"><label htmlFor="instr">{t.instrument}</label>
-          <select id="instr" value={state.instrument} onChange={(e) => dispatch({ type: 'settings', patch: { instrument: e.target.value } })}>
-            {INSTRUMENTS.map((i) => <option key={i.id} value={i.id}>{t.instruments[i.id] ?? i.id}</option>)}
-          </select>
+        <div className="row">
+          {state.instrument === 'sax' && (
+            <div className="field"><label htmlFor="saxkey">{t.saxKey}</label>
+              <select id="saxkey" value={state.saxKey} onChange={(e) => dispatch({ type: 'settings', patch: { saxKey: e.target.value as SaxKey } })}>
+                {SAX_KEYS.map((k) => <option key={k} value={k}>{t.saxKeys[k]}</option>)}
+              </select>
+            </div>
+          )}
+          <div className="field"><label htmlFor="instr">{t.instrument}</label>
+            <select id="instr" value={state.instrument} onChange={(e) => dispatch({ type: 'settings', patch: { instrument: e.target.value } })}>
+              {INSTRUMENTS.map((i) => <option key={i.id} value={i.id}>{t.instruments[i.id] ?? i.id}</option>)}
+            </select>
+          </div>
         </div>
       </div>
-      <Instrument scaleNotes={scale.notes} scale={scale.pcs} chord={chords[state.degree].pcs} root={scale.root}
-        characteristic={scale.notes[CHAR_DEGREE[scale.mode]].pc} blue={state.showBlue ? blueNote(scale).note : null} names={names} label={t.instruments[state.instrument] ?? ''} />
+      <Instrument scaleNotes={shown.notes} scale={shown.pcs} chord={chord} root={shown.root}
+        characteristic={shown.notes[CHAR_DEGREE[shown.mode]].pc} blue={state.showBlue ? blueNote(shown).note : null} names={names} label={t.instruments[state.instrument] ?? ''} />
+      {shift > 0 && <p className="small">{fill(t.saxWritten, { scale: scaleLabel(shown), concert: scaleLabel(scale) })}</p>}
       {t.instrumentHelp[state.instrument] && <p className="muted small">{t.instrumentHelp[state.instrument]}</p>}
     </>
   );

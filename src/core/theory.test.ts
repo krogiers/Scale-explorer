@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { blueNote, chordsOf, formula, harmonicFunction, romanNumeral, scaleOf, type ModeIndex } from './theory';
+import { blueNote, chordsOf, formula, harmonicFunction, romanNumeral, scaleOf, transposed, type ModeIndex } from './theory';
 import { computeTargets } from './navigation';
 
 const LETTERS = 'CDEFGAB';
@@ -78,6 +78,18 @@ describe('navigatie', () => {
     const toF = t.pivots.find((p) => p.scale.root === 5)!;
     expect(toF.pivot).toBeNull();
     expect(toF.sharedChords.length).toBeGreaterThan(0);
+  });
+});
+
+describe('transponeren', () => {
+  const name = (n: { letter: number; acc: number }) => 'CDEFGAB'[n.letter] + ['♭', '', '♯'][n.acc + 1];
+  it('geeft geschreven noten voor een E♭-sax: C majeur wordt A majeur', () => {
+    const s = transposed(scaleOf(0, 1), 9);
+    expect(s.notes.map(name)).toEqual(['A', 'B', 'C♯', 'D', 'E', 'F♯', 'G♯']);
+    expect(s.mode).toBe(1);
+  });
+  it('geeft geschreven noten voor een B♭-sax: B♭ Dorisch wordt C Dorisch', () => {
+    expect(transposed(scaleOf(10, 3), 2).notes.map(name)).toEqual(['C', 'D', 'E♭', 'F', 'G', 'A', 'B♭']);
   });
 });
 

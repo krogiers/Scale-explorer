@@ -5,16 +5,21 @@ import { MESSAGES, type Lang, type Messages } from '../i18n';
 import { makeNames, namerById, type Names } from '../naming';
 import { audio, chordEvents, progressionEvents, scaleEvents } from '../audio';
 import { loopState } from '../audio/loop';
+import { SAX_KEYS, type SaxKey } from '../instruments';
 
 export interface Position { root: number; mode: ModeIndex; degree: number }
-/** Eén akkoord in het schema: waar het staat plus hoeveel tellen het duurt. */
-export interface PathEntry extends Position { beats: number }
+/** Eén akkoord in het schema: waar het staat, hoeveel tellen het duurt en of het een drie- of vierklank is. */
+export interface PathEntry extends Position { beats: number; size: ChordSize }
+export const chordOf = (p: PathEntry): Chord => chordsOf(scaleOf(p.root, p.mode), p.size)[p.degree];
 export type Timbre = 'piano' | 'rhodes' | 'synth';
 export interface State extends Position {
+  /** Drie- of vierklanken in de akkoordenrij en voor nieuwe akkoorden in het schema. */
   size: ChordSize;
   lang: Lang;
   namer: string;
   instrument: string;
+  /** Stemming van de sax: concert, E♭ (alt, bariton) of B♭ (sopraan, tenor). */
+  saxKey: SaxKey;
   sound: boolean;
   timbre: Timbre;
   /** Blue note (♭5) tonen in de toonladder en op het instrument. */
@@ -26,9 +31,11 @@ export interface State extends Position {
   path: PathEntry[];
   /** Het akkoord in het schema dat nu geselecteerd is. */
   focus: number;
+  /** Vorige versies van het schema, voor ongedaan maken (niet bewaard in de browser). */
+  history: { path: PathEntry[]; focus: number }[];
 }
 
-export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue' | 'bpm'>>;
+export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue' | 'bpm' | 'saxKey'>>;
 
 export const BPM_MIN = 40, BPM_MAX = 220;
 /** Tempo binnen het bereik van de schuif; onzin (NaN, tekst) wordt het standaardtempo. */
@@ -42,6 +49,8 @@ export type Action =
   | { type: 'go'; to: Destination }
   | { type: 'focusPath'; index: number }
   | { type: 'setBeats'; index: number; beats: number }
+  | { type: 'setSize'; index: number; size: ChordSize }
+  | { type: 'undo' }
   | { type: 'removeAt'; index: number }
   | { type: 'clearPath' }
   | { type: 'setScale'; root: number; mode: ModeIndex }
@@ -55,14 +64,16 @@ function loadPrefs(): Partial<State> {
 const CHART_KEY = 'tln-chart';
 const inRange = (v: unknown, min: number, max: number) => Number.isInteger(v) && (v as number) >= min && (v as number) <= max;
 /** Een opgeslagen schema alleen overnemen als elke waarde geldig is; anders zou de app bij het starten crashen. */
-export function validChart(c: unknown): PathEntry[] | null {
+/** Oudere schema's hebben geen grootte per akkoord: die krijgen de grootte uit de voorkeuren. */
+export function validChart(c: unknown, defaultSize: ChordSize = 3): PathEntry[] | null {
   if (!Array.isArray(c) || c.length === 0) return null;
-  const ok = c.every((e) => e && inRange(e.root, 0, 11) && inRange(e.mode, 0, 6) && inRange(e.degree, 0, 6) && inRange(e.beats, 1, 16));
-  return ok ? c.map(({ root, mode, degree, beats }) => ({ root, mode, degree, beats })) : null;
+  const ok = c.every((e) => e && inRange(e.root, 0, 11) && inRange(e.mode, 0, 6) && inRange(e.degree, 0, 6) && inRange(e.beats, 1, 16)
+    && (e.size === undefined || e.size === 3 || e.size === 4));
+  return ok ? c.map(({ root, mode, degree, beats, size }) => ({ root, mode, degree, beats, size: size ?? defaultSize })) : null;
 }
 
-function loadChart(): PathEntry[] | null {
-  try { return validChart(JSON.parse(localStorage.getItem(CHART_KEY) ?? 'null')); } catch { return null; }
+function loadChart(defaultSize: ChordSize): PathEntry[] | null {
+  try { return validChart(JSON.parse(localStorage.getItem(CHART_KEY) ?? 'null'), defaultSize); } catch { return null; }
 }
 
 /** Vroeger bewaarde de loop het tempo zelf; neem dat over zodat niemand zijn tempo kwijt is. */
@@ -72,8 +83,9 @@ function legacyLoopBpm(): unknown {
 
 function initial(): State {
   const p = loadPrefs();
-  const saved = loadChart();
-  const start: PathEntry = saved?.[saved.length - 1] ?? { root: 2, mode: 3, degree: 0, beats: 4 }; // D Dorisch
+  const size: ChordSize = p.size === 4 ? 4 : 3;
+  const saved = loadChart(size);
+  const start: PathEntry = saved?.[saved.length - 1] ?? { root: 2, mode: 3, degree: 0, beats: 4, size }; // D Dorisch
   return {
     root: start.root, mode: start.mode, degree: start.degree,
     timbre: p.timbre === 'synth' || p.timbre === 'rhodes' ? p.timbre : 'piano',
@@ -81,23 +93,36 @@ function initial(): State {
     bpm: clampBpm(p.bpm ?? legacyLoopBpm()),
     showBlue: p.showBlue !== false,
     focus: (saved?.length ?? 1) - 1,
-    size: p.size === 4 ? 4 : 3,
+    size,
+    history: [],
     lang: p.lang && p.lang in MESSAGES ? p.lang : 'nl',
     namer: typeof p.namer === 'string' ? p.namer : 'en',
     instrument: typeof p.instrument === 'string' ? p.instrument : 'piano',
+    saxKey: p.saxKey && SAX_KEYS.includes(p.saxKey) ? p.saxKey : 'Eb',
     sound: p.sound !== false,
     path: saved ?? [start],
   };
 }
 
-const entry = (s: State): PathEntry => ({ root: s.root, mode: s.mode, degree: s.degree, beats: s.meter });
-const MAX_CHORDS = 64;
-function withPush(s: State): State {
-  const last = s.path[s.path.length - 1];
-  if (last && last.root === s.root && last.mode === s.mode && last.degree === s.degree) return { ...s, focus: s.path.length - 1 };
-  const path = [...s.path, entry(s)].slice(-MAX_CHORDS);
-  return { ...s, path, focus: path.length - 1 };
+const entry = (s: State): PathEntry => ({ root: s.root, mode: s.mode, degree: s.degree, beats: s.meter, size: s.size });
+export const MAX_CHORDS = 64;
+const UNDO_STEPS = 50;
+
+/** Nieuwe versie van het schema, met de vorige bewaard voor ongedaan maken. */
+function edit(s: State, path: PathEntry[], focus: number): State {
+  return { ...s, path, focus, history: [...s.history, { path: s.path, focus: s.focus }].slice(-UNDO_STEPS) };
 }
+
+/** Voeg het gekozen akkoord in na het geselecteerde akkoord van het schema. Is het schema vol, dan gebeurt er niets. */
+function withPush(s: State): State {
+  const cur = s.path[s.focus];
+  if (cur && cur.root === s.root && cur.mode === s.mode && cur.degree === s.degree && cur.size === s.size) return s;
+  if (s.path.length >= MAX_CHORDS) return s;
+  const at = Math.min(s.focus + 1, s.path.length);
+  return edit(s, [...s.path.slice(0, at), entry(s), ...s.path.slice(at)], at);
+}
+
+const atEntry = (s: State, p: PathEntry, focus: number): State => ({ ...s, root: p.root, mode: p.mode, degree: p.degree, size: p.size, focus });
 
 export function reducer(s: State, a: Action): State {
   switch (a.type) {
@@ -114,16 +139,30 @@ export function reducer(s: State, a: Action): State {
     case 'go': return withPush({ ...s, ...a.to });
     case 'focusPath': {
       const p = s.path[a.index];
-      return p ? { ...s, root: p.root, mode: p.mode, degree: p.degree, focus: a.index } : s;
+      return p ? atEntry(s, p, a.index) : s;
     }
-    case 'setBeats':
-      return { ...s, path: s.path.map((e, i) => (i === a.index ? { ...e, beats: Math.max(1, Math.min(16, a.beats)) } : e)) };
+    case 'setBeats': {
+      const beats = Math.max(1, Math.min(16, a.beats));
+      if (s.path[a.index]?.beats === beats) return s;
+      return edit(s, s.path.map((e, i) => (i === a.index ? { ...e, beats } : e)), s.focus);
+    }
+    case 'setSize': {
+      if (!s.path[a.index] || s.path[a.index].size === a.size) return s;
+      const next = edit(s, s.path.map((e, i) => (i === a.index ? { ...e, size: a.size } : e)), s.focus);
+      return a.index === s.focus ? { ...next, size: a.size } : next;
+    }
     case 'removeAt': {
       if (s.path.length <= 1) return s;
       const path = s.path.filter((_, i) => i !== a.index);
-      return { ...s, path, focus: Math.min(s.focus > a.index ? s.focus - 1 : s.focus, path.length - 1) };
+      return edit(s, path, Math.min(s.focus > a.index ? s.focus - 1 : s.focus, path.length - 1));
     }
-    case 'clearPath': return { ...s, path: [entry(s)], focus: 0 };
+    case 'clearPath': return edit(s, [entry(s)], 0);
+    case 'undo': {
+      const prev = s.history[s.history.length - 1];
+      if (!prev) return s;
+      const focus = Math.min(prev.focus, prev.path.length - 1);
+      return { ...atEntry(s, prev.path[focus], focus), path: prev.path, history: s.history.slice(0, -1) };
+    }
     case 'settings': return { ...s, ...a.patch, ...(a.patch.bpm !== undefined && { bpm: clampBpm(a.patch.bpm) }) };
   }
 }
@@ -153,11 +192,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: state.lang, namer: state.namer, size: state.size, sound: state.sound, instrument: state.instrument, timbre: state.timbre, meter: state.meter, showBlue: state.showBlue, bpm: state.bpm }));
+      localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: state.lang, namer: state.namer, size: state.size, sound: state.sound, instrument: state.instrument, timbre: state.timbre, meter: state.meter, showBlue: state.showBlue, bpm: state.bpm, saxKey: state.saxKey }));
     } catch { /* opslag niet beschikbaar: geen probleem */ }
     document.documentElement.lang = state.lang;
     document.title = t.title;
-  }, [state.lang, state.namer, state.size, state.sound, state.instrument, state.timbre, state.meter, state.showBlue, state.bpm, t.title]);
+  }, [state.lang, state.namer, state.size, state.sound, state.instrument, state.timbre, state.meter, state.showBlue, state.bpm, state.saxKey, t.title]);
 
   useEffect(() => {
     try { localStorage.setItem(CHART_KEY, JSON.stringify(state.path)); } catch { /* niet erg */ }
@@ -172,14 +211,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const next = reducer(latest.current, a);
       latest.current = next;
       rawDispatch(a);
-      const plays = a.type === 'select' || a.type === 'go' || a.type === 'focusPath' || (a.type === 'settings' && (a.patch.sound === true || a.patch.timbre !== undefined));
+      const plays = a.type === 'select' || a.type === 'go' || a.type === 'focusPath' || a.type === 'setSize' || (a.type === 'settings' && (a.patch.sound === true || a.patch.timbre !== undefined));
       if (plays && next.sound && !loopState.running) audio.play(chordEvents(chordsOf(scaleOf(next.root, next.mode), next.size)[next.degree]));
     };
     return {
       state, dispatch, t, names, scale, chords,
       scaleLabel: (s: Scale) => `${names.note(s.notes[0])} ${t.modes[s.mode]}`,
       playScale: () => play(scaleEvents(scale)),
-      playPath: () => play(progressionEvents(state.path.map((p) => ({ chord: chordsOf(scaleOf(p.root, p.mode), state.size)[p.degree], beats: p.beats })), 60 / state.bpm)),
+      playPath: () => play(progressionEvents(state.path.map((p) => ({ chord: chordOf(p), beats: p.beats })), 60 / state.bpm)),
     };
   }, [state, t, names, scale, chords]);
 

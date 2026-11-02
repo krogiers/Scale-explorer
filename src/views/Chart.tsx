@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { chordsOf, scaleOf } from '../core/theory';
+import { useEffect, useState } from 'react';
+import { scaleOf } from '../core/theory';
 import type { BeatInfo } from '../audio/loop';
 import { fill } from '../i18n';
-import { useApp } from '../state/store';
+import { chordOf, MAX_CHORDS, useApp } from '../state/store';
 import { layoutBars } from './chartLayout';
 import { LoopControls } from './Loop';
 
@@ -16,8 +16,19 @@ export function Chart() {
   const chordAt = (i: number) => {
     const p = state.path[i];
     const s = scaleOf(p.root, p.mode);
-    return { p, s, c: chordsOf(s, state.size)[p.degree] };
+    return { p, s, c: chordOf(p) };
   };
+  const canUndo = state.history.length > 0;
+
+  // Ctrl/Cmd+Z maakt de laatste wijziging aan het schema ongedaan (niet in tekstvelden)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const typing = e.target instanceof HTMLElement && e.target.closest('input, select, textarea');
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && !typing) { e.preventDefault(); dispatch({ type: 'undo' }); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [dispatch]);
   const bars = layoutBars(state.path.map((p) => p.beats), state.meter);
   const focus = Math.min(state.focus, state.path.length - 1);
   const f = chordAt(focus);
@@ -33,6 +44,7 @@ export function Chart() {
             ))}
           </div>
           <button type="button" className="ghost play" onClick={playPath}>{t.playPath}</button>
+          <button type="button" className="ghost" disabled={!canUndo} onClick={() => dispatch({ type: 'undo' })} title="Ctrl/⌘+Z">↶ {t.undo}</button>
           <button type="button" className="ghost" onClick={() => dispatch({ type: 'clearPath' })}>{t.clear}</button>
         </div>
       </div>
@@ -70,8 +82,16 @@ export function Chart() {
             ))}
           </div>
         </div>
+        <div className="field"><span className="lbl">{t.chords}</span>
+          <div className="seg" role="group">
+            {([3, 4] as const).map((n) => (
+              <button key={n} type="button" aria-pressed={f.p.size === n} onClick={() => dispatch({ type: 'setSize', index: focus, size: n })}>{n === 3 ? t.triads : t.sevenths}</button>
+            ))}
+          </div>
+        </div>
         <button type="button" className="ghost" disabled={state.path.length <= 1} onClick={() => dispatch({ type: 'removeAt', index: focus })}>{t.remove}</button>
       </div>
+      {state.path.length >= MAX_CHORDS && <p className="small" role="status">{fill(t.chartFull, { n: MAX_CHORDS })}</p>}
       <p className="muted small">{t.chartHelp}</p>
       <LoopControls onBeat={setBeat} />
     </>

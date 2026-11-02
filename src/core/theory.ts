@@ -87,6 +87,9 @@ export function scaleOf(root: PitchClass, mode: ModeIndex): Scale {
   return s;
 }
 
+/** Dezelfde modus een aantal halve tonen hoger, opnieuw gespeld (voor transponerende instrumenten). */
+export const transposed = (s: Scale, semitones: number): Scale => scaleOf(mod12(s.root + semitones), s.mode);
+
 /** De trap waarop de bijhorende majeurladder begint (voor "gebruikt de noten van ... majeur"). */
 export const parentMajorDegree = (mode: ModeIndex) => (7 - MODE_OFFSET[mode]) % 7;
 

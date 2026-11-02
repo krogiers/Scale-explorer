@@ -9,6 +9,7 @@
  */
 import type { Chord, Scale } from '../core/theory';
 import { SAMPLES } from './samples';
+import { progressionVoicings, voicing } from './voicing';
 
 export type Part = 'bass' | 'keys';
 /** [MIDI-noot, start in seconden vanaf nu, duur in seconden, partij] */
@@ -200,23 +201,11 @@ class SampledEngine implements AudioEngine {
 
 export const audio: AudioEngine = new SampledEngine();
 
-/** Akkoordligging: bas een octaaf onder de grondtoon, daarboven de akkoordtonen oplopend. */
-export function voicing(c: Chord): number[] {
-  let base = 48 + c.root.pc;
-  if (base > 54) base -= 12;
-  const out = [base - 12, base];
-  let prev = base;
-  for (const n of c.notes.slice(1)) {
-    let m = 48 + n.pc;
-    while (m <= prev) m += 12;
-    out.push(m);
-    prev = m;
-  }
-  return out;
-}
+export { progressionVoicings, voiceLead, voicing } from './voicing';
 
-export const chordEvents = (c: Chord, at = 0, dur = 1.1): NoteEvent[] =>
-  voicing(c).map((m, i) => [m, at + i * 0.018, dur, i === 0 ? 'bass' : 'keys']);
+/** Noten voor één akkoord; zonder ligging klinkt het in grondligging. */
+export const chordEvents = (c: Chord, at = 0, dur = 1.1, notes: number[] = voicing(c)): NoteEvent[] =>
+  notes.map((m, i) => [m, at + i * 0.018, dur, i === 0 ? 'bass' : 'keys']);
 
 export function scaleEvents(s: Scale): NoteEvent[] {
   let prev = 60 + s.root - (s.root > 6 ? 12 : 0) - 1;
@@ -231,12 +220,13 @@ export function scaleEvents(s: Scale): NoteEvent[] {
   return ev;
 }
 
-/** Progressie één keer afspelen, met de duur van elk akkoord, in het tempo van de loop. */
+/** Progressie één keer afspelen, met de duur van elk akkoord, in het tempo van de loop en met stemvoering. */
 export function progressionEvents(items: { chord: Chord; beats: number }[], secondsPerBeat: number): NoteEvent[] {
+  const voicings = progressionVoicings(items.map((x) => x.chord));
   let at = 0;
-  return items.flatMap(({ chord, beats }) => {
+  return items.flatMap(({ chord, beats }, i) => {
     const dur = beats * secondsPerBeat;
-    const ev = chordEvents(chord, at, dur * 0.95);
+    const ev = chordEvents(chord, at, dur * 0.95, voicings[i]);
     at += dur;
     return ev;
   });

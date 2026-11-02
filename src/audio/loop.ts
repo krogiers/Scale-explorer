@@ -60,20 +60,48 @@ export function planBeat(item: TimelineItem, beatInChord: number, beatInBar: num
   return out;
 }
 
-/** De echte kwint van het akkoord (rein, verminderd of overmatig), net boven de bas. */
+/**
+ * De echte kwint van het akkoord (rein, verminderd of overmatig), net boven de bas.
+ * We zoeken hem op interval, want door de stemvoering staat hij niet op een vaste plaats.
+ */
 function fifthAbove(bass: number, upper: number[]): number {
-  let fifth = upper[2];
+  let fifth = upper.find((m) => [6, 7, 8].includes((((m - bass) % 12) + 12) % 12));
   if (fifth === undefined) return bass + 7;
   while (fifth > bass + 11) fifth -= 12;
   while (fifth <= bass) fifth += 12;
   return fifth;
 }
 
+/**
+ * Klok voor de planner. Browsers vertragen setInterval in een achtergrondtabblad tot één keer per
+ * seconde, waardoor de loop hapert; een timer in een Web Worker blijft veel stipter lopen.
+ * De Worker komt uit een Blob, zodat de app ook als één los bestand blijft werken.
+ */
+const WORKER_SRC = 'let t;onmessage=(e)=>{clearInterval(t);if(e.data>0)t=setInterval(()=>postMessage(0),e.data)}';
+let worker: Worker | null | undefined;
+function tickWorker(): Worker | null {
+  if (worker === undefined) {
+    try { worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], { type: 'text/javascript' }))); } catch { worker = null; }
+  }
+  return worker;
+}
+/** Roep fn elke ms milliseconden aan; geeft een functie terug om te stoppen. Zonder Worker: gewone setInterval. */
+function startTicker(ms: number, fn: () => void): () => void {
+  const w = typeof Worker === 'undefined' ? null : tickWorker();
+  if (!w) {
+    const id = window.setInterval(fn, ms);
+    return () => window.clearInterval(id);
+  }
+  w.onmessage = fn;
+  w.postMessage(ms);
+  return () => { w.onmessage = null; w.postMessage(0); };
+}
+
 /** Draait er een loop? Dan spelen losse klikken op akkoorden geen extra geluid. */
 export const loopState = { running: false };
 
 export class LoopPlayer {
-  private timer: number | null = null;
+  private stopTicker: (() => void) | null = null;
   private nextTime = 0;
   private beat = 0;
 
@@ -84,21 +112,21 @@ export class LoopPlayer {
     private onBeat: (info: BeatInfo | null) => void,
   ) {}
 
-  get running() { return this.timer !== null; }
+  get running() { return this.stopTicker !== null; }
 
   start() {
     const now = this.engine.now();
-    if (now == null || this.timer !== null) return;
+    if (now == null || this.stopTicker !== null) return;
     const o = this.getOptions();
     this.nextTime = now + 0.15;
     this.beat = o.countIn ? -o.meter : 0;
-    this.timer = window.setInterval(() => this.tick(), 25);
+    this.stopTicker = startTicker(25, () => this.tick());
     loopState.running = true;
   }
 
   stop() {
-    if (this.timer !== null) window.clearInterval(this.timer);
-    this.timer = null;
+    this.stopTicker?.();
+    this.stopTicker = null;
     loopState.running = false;
     this.onBeat(null);
   }
@@ -128,6 +156,6 @@ export class LoopPlayer {
       for (const n of planBeat(item, inChord, beat % opts.meter, opts)) this.engine.noteAt(n.midi, t + n.offset, n.duration, n.vel, n.part);
       info = { chord, beat: inChord, beats: item.beats };
     }
-    window.setTimeout(() => { if (this.timer !== null) this.onBeat(info); }, Math.max(0, (t - now) * 1000));
+    window.setTimeout(() => { if (this.stopTicker !== null) this.onBeat(info); }, Math.max(0, (t - now) * 1000));
   }
 }

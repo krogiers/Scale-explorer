@@ -32,4 +32,12 @@ export const INSTRUMENTS: Instrument[] = [
   { id: 'sax', component: Sax },
   { id: 'guitar', component: Guitar },
 ];
+/**
+ * Stemming van de sax: hoeveel halve tonen de geschreven noot boven de klinkende ligt.
+ * Alle saxen hebben dezelfde grepen per geschreven noot; alleen de stemming verschilt.
+ */
+export type SaxKey = 'C' | 'Eb' | 'Bb';
+export const SAX_KEYS: SaxKey[] = ['C', 'Eb', 'Bb'];
+export const SAX_TRANSPOSE: Record<SaxKey, number> = { C: 0, Eb: 9, Bb: 2 };
+
 export const instrumentById = (id: string) => INSTRUMENTS.find((i) => i.id === id) ?? INSTRUMENTS[0];

@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
-import { blueNote, CHAR_DEGREE, chordsOf, scaleOf } from '../core/theory';
-import { audio, voicing } from '../audio';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { blueNote, CHAR_DEGREE, scaleOf } from '../core/theory';
+import { audio, progressionVoicings } from '../audio';
 import { LoopPlayer, type BeatInfo, type LoopOptions, type LoopStyle, type TimelineItem } from '../audio/loop';
 import { fill } from '../i18n';
-import { BPM_MAX, BPM_MIN, useApp, type Timbre } from '../state/store';
+import { BPM_MAX, BPM_MIN, chordOf, useApp, type Timbre } from '../state/store';
 
 const KEY = 'tln-loop';
 /** Het tempo zit in de gedeelde toestand (ook "Speel progressie" gebruikt het); de rest bewaart de loop zelf. */
@@ -29,7 +29,10 @@ export function LoopControls({ onBeat }: { onBeat: (info: BeatInfo | null) => vo
 
   // de planner leest altijd de nieuwste progressie en instellingen via refs
   const timeline = useRef<TimelineItem[]>([]);
-  timeline.current = state.path.map((p) => ({ voicing: voicing(chordsOf(scaleOf(p.root, p.mode), state.size)[p.degree]), beats: p.beats }));
+  timeline.current = useMemo(() => {
+    const voicings = progressionVoicings(state.path.map(chordOf));
+    return state.path.map((p, i) => ({ voicing: voicings[i], beats: p.beats }));
+  }, [state.path]);
   const optsRef = useRef<LoopOptions>({ ...opts, bpm: state.bpm, meter: state.meter });
   optsRef.current = { ...opts, bpm: state.bpm, meter: state.meter };
   const onBeatRef = useRef(onBeat);
@@ -55,9 +58,8 @@ export function LoopControls({ onBeat }: { onBeat: (info: BeatInfo | null) => vo
     } else {
       const p = state.path[info.chord % state.path.length];
       const s = scaleOf(p.root, p.mode);
-      const c = chordsOf(s, state.size)[p.degree];
-      const n = state.path[(info.chord + 1) % state.path.length];
-      const nc = chordsOf(scaleOf(n.root, n.mode), state.size)[n.degree];
+      const c = chordOf(p);
+      const nc = chordOf(state.path[(info.chord + 1) % state.path.length]);
       now = (
         <div className="loop-now">
           <b className="loop-chord">{names.chord(c)}</b>

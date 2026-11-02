@@ -33,7 +33,7 @@ export function locate(timeline: TimelineItem[], beat: number): { chord: number;
 
 /** Wat er op één tel te spelen valt, los van de geluidskaart (zodat het te testen is). */
 export interface PlannedNote { midi: number; offset: number; duration: number; vel: number; part: Part }
-export function planBeat(item: TimelineItem, beatInChord: number, opts: Pick<LoopOptions, 'bpm' | 'style'>): PlannedNote[] {
+export function planBeat(item: TimelineItem, beatInChord: number, beatInBar: number, opts: Pick<LoopOptions, 'bpm' | 'style' | 'meter'>): PlannedNote[] {
   const spb = 60 / opts.bpm;
   const [bass, ...upper] = item.voicing;
   if (bass === undefined) return [];
@@ -45,12 +45,28 @@ export function planBeat(item: TimelineItem, beatInChord: number, opts: Pick<Loo
       ...upper.map((midi, i) => ({ midi, offset: 0.012 * (i + 1), duration, vel: 0.6, part: 'keys' as const })),
     ];
   }
-  // ritmisch: bas op de oneven tellen (grondtoon, dan kwint), akkoord kort op de even tellen
-  if (beatInChord % 2 === 0) {
-    const midi = beatInChord % 4 === 2 ? bass + 7 : bass;
-    return [{ midi, offset: 0, duration: spb * 0.9, vel: 1, part: 'bass' }];
+  // ritmisch, volgens de maat: in 4/4 bas op 1 en 3 (grondtoon, dan kwint) en akkoord op 2 en 4;
+  // in 3/4 bas op 1 en akkoord op 2 en 3. Een nieuw akkoord krijgt altijd zijn grondtoon in de bas.
+  const bassBeat = opts.meter === 3 ? beatInBar === 0 : beatInBar % 2 === 0;
+  const out: PlannedNote[] = [];
+  if (bassBeat || beatInChord === 0) {
+    const useFifth = beatInChord !== 0 && opts.meter !== 3 && beatInBar === 2;
+    out.push({ midi: useFifth ? fifthAbove(bass, upper) : bass, offset: 0, duration: spb * 0.9, vel: 1, part: 'bass' });
   }
-  return upper.map((midi) => ({ midi, offset: 0, duration: spb * 0.4, vel: 0.55, part: 'keys' as const }));
+  // een akkoord van één tel op een bastel zou anders nooit klinken
+  if (!bassBeat || item.beats === 1) {
+    out.push(...upper.map((midi) => ({ midi, offset: 0, duration: spb * 0.4, vel: 0.55, part: 'keys' as const })));
+  }
+  return out;
+}
+
+/** De echte kwint van het akkoord (rein, verminderd of overmatig), net boven de bas. */
+function fifthAbove(bass: number, upper: number[]): number {
+  let fifth = upper[2];
+  if (fifth === undefined) return bass + 7;
+  while (fifth > bass + 11) fifth -= 12;
+  while (fifth <= bass) fifth += 12;
+  return fifth;
 }
 
 /** Draait er een loop? Dan spelen losse klikken op akkoorden geen extra geluid. */
@@ -109,7 +125,7 @@ export class LoopPlayer {
       const { chord, beat: inChord } = locate(timeline, beat);
       const item = timeline[chord];
       if (opts.metronome) this.engine.clickAt(t, beat % opts.meter === 0);
-      for (const n of planBeat(item, inChord, opts)) this.engine.noteAt(n.midi, t + n.offset, n.duration, n.vel, n.part);
+      for (const n of planBeat(item, inChord, beat % opts.meter, opts)) this.engine.noteAt(n.midi, t + n.offset, n.duration, n.vel, n.part);
       info = { chord, beat: inChord, beats: item.beats };
     }
     window.setTimeout(() => { if (this.timer !== null) this.onBeat(info); }, Math.max(0, (t - now) * 1000));

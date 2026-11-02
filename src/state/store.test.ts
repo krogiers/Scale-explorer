@@ -1,7 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { reducer, type State } from './store';
+import { clampBpm, reducer, validChart, type State } from './store';
 
-const base: State = { root: 0, mode: 1, degree: 0, size: 3, lang: 'nl', namer: 'en', instrument: 'piano', sound: false, timbre: 'piano', showBlue: true, meter: 4, focus: 0, path: [{ root: 0, mode: 1, degree: 0, beats: 4 }] };
+const base: State = { root: 0, mode: 1, degree: 0, size: 3, lang: 'nl', namer: 'en', instrument: 'piano', sound: false, timbre: 'piano', showBlue: true, meter: 4, bpm: 90, focus: 0, path: [{ root: 0, mode: 1, degree: 0, beats: 4 }] };
+
+describe('opgeslagen gegevens', () => {
+  it('neemt een geldig schema over', () => {
+    expect(validChart([{ root: 2, mode: 3, degree: 0, beats: 4 }])).toEqual([{ root: 2, mode: 3, degree: 0, beats: 4 }]);
+  });
+  it('weigert een schema met waarden buiten bereik', () => {
+    expect(validChart([{ root: 2, mode: 9, degree: 0, beats: 4 }])).toBeNull();
+    expect(validChart([{ root: 12, mode: 1, degree: 0, beats: 4 }])).toBeNull();
+    expect(validChart([{ root: 0, mode: 1, degree: 7, beats: 4 }])).toBeNull();
+    expect(validChart([{ root: 0, mode: 1, degree: 0, beats: 0 }])).toBeNull();
+    expect(validChart([null])).toBeNull();
+    expect(validChart('rommel')).toBeNull();
+    expect(validChart([])).toBeNull();
+  });
+  it('houdt het tempo binnen het bereik', () => {
+    expect(clampBpm(120)).toBe(120);
+    expect(clampBpm(500)).toBe(220);
+    expect(clampBpm(5)).toBe(40);
+    expect(clampBpm(Number.NaN)).toBe(90);
+    expect(clampBpm('snel')).toBe(90);
+    expect(reducer(base, { type: 'settings', patch: { bpm: 999 } }).bpm).toBe(220);
+  });
+});
 
 describe('navigatie in de toestand', () => {
   it('voegt gekozen akkoorden toe aan de progressie', () => {

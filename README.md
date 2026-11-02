@@ -222,7 +222,7 @@ f = 440 · 2^((m − 69) / 12)   Hz          (MIDI 69 = A4 = 440 Hz)
 
 ### 7b. De blue note
 
-De blue note is de verlaagde kwint van de grondtoon: `blue = (r + 6) mod 12`. Hij wordt gespeld op de letter van de kwint (letter van de grondtoon + 4), dus op D wordt het A♭ en niet G♯, en in B♭ majeur F♭. Alleen Locrisch bevat hem al (de ♭5 is zijn kenmerkende noot). Je zet hem aan of uit in de instellingen; dan verschijnt hij gestippeld in de toonladder, in blauw op klavier en gitaar, en in het meespeelvak. Elk akkoord toont ook zijn eigen noten, zodat je weet welke tonen veilig zijn om op te landen.
+De blue note is de verlaagde kwint van de grondtoon: `blue = (r + 6) mod 12`. Hij wordt gespeld op de letter van de kwint (letter van de grondtoon + 4), dus op D wordt het A♭ en niet G♯, en in B♭ majeur F♭. Zou dat een dubbel voorteken geven, dan wordt hij als ♯4 gespeld: op G♭ wordt het C (niet D𝄫), op D♭ wordt het G. Alleen Locrisch bevat hem al (de ♭5 is zijn kenmerkende noot). Je zet hem aan of uit in de instellingen; dan verschijnt hij gestippeld in de toonladder, in blauw op klavier en gitaar, en in het meespeelvak. Elk akkoord toont ook zijn eigen noten, zodat je weet welke tonen veilig zijn om op te landen.
 
 ### 8. Uitbreiden
 

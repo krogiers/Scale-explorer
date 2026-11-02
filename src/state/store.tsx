@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
 import { chordsOf, scaleOf, type Chord, type ChordSize, type ModeIndex, type Scale } from '../core/theory';
 import type { Destination } from '../core/navigation';
 import { MESSAGES, type Lang, type Messages } from '../i18n';
@@ -21,12 +21,18 @@ export interface State extends Position {
   showBlue: boolean;
   /** Maatsoort: tellen per maat (4 = 4/4, 3 = 3/4). */
   meter: 3 | 4;
+  /** Tempo in tellen per minuut, voor de loop en voor "Speel progressie". */
+  bpm: number;
   path: PathEntry[];
   /** Het akkoord in het schema dat nu geselecteerd is. */
   focus: number;
 }
 
-export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue'>>;
+export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue' | 'bpm'>>;
+
+export const BPM_MIN = 40, BPM_MAX = 220;
+/** Tempo binnen het bereik van de schuif; onzin (NaN, tekst) wordt het standaardtempo. */
+export const clampBpm = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.round(Math.min(BPM_MAX, Math.max(BPM_MIN, v))) : 90);
 
 export type Action =
   | { type: 'setRoot'; root: number }
@@ -47,12 +53,21 @@ function loadPrefs(): Partial<State> {
 }
 
 const CHART_KEY = 'tln-chart';
+const inRange = (v: unknown, min: number, max: number) => Number.isInteger(v) && (v as number) >= min && (v as number) <= max;
+/** Een opgeslagen schema alleen overnemen als elke waarde geldig is; anders zou de app bij het starten crashen. */
+export function validChart(c: unknown): PathEntry[] | null {
+  if (!Array.isArray(c) || c.length === 0) return null;
+  const ok = c.every((e) => e && inRange(e.root, 0, 11) && inRange(e.mode, 0, 6) && inRange(e.degree, 0, 6) && inRange(e.beats, 1, 16));
+  return ok ? c.map(({ root, mode, degree, beats }) => ({ root, mode, degree, beats })) : null;
+}
+
 function loadChart(): PathEntry[] | null {
-  try {
-    const c = JSON.parse(localStorage.getItem(CHART_KEY) ?? 'null');
-    if (Array.isArray(c) && c.length > 0 && c.every((e) => [e.root, e.mode, e.degree, e.beats].every(Number.isInteger))) return c;
-  } catch { /* geen opgeslagen schema */ }
-  return null;
+  try { return validChart(JSON.parse(localStorage.getItem(CHART_KEY) ?? 'null')); } catch { return null; }
+}
+
+/** Vroeger bewaarde de loop het tempo zelf; neem dat over zodat niemand zijn tempo kwijt is. */
+function legacyLoopBpm(): unknown {
+  try { return JSON.parse(localStorage.getItem('tln-loop') ?? '{}').bpm; } catch { return undefined; }
 }
 
 function initial(): State {
@@ -63,6 +78,7 @@ function initial(): State {
     root: start.root, mode: start.mode, degree: start.degree,
     timbre: p.timbre === 'synth' || p.timbre === 'rhodes' ? p.timbre : 'piano',
     meter: p.meter === 3 ? 3 : 4,
+    bpm: clampBpm(p.bpm ?? legacyLoopBpm()),
     showBlue: p.showBlue !== false,
     focus: (saved?.length ?? 1) - 1,
     size: p.size === 4 ? 4 : 3,
@@ -108,7 +124,7 @@ export function reducer(s: State, a: Action): State {
       return { ...s, path, focus: Math.min(s.focus > a.index ? s.focus - 1 : s.focus, path.length - 1) };
     }
     case 'clearPath': return { ...s, path: [entry(s)], focus: 0 };
-    case 'settings': return { ...s, ...a.patch };
+    case 'settings': return { ...s, ...a.patch, ...(a.patch.bpm !== undefined && { bpm: clampBpm(a.patch.bpm) }) };
   }
 }
 
@@ -127,6 +143,9 @@ const AppContext = createContext<Ctx | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, rawDispatch] = useReducer(reducer, undefined, initial);
+  // de nieuwste toestand, ook tussen twee dispatches in dezelfde tick (voor het geluid)
+  const latest = useRef(state);
+  latest.current = state;
   const t = MESSAGES[state.lang];
   const names = useMemo(() => makeNames(namerById(state.namer)), [state.namer]);
   const scale = scaleOf(state.root, state.mode);
@@ -134,11 +153,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: state.lang, namer: state.namer, size: state.size, sound: state.sound, instrument: state.instrument, timbre: state.timbre, meter: state.meter, showBlue: state.showBlue }));
+      localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: state.lang, namer: state.namer, size: state.size, sound: state.sound, instrument: state.instrument, timbre: state.timbre, meter: state.meter, showBlue: state.showBlue, bpm: state.bpm }));
     } catch { /* opslag niet beschikbaar: geen probleem */ }
     document.documentElement.lang = state.lang;
     document.title = t.title;
-  }, [state.lang, state.namer, state.size, state.sound, state.instrument, state.timbre, state.meter, state.showBlue, t.title]);
+  }, [state.lang, state.namer, state.size, state.sound, state.instrument, state.timbre, state.meter, state.showBlue, state.bpm, t.title]);
 
   useEffect(() => {
     try { localStorage.setItem(CHART_KEY, JSON.stringify(state.path)); } catch { /* niet erg */ }
@@ -150,7 +169,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const play = (events: Parameters<typeof audio.play>[0]) => { if (state.sound) audio.play(events); };
     // geluid hoort bij een klik: we spelen het akkoord van de nieuwe toestand direct in de dispatch
     const dispatch = (a: Action) => {
-      const next = reducer(state, a);
+      const next = reducer(latest.current, a);
+      latest.current = next;
       rawDispatch(a);
       const plays = a.type === 'select' || a.type === 'go' || a.type === 'focusPath' || (a.type === 'settings' && (a.patch.sound === true || a.patch.timbre !== undefined));
       if (plays && next.sound && !loopState.running) audio.play(chordEvents(chordsOf(scaleOf(next.root, next.mode), next.size)[next.degree]));
@@ -159,7 +179,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       state, dispatch, t, names, scale, chords,
       scaleLabel: (s: Scale) => `${names.note(s.notes[0])} ${t.modes[s.mode]}`,
       playScale: () => play(scaleEvents(scale)),
-      playPath: () => play(progressionEvents(state.path.map((p) => ({ chord: chordsOf(scaleOf(p.root, p.mode), state.size)[p.degree], beats: p.beats })))),
+      playPath: () => play(progressionEvents(state.path.map((p) => ({ chord: chordsOf(scaleOf(p.root, p.mode), state.size)[p.degree], beats: p.beats })), 60 / state.bpm)),
     };
   }, [state, t, names, scale, chords]);
 

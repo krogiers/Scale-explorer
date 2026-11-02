@@ -155,10 +155,12 @@ export function harmonicFunction(mode: ModeIndex, degree: number): HarmonicFunct
 /**
  * Blue note: de verlaagde kwint (♭5) van de grondtoon, de kenmerkende noot van de bluesladder
  * (1 ♭3 4 ♭5 5 ♭7). Gespeld op de letter van de kwint, dus op D wordt het A♭ en niet G♯.
+ * Zou dat een dubbel voorteken geven (G♭ → D𝄫), dan spellen we hem als ♯4 (C).
  * inScale = true als de modus hem al bevat (Locrisch).
  */
 export function blueNote(s: Scale): { note: Note; inScale: boolean } {
-  const letter = (s.notes[0].letter + 4) % 7;
   const pc = mod12(s.root + 6);
+  let letter = (s.notes[0].letter + 4) % 7;
+  if (Math.abs(accidentalFor(pc, letter)) > 1) letter = (s.notes[0].letter + 3) % 7;
   return { note: { pc, letter, acc: accidentalFor(pc, letter) }, inScale: s.pcs.has(pc) };
 }

@@ -3,15 +3,20 @@ import { blueNote, CHAR_DEGREE, chordsOf, scaleOf } from '../core/theory';
 import { audio, voicing } from '../audio';
 import { LoopPlayer, type BeatInfo, type LoopOptions, type LoopStyle, type TimelineItem } from '../audio/loop';
 import { fill } from '../i18n';
-import { useApp, type Timbre } from '../state/store';
+import { BPM_MAX, BPM_MIN, useApp, type Timbre } from '../state/store';
 
 const KEY = 'tln-loop';
-type Saved = Omit<LoopOptions, 'meter'>;
-const DEFAULTS: Saved = { bpm: 90, metronome: true, style: 'comp', countIn: true };
+/** Het tempo zit in de gedeelde toestand (ook "Speel progressie" gebruikt het); de rest bewaart de loop zelf. */
+type Saved = Omit<LoopOptions, 'meter' | 'bpm'>;
+const DEFAULTS: Saved = { metronome: true, style: 'comp', countIn: true };
 function load(): Saved {
   try {
-    const { bpm, metronome, style, countIn } = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') };
-    return { bpm, metronome, style, countIn };
+    const s = JSON.parse(localStorage.getItem(KEY) ?? '{}');
+    return {
+      metronome: typeof s.metronome === 'boolean' ? s.metronome : DEFAULTS.metronome,
+      style: s.style === 'sustain' ? 'sustain' : 'comp',
+      countIn: typeof s.countIn === 'boolean' ? s.countIn : DEFAULTS.countIn,
+    };
   } catch { return DEFAULTS; }
 }
 
@@ -25,8 +30,8 @@ export function LoopControls({ onBeat }: { onBeat: (info: BeatInfo | null) => vo
   // de planner leest altijd de nieuwste progressie en instellingen via refs
   const timeline = useRef<TimelineItem[]>([]);
   timeline.current = state.path.map((p) => ({ voicing: voicing(chordsOf(scaleOf(p.root, p.mode), state.size)[p.degree]), beats: p.beats }));
-  const optsRef = useRef<LoopOptions>({ ...opts, meter: state.meter });
-  optsRef.current = { ...opts, meter: state.meter };
+  const optsRef = useRef<LoopOptions>({ ...opts, bpm: state.bpm, meter: state.meter });
+  optsRef.current = { ...opts, bpm: state.bpm, meter: state.meter };
   const onBeatRef = useRef(onBeat);
   onBeatRef.current = onBeat;
 
@@ -78,8 +83,8 @@ export function LoopControls({ onBeat }: { onBeat: (info: BeatInfo | null) => vo
         </button>
       </div>
       <div className="loop-controls">
-        <div className="field grow"><label htmlFor="bpm">{t.tempo}: <b>{opts.bpm} BPM</b></label>
-          <input id="bpm" type="range" min={40} max={220} step={2} value={opts.bpm} onChange={(e) => set({ bpm: +e.target.value })} />
+        <div className="field grow"><label htmlFor="bpm">{t.tempo}: <b>{state.bpm} BPM</b></label>
+          <input id="bpm" type="range" min={BPM_MIN} max={BPM_MAX} step={2} value={state.bpm} onChange={(e) => dispatch({ type: 'settings', patch: { bpm: +e.target.value } })} />
         </div>
         <div className="field"><label htmlFor="style">{t.accompaniment}</label>
           <select id="style" value={opts.style} onChange={(e) => set({ style: e.target.value as LoopStyle })}>

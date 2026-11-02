@@ -231,11 +231,11 @@ export function scaleEvents(s: Scale): NoteEvent[] {
   return ev;
 }
 
-/** Progressie één keer afspelen, met de duur van elk akkoord (0,3 s per tel). */
-export function progressionEvents(items: { chord: Chord; beats: number }[]): NoteEvent[] {
+/** Progressie één keer afspelen, met de duur van elk akkoord, in het tempo van de loop. */
+export function progressionEvents(items: { chord: Chord; beats: number }[], secondsPerBeat: number): NoteEvent[] {
   let at = 0;
   return items.flatMap(({ chord, beats }) => {
-    const dur = beats * 0.3;
+    const dur = beats * secondsPerBeat;
     const ev = chordEvents(chord, at, dur * 0.95);
     at += dur;
     return ev;

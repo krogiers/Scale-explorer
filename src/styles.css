@@ -156,7 +156,7 @@ table.map td{padding:0}
 .k-w.ch,.k-b.ch{fill:var(--brass)}
 .k-dot{fill:var(--dia)}
 .k-dot.char{fill:var(--bor)}
-.k-lbl{font-family:var(--f-body);font-size:9px;text-anchor:middle;fill:var(--ink);font-weight:600}
+.k-lbl{font-family:var(--f-body);font-size:9px;text-anchor:middle;fill:var(--key-black);font-weight:600}
 .k-lbl.on-b{fill:var(--key-white)}
 .k-lbl.on-ch{fill:#FFFFFF}
 .instrhead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}

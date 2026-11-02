@@ -89,6 +89,12 @@ describe('blue note', () => {
     const bb = blueNote(scaleOf(10, 1)); // Bes majeur -> Fes
     expect(['CDEFGAB'[bb.note.letter], bb.note.acc]).toEqual(['F', -1]);
   });
+  it('vermijdt dubbele voortekens: op G♭ en D♭ wordt het de ♯4', () => {
+    const gb = blueNote(scaleOf(6, 1)); // Ges majeur -> C, niet D𝄫
+    expect(['CDEFGAB'[gb.note.letter], gb.note.acc]).toEqual(['C', 0]);
+    const db = blueNote(scaleOf(1, 1)); // Des majeur -> G, niet A𝄫
+    expect(['CDEFGAB'[db.note.letter], db.note.acc]).toEqual(['G', 0]);
+  });
   it('zit al in Locrisch', () => {
     expect(blueNote(scaleOf(0, 6)).inScale).toBe(true);
   });

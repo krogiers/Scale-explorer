@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { numeralAt } from './theory';
-import { realize, SEQUENCES } from './sequences';
+import { numeralAt, realize, SEQUENCES } from '.';
 
 const seq = (id: string) => SEQUENCES.find((s) => s.id === id)!;
 const keys = (id: string, tonic: number) => realize(seq(id), tonic, 4).map((s) => s.chord.key);

@@ -16,23 +16,31 @@ npm run build    # productieversie in de map dist/
 
 ## Opbouw
 
-De app bestaat uit een theoriekern en verwisselbare onderdelen die elk een vaste interface volgen.
+De app bestaat uit kleine pakketjes. Elk pakket is een map met een voordeur (`index.ts`). Van buitenaf importeer je alleen via die voordeur. Een pakket gebruikt alleen de pakketten die eronder liggen:
+
+```
+core  ←  i18n, naming, audio, instruments  ←  state  ←  ui  ←  screens/*  ←  App
+```
+
+De schermen importeren elkaar niet: `App.tsx` zet ze samen. De test `src/architecture.test.ts` bewaakt deze regels.
 
 | Map | Wat erin zit | Iets toevoegen |
 | --- | --- | --- |
-| `src/core/` | Theoriekern: toonladders, modi, spelling, akkoorden, trapnummers (`theory.ts`) en navigatiestappen (`navigation.ts`). Rekent alleen met toonklassen 0 tot 11, zonder namen of taal. | Nieuwe toonladderfamilies (harmonisch en melodisch mineur) |
+| `src/core/` | Theoriekern, zonder React, namen of taal. Rekent alleen met toonklassen 0 tot 11. `pitch` (noten), `scale` (modi, spelling), `chords` (akkoorden, trapnummers, functies), `colour` (blue note, pentatonisch), `navigation` (volgende stappen) en `sequences` (jazzsequenties). | Nieuwe toonladderfamilies (harmonisch en melodisch mineur) |
 | `src/naming/` | Interface `NoteNamer`: Engels, do re mi, Nederlands | Eén object aan `NOTE_NAMERS` toevoegen |
 | `src/i18n/` | Interfacetaal: één woordenboek per taal (`nl.ts`, `en.ts`). TypeScript controleert dat elke taal alle sleutels heeft. | Een bestand `fr.ts` maken en in `index.ts` registreren |
-| `src/instruments/` | Interface `Instrument`: een React-component die `InstrumentView` krijgt (noten, akkoord, grondtoon). Nu: klavier, saxofoon, trompet, klarinet en dwarsfluit (greepschema per noot) en gitaar (hals in standaardstemming). | Een component zoals `Bass.tsx` schrijven en in `INSTRUMENTS` zetten |
-| `src/audio/` | Interface `AudioEngine`: speelt en plant MIDI-noten en metronoomtikken. Nu een kleine synthesizer op de Web Audio API. De meespeelloop (`loop.ts`) plant tellen vooruit op de klok van de geluidskaart. | Een sampler of MIDI-uitgang met dezelfde `play()`-methode |
-| `src/state/` | Toestand van de app (reducer) en de context die alle onderdelen samenbrengt | |
-| `src/views/` | De weergaven: kwintencirkel, modusladder, akkoordenrij, volgende stappen, akkoordennetwerk, progressie, modale kaart | |
+| `src/audio/` | Interface `AudioEngine` (`types.ts`). `engine/` is de motor: opnames (`sampler`), klankinstellingen (`voices`), `synth` en `drums`. `loop/` is de meespeelloop: `plan` (wat er per tel klinkt), `grooves` (ritmepatronen), `tones` (bastonen) en `player` (de klok). `events` bepaalt wat een akkoord, ladder of progressie speelt, `voicing` de stemvoering. De opnames staan in `samples/`. | Een klank: een bestand in `samples/` en een regel in `voices.ts`. Een groove: een patroon in `grooves.ts` |
+| `src/instruments/` | Interface `InstrumentView` (`types.ts`) en het register (`index.ts`). Klavier, gitaar, en in `wind/` de blazers (sax, trompet, klarinet, dwarsfluit) met gedeelde greepkaarten. | Een component schrijven en in `INSTRUMENTS` zetten |
+| `src/state/` | `model` (toestand en acties), `reducer` (pure overgangen, ongedaan maken), `persist` (bewaren in de browser) en `store` (provider, speelt het geluid bij een klik) | Een actie in `model.ts` en een geval in `reducer.ts` |
+| `src/ui/` | Gedeelde onderdelen voor de schermen: `Legend` en opmaak van teksten | |
+| `src/screens/` | Eén map per scherm, elk met zijn eigen componenten en CSS. `ladder/` (kwintencirkel, modus, modusladder, modale kaart), `akkoorden/` (akkoordenrij, volgende stap, netwerk, sequenties, `chart/` het schema), `spelen/` (meespeelloop, instrument), `settings/` | Een paneel in de map van zijn scherm, en exporteren via `index.ts` |
+| `src/styles/` | `base.css` (kleuren, layout, knoppen), `overlays.css` (blue note, pentatonisch) en `index.css`, dat alle CSS in een vaste volgorde laadt | |
 
 Taal en nootnamen staan los van elkaar: de interface kan in het Nederlands staan met do re mi, of in het Engels met Nederlandse nootnamen.
 
 ## Het wiskundig model
 
-De hele theorie in de app volgt uit een paar eenvoudige rekenregels. Ze staan in `src/core/theory.ts` en `src/core/navigation.ts`. Hieronder stap voor stap, telkens met een voorbeeld.
+De hele theorie in de app volgt uit een paar eenvoudige rekenregels. Ze staan in `src/core/` (`scale.ts`, `chords.ts`, `navigation.ts`). Hieronder stap voor stap, telkens met een voorbeeld.
 
 ### 1. Noten als getallen modulo 12
 
@@ -212,7 +220,7 @@ Voorbeeld: Am staat in C Ionisch (vi) en in G Ionisch (ii). Via Am kun je naar D
 - **Klavier**: twee octaven; een toets met toonklasse pc licht op als pc in de toonladder zit.
 - **Gitaar**: snaar s in standaardstemming heeft losse toonklasse [4, 11, 7, 2, 9, 4] (hoge E tot lage E). Op fret f klinkt (los + f) mod 12.
 - **Saxofoon**: de grondtoon wordt in het register D4 tot C♯5 gelegd (MIDI 62 tot 73) en de ladder loopt van daar omhoog. Voor elke noot zoekt de app de greep van (midi mod 12) in een tabel; noten vanaf D5 (MIDI 74) krijgen daarbij de octaafklep.
-- **Trompet, klarinet en dwarsfluit**: zelfde idee, met gedeelde greepkaarten (`src/instruments/wind.tsx`). Trompet en klarinet staan in B♭: de app toont de geschreven noten, een grote secunde (2 halve tonen) boven de klinkende. De grondtoon ligt bij beide tussen B♭3 en A4 (MIDI 58 tot 69), de fluit tussen D4 en C♯5. De tabellen gaan per geschreven MIDI-noot en niet per toonklasse, omdat de grepen per register verschillen:
+- **Trompet, klarinet en dwarsfluit**: zelfde idee, met gedeelde greepkaarten (`src/instruments/wind/wind.tsx`). Trompet en klarinet staan in B♭: de app toont de geschreven noten, een grote secunde (2 halve tonen) boven de klinkende. De grondtoon ligt bij beide tussen B♭3 en A4 (MIDI 58 tot 69), de fluit tussen D4 en C♯5. De tabellen gaan per geschreven MIDI-noot en niet per toonklasse, omdat de grepen per register verschillen:
   - trompet: de gewone ventielcombinatie per noot;
   - klarinet: de registerklep geeft een duodecime (19 halve tonen) hoger, dus de greep van B4 is die van E3 met de registerklep erbij. De basisgrepen komen uit de Woodwind Fingering Guide;
   - dwarsfluit: het tweede octaaf gebruikt dezelfde grepen als het eerste (overblazen), behalve D5 en E♭5, waar de linkerwijsvinger open is.
@@ -255,22 +263,22 @@ Omdat alles volgt uit "een verzameling toonklassen plus een spelling", passen ni
 
 ## Akkoordenschema en meespelen
 
-Het schema (`src/views/Chart.tsx`) bewaart per akkoord zijn duur in tellen. `layoutBars` in `src/views/chartLayout.ts` verdeelt die tellen over maten van de gekozen maatsoort (4/4 of 3/4); een akkoord dat over een maatstreep loopt, wordt in de volgende maat voortgezet (getoond als % bij een volle maat). De meespeelloop (`src/audio/loop.ts`) zoekt bij elke tel met `locate` welk akkoord klinkt, en `planBeat` bepaalt wat de bas en het akkoord op die tel spelen.
+Het schema (`src/screens/akkoorden/chart/Chart.tsx`) bewaart per akkoord zijn duur in tellen. `layoutBars` in `src/screens/akkoorden/chart/chartLayout.ts` verdeelt die tellen over maten van de gekozen maatsoort (4/4 of 3/4); een akkoord dat over een maatstreep loopt, wordt in de volgende maat voortgezet (getoond als % bij een volle maat). De meespeelloop (`src/audio/loop/`) zoekt bij elke tel met `locate` welk akkoord klinkt, en `planBeat` bepaalt wat de bas en het akkoord op die tel spelen.
 
-**Ritmestijlen.** Naast *Recht* en *Aangehouden* zijn er vier grooves: *Swing*, *Shuffle*, *Bossa nova* en *Funk* (`GROOVES` in `src/audio/loop.ts`). Elke groove is een patroon van één of twee maten. Het bevat posities in tellen, met per positie een bastoon, een akkoordstoot of een drumslag. De planner neemt per tel de gebeurtenissen die in die tel vallen.
+**Ritmestijlen.** Naast *Recht* en *Aangehouden* zijn er vier grooves: *Swing*, *Shuffle*, *Bossa nova* en *Funk* (`GROOVES` in `src/audio/loop/grooves.ts`). Elke groove is een patroon van één of twee maten. Het bevat posities in tellen, met per positie een bastoon, een akkoordstoot of een drumslag. De planner neemt per tel de gebeurtenissen die in die tel vallen.
 - **Swing**: in een geswingde stijl valt de "en" (positie x,5) niet halverwege de tel, maar op `swingRatio`. Dat is 2/3 van de tel (triolen) tot 140 BPM, en daarboven iets rechter, zoals echte spelers doen.
 - **Walking bass** (Swing): grondtoon, terts, kwint en septiem, en op de laatste tel van het akkoord een halve toon naast de grondtoon van het volgende akkoord. Die naderingsnoot komt van onder of van boven, afhankelijk van waar de dichtstbijzijnde grondtoon ligt.
 - **Boogie** (Shuffle): 1 3 5 6 ♭7 6 5 3 in geswingde achtsten. Bij een verminderde of overmatige kwint loopt hij de akkoordtonen.
 - **Bossa**: grondtoon en kwint, met een aanloop naar het volgende akkoord op de "en" van 4. De akkoorden volgen de bossa-clave van twee maten.
 - **Akkoordwissel midden in een patroon**: het nieuwe akkoord krijgt altijd meteen zijn grondtoon en een akkoordstoot.
 
-De drums (`planDrums`, klanken in `drumAt`) worden opgewekt met oscillatoren en ruis, dus zonder opnames. Er zijn een kick, een snare, een hihat, een hihat met de voet, een ride en een rimshot. Het schema wordt in de browser bewaard (localStorage).
+De drums (`planDrums` in `loop/grooves.ts`, klanken in `engine/drums.ts`) worden opgewekt met oscillatoren en ruis, dus zonder opnames. Er zijn een kick, een snare, een hihat, een hihat met de voet, een ride en een rimshot. Akkoorden verslepen kan met de muis en met touch (lange druk, zodat gewoon scrollen blijft werken), of met Alt + ← en → op het toetsenbord. Met Alt of Option ingedrukt maak je een kopie. Een akkoord neemt zijn duur mee, en de maten worden opnieuw ingedeeld. Elke verplaatsing is één stap voor ongedaan maken (actie `movePath`, slepen in `useChartDrag.ts`). Het schema wordt in de browser bewaard (localStorage).
 
 ## Klank
 
-De klank gebruikt echte opnames van piano, Rhodes, contrabas, strijkers, cello, orgel, vibrafoon, klarinet, trompet en dwarsfluit uit de FluidR3 GM-soundfont, via [midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts) (licentie: Creative Commons Naamsvermelding 3.0). Er is één opname per kleine terts; noten ertussen worden met een kleine toonhoogteverschuiving gemaakt. De opnames staan als base64 in `src/audio/samples.ts`, zodat de app ook als één bestand werkt. Piano, Rhodes en contrabas zitten in de app zelf. De andere klanken staan elk in een eigen bestand in `src/audio/extra/` (mono, 48 kbps, ongeveer 340 KB). Vite bouwt die als aparte stukken, die pas geladen worden wanneer iemand die klank kiest. Tot ze geladen zijn, speelt de synthesizer.
+De klank gebruikt echte opnames van piano, Rhodes, contrabas, strijkers, cello, orgel, vibrafoon, klarinet, trompet en dwarsfluit uit de FluidR3 GM-soundfont, via [midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts) (licentie: Creative Commons Naamsvermelding 3.0). Er is één opname per kleine terts; noten ertussen worden met een kleine toonhoogteverschuiving gemaakt. De opnames staan als base64 in `src/audio/samples/`, zodat de app ook als één bestand werkt. Piano, Rhodes en contrabas zitten in de app zelf. De andere klanken staan elk in een eigen bestand in `src/audio/samples/` (mono, 48 kbps, ongeveer 340 KB). Vite bouwt die als aparte stukken, die pas geladen worden wanneer iemand die klank kiest. Tot ze geladen zijn, speelt de synthesizer.
 
-Elke klank heeft een eigen aanzet, uitklank en sterkte (`VOICES` in `src/audio/index.ts`). Strijkers zwellen aan in ongeveer 0,1 s, de vibrafoon klinkt lang na. De opnames duren maar 3 seconden. Voor de aangehouden klanken (strijkers, cello, orgel en de blazers) herhaalt een vast stuk van de opname zich daarom, met 0,1 s overvloeien, zolang het akkoord duurt.
+Elke klank heeft een eigen aanzet, uitklank en sterkte (`VOICES` in `src/audio/engine/voices.ts`). Strijkers zwellen aan in ongeveer 0,1 s, de vibrafoon klinkt lang na. De opnames duren maar 3 seconden. Voor de aangehouden klanken (strijkers, cello, orgel en de blazers) herhaalt een vast stuk van de opname zich daarom, met 0,1 s overvloeien, zolang het akkoord duurt.
 
 Daarbovenop komen een galm (convolutie met een gegenereerde zaalrespons) en kleine willekeurige verschillen in timing en aanslag.
 

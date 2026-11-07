@@ -1,0 +1,20 @@
+/* meespeelloop */
+.loop{display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:14px}
+.loop-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.loopbtn{border:0;border-radius:999px;padding:10px 20px;font-weight:600;background:var(--brass);color:var(--surface);cursor:pointer;min-width:140px}
+.loopbtn.on{background:var(--ink)}
+.loop-controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end}
+.loop-controls .grow{flex:1 1 220px;min-width:0}
+.loop-controls input[type=range]{width:100%;accent-color:var(--brass)}
+.check{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding-bottom:6px}
+.check input{accent-color:var(--brass);width:16px;height:16px}
+.loop-now{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:12px 16px;border-radius:10px;background:var(--brass-soft);border:1px solid var(--brass);min-height:72px}
+.loop-chord{font-family:var(--f-display);font-size:34px;line-height:1}
+.loop-what{display:flex;flex-direction:column;min-width:0;flex:1}
+.loop-scale{font-weight:600;font-size:16px}
+.loop-now .count{font-family:var(--f-display);font-size:34px;line-height:1}
+.beats{display:flex;gap:6px}
+.beats i{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--brass);display:block}
+.beats i.on{background:var(--brass)}
+.pc.playing{background:var(--brass);border-color:var(--brass);color:var(--surface)}
+.pc.playing .k{color:var(--surface)}

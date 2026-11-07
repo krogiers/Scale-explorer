@@ -1,0 +1,23 @@
+/* circle */
+.circle svg{width:100%;max-width:440px;margin:0 auto;display:block;height:auto}
+.circle text{font-family:var(--f-body)}
+.c-note{cursor:pointer}
+.c-note circle{fill:var(--surface);stroke:var(--line);stroke-width:1.2}
+.c-note text{fill:var(--muted);font-size:13px;font-weight:500}
+.c-note.in circle{stroke:var(--ink)}
+.c-note.in text{fill:var(--ink);font-weight:600}
+.c-note.root circle{fill:var(--brass);stroke:var(--brass)}
+.c-note.root text{fill:var(--surface)}
+.c-note:hover circle{stroke:var(--brass);stroke-width:2}
+.arc{fill:var(--brass-soft)}
+.slot-chord{font-size:12px;fill:var(--ink);font-weight:500}
+.slot-chord.sel{fill:var(--brass);font-weight:700}
+.slot-ring{fill:none;stroke:var(--brass);stroke-width:2}
+.c-mode{cursor:pointer}
+.c-mode rect{fill:transparent;stroke:transparent}
+.c-mode text{font-size:11px;font-family:var(--f-mono);fill:var(--muted);letter-spacing:.02em}
+.c-mode.cur text{fill:var(--brass);font-weight:600}
+.c-mode:hover text{fill:var(--ink)}
+.c-center-root{font-family:var(--f-display);font-size:42px;font-weight:700;fill:var(--ink)}
+.c-center-mode{font-size:14px;fill:var(--ink)}
+.c-center-sig{font-size:12px;fill:var(--muted);font-family:var(--f-mono)}

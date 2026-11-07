@@ -10,14 +10,16 @@ Static React 18 + TS + Vite app for exploring modes, scales and chords. No backe
 - Push to `main` deploys to GitHub Pages (CI runs test + build). Keep `base: './'` in `vite.config.ts`.
 
 ## Architecture
-- `core/`: pure theory on pitch classes 0–11 (`theory.ts`), next-step logic `computeTargets` (`navigation.ts`). No names, i18n or React.
-- Pluggable registries: `naming/` (`NOTE_NAMERS`), `i18n/` (`nl.ts` is the source of truth via `Messages = typeof nl`), `instruments/` (`INSTRUMENTS`), `audio/` (`AudioEngine`; `loop.ts` schedules on the AudioContext clock).
-- `state/store.tsx`: one reducer + context. Persists `tln-prefs` and `tln-chart` to localStorage and triggers audio.
+- Packages = folders with an `index.ts` front door; import other packages only through it. Layers: `core` ← `i18n`, `naming`, `audio`, `instruments` ← `state` ← `ui` ← `screens/*` ← `App`. Screens never import each other (App wires them, e.g. Chart gets LoopControls as a render prop). `src/architecture.test.ts` enforces this.
+- `core/`: pure theory on pitch classes 0–11 (`pitch`, `scale`, `chords`, `colour`, `navigation`, `sequences`). No names, i18n or React.
+- Registries: `naming/` (`NOTE_NAMERS`), `i18n/` (`nl.ts` is the source of truth via `Messages = typeof nl`), `instruments/` (`INSTRUMENTS`; winds in `wind/`), `audio/` (`engine/` sound, `loop/` scheduler + grooves on the AudioContext clock).
+- `state/`: `model`, pure `reducer`, `persist` (`tln-prefs`, `tln-chart`), `store` (provider, plays audio on dispatch).
+- CSS lives next to its screen/instrument; `styles/index.css` imports all in the original cascade order. Don't reorder.
 - `ModeIndex` 0–6 runs bright→dark (Lyd, Ion, Mix, Dor, Aeo, Phr, Loc), not the classical order. Chords are compared by `key` (`"10:maj"`), independent of spelling.
 - README (Dutch) has the full math model. Read it before changing theory or navigation.
 
 ## Notes
-- `audio/samples.ts` is ~1 MB of base64. Never read it or edit it.
+- `audio/samples/*.ts` are base64 recordings (~1 MB / ~340 KB each). Never read or edit them.
 - Comments and the README are in Dutch. Match that.
 - When editing this file, keep it as compact as possible: terse bullets, nothing discoverable from the code.
 

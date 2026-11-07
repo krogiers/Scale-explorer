@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chordsOf, scaleOf } from '../core/theory';
+import { chordsOf, scaleOf } from '../core';
 import { progressionVoicings, voiceLead, voicing } from './voicing';
 
 const c7 = chordsOf(scaleOf(0, 1), 4); // C Ionisch, vierklanken

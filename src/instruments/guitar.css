@@ -1,0 +1,15 @@
+/* gitaar */
+.gt-str{stroke:var(--muted)}
+.gt-fret{stroke:var(--key-line);stroke-width:1.5}
+.gt-nut{stroke:var(--ink);stroke-width:4}
+.gt-mark{fill:var(--line)}
+.gt-dot{fill:var(--dia)}
+.gt-dot.ch{fill:var(--brass)}
+.gt-dot.char{fill:var(--bor)}
+.gt-root{fill:none;stroke:var(--ink);stroke-width:2}
+.gt-lbl{font-family:var(--f-body);font-size:8.5px;font-weight:600;text-anchor:middle;fill:var(--surface)}
+.gt-num{font-family:var(--f-mono);font-size:10px;fill:var(--muted);text-anchor:middle}
+.kb svg{max-height:340px}
+.mapsec .mapwrap{max-width:620px}
+.hscroll{overflow-x:auto}
+.hscroll svg{min-width:620px}

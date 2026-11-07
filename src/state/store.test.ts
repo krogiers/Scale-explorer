@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampBpm, MAX_CHORDS, reducer, validChart, type State } from './store';
+import { clampBpm, MAX_CHORDS, reducer, validChart, type State } from '.';
 
 const base: State = { root: 0, mode: 1, degree: 0, size: 3, lang: 'nl', namer: 'en', instrument: 'piano', saxKey: 'Eb', sound: false, timbre: 'piano', showBlue: true, showPenta: false, meter: 4, bpm: 90, focus: 0, history: [], path: [{ root: 0, mode: 1, degree: 0, beats: 4, size: 3 }] };
 
@@ -102,5 +102,28 @@ describe('sequentie invoegen', () => {
     const s = reducer(base, { type: 'insertPath', entries: seq, replace: true });
     expect(s.path.map((p) => p.root)).toEqual([2, 7]);
     expect(reducer(s, { type: 'undo' }).path).toEqual(base.path);
+  });
+});
+
+describe('akkoord verplaatsen', () => {
+  const four: State = { ...base, path: [0, 2, 4, 5].map((root) => ({ root, mode: 1 as const, degree: 0, beats: 4, size: 3 as const })) };
+  const roots = (s: State) => s.path.map((p) => p.root);
+  it('verplaatst naar achteren en naar voren, en selecteert het verplaatste akkoord', () => {
+    const back = reducer(four, { type: 'movePath', from: 0, to: 3, copy: false });
+    expect(roots(back)).toEqual([2, 4, 0, 5]);
+    expect([back.focus, back.root]).toEqual([2, 0]);
+    expect(roots(reducer(four, { type: 'movePath', from: 3, to: 0, copy: false }))).toEqual([5, 0, 2, 4]);
+    expect(roots(reducer(four, { type: 'movePath', from: 1, to: 4, copy: false }))).toEqual([0, 4, 5, 2]);
+  });
+  it('laat alles staan bij de opening vlak voor of na het akkoord zelf', () => {
+    expect(reducer(four, { type: 'movePath', from: 1, to: 1, copy: false })).toBe(four);
+    expect(reducer(four, { type: 'movePath', from: 1, to: 2, copy: false })).toBe(four);
+  });
+  it('kopieert met de duur erbij, en één keer ongedaan maken zet alles terug', () => {
+    const c = reducer({ ...four, path: four.path.map((p, i) => (i === 1 ? { ...p, beats: 2 } : p)) }, { type: 'movePath', from: 1, to: 4, copy: true });
+    expect(roots(c)).toEqual([0, 2, 4, 5, 2]);
+    expect(c.path[4].beats).toBe(2);
+    expect(c.focus).toBe(4);
+    expect(roots(reducer(c, { type: 'undo' }))).toEqual([0, 2, 4, 5]);
   });
 });

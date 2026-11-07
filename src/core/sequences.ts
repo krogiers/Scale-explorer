@@ -5,7 +5,9 @@
  * approx = de app kent de ladder die er eigenlijk bij hoort niet (harmonisch mineur, alteratie, lydisch dominant)
  * en toont de dichtstbijzijnde modus.
  */
-import { chordsOf, mod12, scaleOf, type Chord, type ModeIndex, type PitchClass } from './theory';
+import { chordsOf, type Chord } from './chords';
+import { mod12, type PitchClass } from './pitch';
+import { scaleOf, type ModeIndex } from './scale';
 
 const LYD = 0, ION = 1, MIX = 2, DOR = 3, AEO = 4, PHR = 5, LOC = 6;
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { blueNote, CHAR_DEGREE, chordsOf, formula, harmonicFunction, pentatonic, romanNumeral, scaleOf, transposed, type ModeIndex } from './theory';
-import { computeTargets } from './navigation';
+import { blueNote, CHAR_DEGREE, chordsOf, formula, harmonicFunction, pentatonic, romanNumeral, scaleOf, transposed, type ModeIndex } from '.';
+import { computeTargets } from '.';
 
 const LETTERS = 'CDEFGAB';
 const spelled = (root: number, mode: ModeIndex) =>

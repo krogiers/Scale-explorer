@@ -3,7 +3,7 @@
  * Los van de interfacetaal: je kunt de interface in het Nederlands zetten en toch do re mi gebruiken.
  * Een nieuw systeem toevoegen = één object aan NOTE_NAMERS toevoegen.
  */
-import type { Chord, Note, Quality } from '../core/theory';
+import type { Chord, Note, Quality } from '../core';
 import type { Lang } from '../i18n';
 
 export interface NoteNamer {

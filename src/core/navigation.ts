@@ -3,10 +3,9 @@
  * Drie soorten stappen: binnen de modus, leenakkoorden (zelfde grondtoon, andere modus)
  * en modulatie via een spilakkoord (naar een toonladder een kwint hoger of lager).
  */
-import {
-  chordsOf, mod12, scaleOf, sharedNotes,
-  type Chord, type ChordSize, type ModeIndex, type Scale,
-} from './theory';
+import { chordsOf, sharedNotes, type Chord, type ChordSize } from './chords';
+import { mod12 } from './pitch';
+import { scaleOf, type ModeIndex, type Scale } from './scale';
 
 export type DiatonicMove = 'fifthDown' | 'fifthUp' | 'stepUp' | 'stepDown' | 'thirdUp' | 'thirdDown';
 /** Afstand in trappen -> soort stap en sterkte (0 = sterkst). */

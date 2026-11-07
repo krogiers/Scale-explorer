@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import type { InstrumentView } from './index';
+import type { InstrumentView } from './types';
 
 const W = 30, H = 120, BW = 18, BH = 74, OCTAVES = 2;
 const WHITES = [0, 2, 4, 5, 7, 9, 11];

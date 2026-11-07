@@ -16,8 +16,8 @@ De app ziet er verzorgd uit: rustige kleuren, sterke typografie (Bodoni en Plex)
 | Ernst | Waar | Probleem |
 | --- | --- | --- |
 | hoog | hele pagina | Er is geen duidelijke hoofdtaak of navigatie. Acht panelen staan onder elkaar. Meespelen begint pas rond 2400 px (desktop) en het instrument staat daaronder, dus tijdens de loop zie je je klavier niet. |
-| hoog | telefoon ([phone-light.png](ux/phone-light.png)) | 121 van de 135 bedieningselementen zijn kleiner dan 44 px. Het akkoordennetwerk is op 390 px onleesbaar (de tekst wordt zo'n 4 px), net als het klavier (labels van 9 px, [styles.css:159](../src/styles.css#L159)). |
-| hoog | [styles.css:159](../src/styles.css#L159) | In donkere modus zijn de labels op witte toetsen onzichtbaar: `.k-lbl` gebruikt `--ink`, dat licht wordt, op witte toetsen ([desktop-dark.png](ux/desktop-dark.png): alleen D, F en A zijn zichtbaar). |
+| hoog | telefoon ([phone-light.png](ux/phone-light.png)) | 121 van de 135 bedieningselementen zijn kleiner dan 44 px. Het akkoordennetwerk is op 390 px onleesbaar (de tekst wordt zo'n 4 px), net als het klavier (labels van 9 px, [piano.css:8](../src/instruments/piano.css#L8)). |
+| hoog | [piano.css:8](../src/instruments/piano.css#L8) | In donkere modus zijn de labels op witte toetsen onzichtbaar: `.k-lbl` gebruikt `--ink`, dat licht wordt, op witte toetsen ([desktop-dark.png](ux/desktop-dark.png): alleen D, F en A zijn zichtbaar). |
 | midden | "Waar kun je naartoe" + netwerk | Dezelfde informatie staat twee keer op het scherm (een lijst en een netwerk), wat ongeveer 1000 px kost. |
 | midden | header | Vijf instellingen staan prominent bovenaan. De meeste zet je één keer en daarna nooit meer, terwijl ze het eerste scherm vullen. |
 | midden | kwintencirkel ([desktop-fold.png](ux/desktop-fold.png)) | Onder de cirkel blijft veel lege ruimte omdat het rechterpaneel langer is. Uitleg staat altijd zichtbaar onder elk paneel. |

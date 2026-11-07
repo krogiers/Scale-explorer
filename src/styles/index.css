@@ -1,0 +1,18 @@
+/*
+ * Alle stijl, in de volgorde van het oorspronkelijke ene bestand. Elk deel staat bij het scherm of
+ * instrument waar het bij hoort. Latere regels winnen bij gelijke specificiteit: volgorde niet herschikken.
+ */
+@import './base.css';
+@import '../screens/ladder/circle.css';
+@import '../screens/ladder/scale.css';
+@import '../screens/akkoorden/chords.css';
+@import '../screens/akkoorden/chart/path.css';
+@import '../screens/ladder/map.css';
+@import '../instruments/piano.css';
+@import '../screens/akkoorden/network.css';
+@import '../instruments/wind/wind.css';
+@import '../instruments/guitar.css';
+@import '../screens/spelen/loop.css';
+@import '../screens/akkoorden/chart/chart.css';
+@import './overlays.css';
+@import '../screens/akkoorden/sequences.css';

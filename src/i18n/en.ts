@@ -39,7 +39,7 @@ export const en = {
   pentaDropped: 'Without {notes} (dimmed).', pentaChar: 'The characteristic note drops out: that is why the same pentatonic scale also sounds good over the neighbouring modes.',
   pentaBlues: 'Add the blue note {n} and you have the blues scale.', lgPenta: 'outside the pentatonic',
   chartTitle: 'Chord chart', meter: 'Time signature', selected: 'Selected:', duration: 'Duration (beats)', remove: 'Remove', beatsN: '{n} beats',
-  chartHelp: 'Every chord you click is added after the selected chord in the chart, lasting one full bar. Click a chord in the chart to select it and change its duration or triad/seventh. % means: same bar as before. The chart is saved in your browser.',
+  chartHelp: 'Every chord you click is added after the selected chord in the chart, lasting one full bar. Click a chord in the chart to select it and change its duration or triad/seventh. % means: same bar as before. Drag a chord to move it, holding Alt/Option to copy it; with the keyboard: Alt + ← or →. The chart is saved in your browser.',
   timbre: 'Sound', timbres: { piano: 'Piano', rhodes: 'Rhodes (electric piano)', synth: 'Synthesizer', strings: 'Strings', cello: 'Cello', organ: 'Organ', vibes: 'Vibraphone', clarinet: 'Clarinet', trumpet: 'Trumpet', flute: 'Flute' },
   seqTitle: 'Jazz sequences', seqHelp: 'Typical progressions in the key of {tonic}: the current root is the I. Under each chord is the mode to play over it. The circle shows how the root moves. Insert puts the progression after the selected chord in the chart (one ↶ removes it).',
   seqPlay: 'Play', seqInsert: 'Insert', seqReplace: 'Replace chart',

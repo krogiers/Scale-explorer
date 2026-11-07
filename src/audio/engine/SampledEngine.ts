@@ -1,0 +1,139 @@
+/**
+ * De geluidsmotor. Gebruikt echte opnames (samples) van piano, Rhodes en contrabas, met:
+ * - strijkers, cello, orgel, vibrafoon, klarinet, trompet en dwarsfluit als extra klanken, pas geladen wanneer iemand ze kiest;
+ * - voor aangehouden klanken (strijkers, cello, orgel en de blazers) een stuk van de opname dat zich herhaalt met overvloeien, zodat lange akkoorden niet wegvallen;
+ * - toonhoogteverschuiving van hooguit anderhalve halve toon naar de dichtstbijzijnde opname;
+ * - een galm (convolutie met een kunstmatige zaalrespons) zodat het niet droog en digitaal klinkt;
+ * - kleine willekeurige verschillen in timing en aanslag ("humanize"), zoals een echte speler.
+ * Zolang de opnames nog niet ingeladen zijn, valt hij terug op een eenvoudige synthesizer.
+ */
+import { SAMPLES } from '../samples/base';
+import type { AudioEngine, Drum, NoteEvent, Part, Timbre } from '../types';
+import { noiseBuffer, playClick, playDrum } from './drums';
+import { playSample } from './sampler';
+import { synthNote } from './synth';
+import { base64ToArrayBuffer, impulse, jitter, type Out } from './util';
+import { EXTRA, VOICES } from './voices';
+
+type Bank = Map<number, AudioBuffer>;
+
+export class SampledEngine implements AudioEngine {
+  private ctx: AudioContext | null = null;
+  private out: Out | null = null;
+  private noise: AudioBuffer | null = null;
+  private banks = new Map<string, Bank>();
+  private loading = false;
+  private extra = new Map<string, Promise<void>>();
+  private timbre: Timbre = 'piano';
+
+  setTimbre(t: Timbre): Promise<void> {
+    this.timbre = t;
+    return this.ctx ? this.loadExtra(this.ctx, t) : Promise.resolve();
+  }
+
+  now(): number | null {
+    return this.ensure()?.currentTime ?? null;
+  }
+
+  private ensure(): AudioContext | null {
+    try {
+      if (!this.ctx) {
+        const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        if (!Ctor) return null;
+        const c = new Ctor();
+        this.ctx = c;
+        const comp = c.createDynamicsCompressor();
+        comp.threshold.value = -14;
+        comp.ratio.value = 3;
+        const master = c.createGain();
+        master.gain.value = 0.8;
+        master.connect(comp);
+        comp.connect(c.destination);
+        const dry = c.createGain();
+        dry.connect(master);
+        const verb = c.createConvolver();
+        verb.buffer = impulse(c, 2.4, 3);
+        const wet = c.createGain();
+        wet.gain.value = 0.22;
+        wet.connect(verb);
+        verb.connect(master);
+        this.out = { dry, wet };
+        void this.load(c);
+      }
+      if (this.ctx.state === 'suspended') void this.ctx.resume();
+      return this.ctx;
+    } catch {
+      return null;
+    }
+  }
+
+  private async decode(c: AudioContext, name: string, notes: Record<number, string>) {
+    const bank: Bank = new Map();
+    await Promise.all(Object.entries(notes).map(async ([midi, b64]) => {
+      try { bank.set(+midi, await c.decodeAudioData(base64ToArrayBuffer(b64))); } catch { /* sla over */ }
+    }));
+    this.banks.set(name, bank);
+  }
+
+  private async load(c: AudioContext) {
+    if (this.loading) return;
+    this.loading = true;
+    void this.loadExtra(c, this.timbre);
+    await Promise.all(Object.entries(SAMPLES).map(([name, notes]) => this.decode(c, name, notes)));
+  }
+
+  /** Laadt een extra klank één keer; mislukt het (bv. offline), dan blijft de synthesizer als terugval. */
+  private loadExtra(c: AudioContext, t: Timbre): Promise<void> {
+    const get = EXTRA[t];
+    if (!get) return Promise.resolve();
+    let p = this.extra.get(t);
+    if (!p) {
+      p = get().then((m) => this.decode(c, t, m.default)).catch(() => { this.extra.delete(t); });
+      this.extra.set(t, p);
+    }
+    return p;
+  }
+
+  private nearest(bank: Bank, midi: number): [AudioBuffer, number] | null {
+    let best: number | null = null;
+    for (const m of bank.keys()) if (best === null || Math.abs(m - midi) < Math.abs(best - midi)) best = m;
+    return best === null ? null : [bank.get(best)!, best];
+  }
+
+  noteAt(midi: number, t: number, dur: number, vel = 1, part: Part = 'keys') {
+    const c = this.ensure();
+    if (!c) return;
+    const out = this.out!;
+    // een beetje menselijk: aanslag en timing variëren licht
+    t = Math.max(c.currentTime, t + jitter(0.008));
+    vel = Math.min(1, Math.max(0.1, vel * (1 + jitter(0.1))));
+    const bankName = part === 'bass' ? 'bass' : this.timbre;
+    const bank = this.banks.get(bankName);
+    const hit = bank ? this.nearest(bank, midi) : null;
+    if (this.timbre === 'synth' && part === 'keys') return synthNote(c, out, midi, t, dur, vel);
+    if (!hit) return synthNote(c, out, midi, t, dur, vel);
+    const [buffer, sampleMidi] = hit;
+    const rate = Math.pow(2, (midi - sampleMidi) / 12);
+    playSample(c, part === 'keys' ? [out.dry, out.wet] : [out.dry], buffer, rate, VOICES[bankName] ?? VOICES.piano, t, dur, vel);
+  }
+
+  clickAt(t: number, accent: boolean) {
+    const c = this.ensure();
+    if (c) playClick(c, this.out!, t, accent);
+  }
+
+  drumAt(time: number, kind: Drum, vel = 1) {
+    const c = this.ensure();
+    if (!c) return;
+    this.noise ??= noiseBuffer(c);
+    const t = Math.max(c.currentTime, time + jitter(0.004));
+    playDrum(c, this.out!, this.noise, t, kind, Math.min(1, Math.max(0.05, vel * (1 + jitter(0.08)))));
+  }
+
+  play(events: NoteEvent[]) {
+    const c = this.ensure();
+    if (!c) return;
+    const t0 = c.currentTime + 0.03;
+    events.forEach(([m, at, d, part]) => this.noteAt(m, t0 + at, d, 0.8, part));
+  }
+}

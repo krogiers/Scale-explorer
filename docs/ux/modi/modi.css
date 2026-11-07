@@ -1,4 +1,4 @@
-/* Gedeelde stijl voor de modi-schetsen. Kleuren en lettertypes van de app (src/styles.css). */
+/* Gedeelde stijl voor de modi-schetsen. Kleuren en lettertypes van de app (src/styles/index.css). */
 :root{
   --bg:#F2F4F7; --surface:#FFFFFF; --ink:#172033; --muted:#5B6577; --line:#D8DDE5;
   --brass:#9E6A12; --brass-soft:#F4E7CD; --dia:#1C716B; --dia-soft:#DCEEEB; --bor:#76468A; --bor-soft:#EFE4F3;

@@ -1,0 +1,24 @@
+/* network */
+.net svg{width:100%;max-width:760px;height:auto;display:block;margin:0 auto}
+.n-node{cursor:pointer}
+.n-node circle{stroke-width:1.5}
+.n-node text{font-family:var(--f-body);text-anchor:middle}
+.n-node .nn{font-family:var(--f-display);font-weight:700;font-size:15px;fill:var(--ink)}
+.n-node .ns{font-family:var(--f-mono);font-size:9px;fill:var(--muted)}
+.n-node.dia circle{fill:var(--surface);stroke:var(--dia)}
+.n-node.bor circle{fill:var(--bor-soft);stroke:var(--bor)}
+.n-node.piv circle{fill:var(--brass-soft);stroke:var(--brass)}
+.n-node.self circle{fill:var(--ink);stroke:var(--ink)}
+.n-node.self .nn{fill:var(--surface)} .n-node.self .ns{fill:var(--surface)}
+.n-node:hover circle{stroke-width:3}
+.n-chain{stroke:var(--line);stroke-width:1.5;fill:none}
+.n-e{fill:none}
+.n-e.dia{stroke:var(--dia)} .n-e.bor{stroke:var(--bor);stroke-dasharray:5 4} .n-e.piv{stroke:var(--brass);stroke-dasharray:5 4}
+.n-ring{fill:none;stroke:var(--line);stroke-dasharray:2 5}
+.n-lbl{font-family:var(--f-body);font-size:11px;fill:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+
+@media (prefers-reduced-motion:no-preference){.ch,.tgt,.mc,.lad{transition:background-color .15s,border-color .15s}}
+
+.stack{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;gap:8px}
+.alias{font-size:.55em;font-family:var(--f-body);font-weight:400;color:var(--muted)}

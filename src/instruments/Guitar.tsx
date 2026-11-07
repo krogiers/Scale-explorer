@@ -1,4 +1,4 @@
-import type { InstrumentView } from './index';
+import type { InstrumentView } from './types';
 
 /** Gitaarhals in standaardstemming, frets 0 tot 12. Bovenste lijn = hoge E, zoals in een tabulatuur. */
 const STRINGS = [4, 11, 7, 2, 9, 4]; // e B G D A E (toonklassen)

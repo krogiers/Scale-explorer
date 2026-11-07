@@ -8,7 +8,7 @@ description: Senior UI/UX designer review of Scale Explorer — renders the app,
 Analyse, don't develop. Do not edit source files. You write only the report and screenshots.
 
 ## Steps
-1. Read `CLAUDE.md`, `index.html`, `src/styles.css`, `src/App.tsx`, `src/views/*`, `src/instruments/*` and `src/i18n/nl.ts`.
+1. Read `CLAUDE.md`, `index.html`, `src/styles/index.css`, `src/App.tsx`, `src/screens/**`, `src/instruments/*` and `src/i18n/nl.ts`.
 2. **Look at the real app.** Run `npm run build && npx vite preview --port 4173` in the background. Take full-page screenshots with Playwright (`npx -y playwright@1 screenshot` or a small script in the scratchpad) at 1440×900, 768×1024 and 390×844, in light and dark mode (`colorScheme`). Save them to `docs/ux/`, view every screenshot, and stop the server afterwards.
 3. **Assess**, citing a screenshot or `file:line` for each point:
    - First impression and hierarchy: what is the main task, and is it obvious within 5 seconds? Scroll length, panel order, empty states, onboarding.

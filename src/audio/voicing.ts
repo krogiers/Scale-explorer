@@ -3,7 +3,7 @@
  * grondligging; in een progressie kiezen we per akkoord de omkering die zo weinig mogelijk beweegt
  * ten opzichte van het vorige akkoord (stemvoering), zoals een pianist dat doet.
  */
-import type { Chord } from '../core/theory';
+import type { Chord } from '../core';
 
 /** Laagste toets van de akkoordtonen bij stemvoering: B2 tot B3. Zo blijft de ligging op één plek. */
 const LOW = 47, HIGH = 59, CENTER = 60;

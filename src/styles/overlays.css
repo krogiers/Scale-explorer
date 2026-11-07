@@ -1,0 +1,21 @@
+/* blue note en akkoordnoten */
+:root{--blue:#2C64A8;--blue-soft:#E1ECF8}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--blue:#7DB0EC;--blue-soft:#172A40}}
+:root[data-theme="dark"]{--blue:#7DB0EC;--blue-soft:#172A40}
+.k-dot.blue,.gt-dot.blue{fill:var(--blue)}
+.note.blue{border-color:var(--blue);background:var(--blue-soft);border-style:dashed}
+.note.blue span{color:var(--blue)}
+.ch .tones{font-family:var(--f-mono);font-size:11px;color:var(--muted);text-align:center;line-height:1.3}
+.ch[aria-pressed="true"] .tones{color:var(--surface);opacity:.85}
+.tones-big{font-family:var(--f-mono);font-size:15px;font-weight:500;letter-spacing:.02em}
+.tones-big .bl{color:var(--blue)}
+.bluehint{font-size:13px;color:var(--blue)}
+
+/* pentatonisch: noten buiten de ladder gedimd, niet verborgen */
+.note.out{opacity:.4;border-style:dashed}
+.k-dot.out{fill:none;stroke:var(--muted);stroke-width:1.3}
+.gt-dot.out{fill:var(--surface);stroke:var(--muted);stroke-dasharray:2 2}
+.gt-lbl.out{fill:var(--muted)}
+.sx-card.out{opacity:.35}
+.pentahint{font-size:13px;color:var(--dia)}
+.legend i.ring{background:none;border:1.5px dashed var(--muted)}

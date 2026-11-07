@@ -1,0 +1,16 @@
+/* jazzsequenties */
+.seqs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.seq{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+.seq h3{margin:0;font-size:15px}
+.seq-top{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:start}
+.seq-map{width:72px;height:72px}
+.seq-ring{fill:none;stroke:var(--line)}
+.seq-dot{fill:var(--muted)}
+.seq-tonic{fill:var(--brass)}
+.seq-step{stroke:var(--dia);stroke-width:1.6}
+.seq-head{fill:var(--dia)}
+.seq-chords{display:flex;flex-wrap:wrap;gap:4px}
+.seq-ch{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:6px;padding:2px 6px;min-width:48px}
+.seq-ch b{font-size:14px}
+.seq-ch small{font-size:11px;color:var(--muted);white-space:nowrap}
+.seq-actions{gap:6px;flex-wrap:wrap;margin-top:auto}

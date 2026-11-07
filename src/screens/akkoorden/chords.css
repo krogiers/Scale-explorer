@@ -1,0 +1,32 @@
+/* chords */
+.chordrow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+@media (max-width:640px){.chordrow{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.ch{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;min-width:0}
+.ch:hover{border-color:var(--dia)}
+.ch .rn{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.ch .cn{font-family:var(--f-display);font-weight:700;font-size:22px;line-height:1.1;overflow-wrap:anywhere}
+.ch .fn{font-size:11px;color:var(--muted)}
+.ch .dot{width:6px;height:6px;border-radius:50%;background:var(--bor);visibility:hidden}
+.ch.char .dot{visibility:visible}
+.ch[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.ch[aria-pressed="true"] .rn,.ch[aria-pressed="true"] .fn{color:var(--surface);opacity:.8}
+
+.next{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media (max-width:900px){.next{grid-template-columns:minmax(0,1fr)}}
+.grp{display:flex;flex-direction:column;gap:8px;min-width:0}
+.grp h3{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.grp h3 i{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none}
+.g-dia h3 i{background:var(--dia)} .g-bor h3 i{background:var(--bor)} .g-piv h3 i{background:var(--brass)}
+.tgts{display:flex;flex-direction:column;gap:6px}
+.tgt{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:4px 10px;align-items:baseline;text-align:left;padding:8px 10px;border-radius:8px;border:1px solid var(--line);border-left-width:4px;background:var(--surface);cursor:pointer}
+.tgt .tn{font-family:var(--f-display);font-weight:700;font-size:18px;line-height:1.1}
+.tgt .tr{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.tgt .tw{font-size:12px;color:var(--muted);min-width:0}
+.tgt.dia{border-left-color:var(--dia)} .tgt.dia:hover{background:var(--dia-soft)}
+.tgt.bor{border-left-color:var(--bor)} .tgt.bor:hover{background:var(--bor-soft)}
+.tgt.piv{border-left-color:var(--brass)} .tgt.piv:hover{background:var(--brass-soft)}
+.tgt.s0 .tn{text-decoration:underline;text-decoration-color:var(--dia);text-underline-offset:4px;text-decoration-thickness:2px}
+.pivblock{display:flex;flex-direction:column;gap:6px}
+.pivblock p{font-size:13px}
+.pivblock + .pivblock{border-top:1px dashed var(--line);padding-top:10px}
+.linkbtn{border:0;background:none;padding:0;color:var(--brass);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}

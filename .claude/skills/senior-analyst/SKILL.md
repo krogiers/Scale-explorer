@@ -8,7 +8,7 @@ description: Senior analyst review of Scale Explorer — finds bugs, gaps and no
 Analyse, don't develop. Do not edit source files. The only file you write is the report.
 
 ## Steps
-1. Read `CLAUDE.md`, `README.md` and every file in `src/` except `src/audio/samples.ts`. Run `npm test` and `npm run typecheck` and note the results.
+1. Read `CLAUDE.md`, `README.md` and every file in `src/` except `src/audio/samples/`. Run `npm test` and `npm run typecheck` and note the results.
 2. **Code review.** Report only findings you verified in the code, each with `file:line`:
    - Bugs: wrong theory results, edge cases (enharmonics, double accidentals, Locrian, path limits), state/localStorage corruption, audio timing and resume problems, React issues (stale closures, effects without cleanup).
    - Gaps: missing tests, accessibility, mobile, error handling, i18n keys that are hard-coded in components.

@@ -32,7 +32,7 @@ Dit volgt uit het boogmodel in de README: één stap op de kwintencirkel beteken
 ## Voorstel in de huidige layout: [d-in-app.html](ux/modi/d-in-app.html)
 ![](ux/modi/shots/d-in-app-paneel.png)
 
-Dit is één breed paneel, **"Modi en bruggen"**. Het **vervangt de modale kaart** onderaan het werkblad (`section.panel.wide.mapsec`) en gebruikt de bestaande CSS, kleuren en legenda's. De schets laadt `src/styles.css` zelf.
+Dit is één breed paneel, **"Modi en bruggen"**. Het **vervangt de modale kaart** onderaan het werkblad (`section.panel.wide.mapsec`) en gebruikt de bestaande CSS, kleuren en legenda's. De schets laadt `src/styles/index.css` zelf.
 - **Links (5fr) staat het rooster (A)**: alle 84 modi. Het vak "waar je nu bent" is de app-toestand. Dezelfde noten zijn goud gekleurd, één noot verschil is groen, dezelfde grondtoon heeft een stippelrand, en een cijfer geeft het aantal noten verschil. De legenda is die van de huidige modale kaart, met één extra item.
 - **Rechts (6fr) staat eerst de sprongkaart**: van → naar, met brug, sprong en wat wegvalt (of de route per stap). Daaronder staan **Speel** en **Ga naar**, en later **+ in schema**.
 - **Rechts daaronder staat de brugmatrix (B)** voor de grondtoon: welke akkoorden in welke modi zitten. Je kunt op een kolom tikken als alternatief voor het rooster.

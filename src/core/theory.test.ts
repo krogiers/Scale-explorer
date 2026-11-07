@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { blueNote, chordsOf, formula, harmonicFunction, romanNumeral, scaleOf, transposed, type ModeIndex } from './theory';
+import { blueNote, CHAR_DEGREE, chordsOf, formula, harmonicFunction, pentatonic, romanNumeral, scaleOf, transposed, type ModeIndex } from './theory';
 import { computeTargets } from './navigation';
 
 const LETTERS = 'CDEFGAB';
@@ -109,5 +109,32 @@ describe('blue note', () => {
   });
   it('zit al in Locrisch', () => {
     expect(blueNote(scaleOf(0, 6)).inScale).toBe(true);
+  });
+});
+
+describe('pentatonisch', () => {
+  const p = (root: number, mode: ModeIndex) => {
+    const x = pentatonic(scaleOf(root, mode));
+    const nm = (n: { letter: number; acc: number }) => LETTERS[n.letter] + (n.acc > 0 ? '#' : n.acc < 0 ? 'b' : '');
+    return [x.kind, x.notes.map(nm).join(' '), x.dropped.map(nm).join(' ')];
+  };
+  it('geeft majeur-pentatonisch in de heldere modi', () => {
+    expect(p(0, 1)).toEqual(['major', 'C D E G A', 'F B']);
+    expect(p(0, 0)).toEqual(['major', 'C D E G A', 'F# B']);
+    expect(p(7, 2)).toEqual(['major', 'G A B D E', 'C F']);
+  });
+  it('geeft mineur-pentatonisch in de donkere modi', () => {
+    expect(p(9, 4)).toEqual(['minor', 'A C D E G', 'B F']);
+    expect(p(2, 3)).toEqual(['minor', 'D F G A C', 'E B']);
+    expect(p(4, 5)).toEqual(['minor', 'E G A B D', 'F C']);
+  });
+  it('houdt in Locrisch de ♭5', () => {
+    expect(p(11, 6)).toEqual(['locrian', 'B D E F A', 'C G']);
+  });
+  it('laat de kenmerkende noot weg, behalve in Locrisch', () => {
+    for (let m = 0; m < 7; m++) {
+      const s = scaleOf(0, m as ModeIndex);
+      expect(pentatonic(s).pcs.has(s.notes[CHAR_DEGREE[m]].pc)).toBe(m === 6);
+    }
   });
 });

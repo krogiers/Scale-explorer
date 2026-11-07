@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Concept B · Licht</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#C9D6D6;--ink:#10282B;--acc:#1E8C8C;--glass:rgba(255,255,255,.55);--line:rgba(0,0,0,.12);
+  --f:'Inter',system-ui,sans-serif;--d:'Fraunces',Georgia,serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--glass:rgba(0,0,0,.35);--line:rgba(255,255,255,.14)}}
+:root[data-theme="dark"]{--glass:rgba(0,0,0,.35);--line:rgba(255,255,255,.14)}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f);min-height:100dvh;transition:background-color .6s,color .6s;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.app{max-width:1200px;margin:0 auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom));display:grid;gap:18px;grid-template-columns:minmax(0,1fr) 76px}
+@media (min-width:960px){.app{grid-template-columns:minmax(0,1.2fr) 96px minmax(0,1fr);align-items:center;min-height:100dvh}}
+header{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--d);font-size:clamp(34px,6vw,56px);font-weight:700;letter-spacing:-.02em;line-height:1}
+h1 small{display:block;font-family:var(--f);font-size:14px;font-weight:500;opacity:.7;letter-spacing:0;margin-top:6px}
+.dial{position:relative;touch-action:none;user-select:none}
+.dial svg{width:100%;height:auto;display:block;max-height:78vh}
+.ring{fill:none;stroke:var(--line);stroke-width:1.5}
+.pos{fill:var(--glass);stroke:var(--line)}
+.pos.in{fill:var(--acc);stroke:none}
+.pos.root{stroke:var(--ink);stroke-width:3}
+.pos.flash{animation:flash 1.2s}
+@keyframes flash{0%{r:30}40%{r:34}100%{r:26}}
+.pl{font:600 15px var(--f);text-anchor:middle;fill:var(--ink);pointer-events:none}
+.pos.in + .pl{fill:var(--bg)}
+.arc{fill:none;stroke:var(--acc);stroke-width:46;stroke-linecap:round;opacity:.18}
+.chd{cursor:pointer}.chd rect{fill:var(--glass);stroke:var(--line)}.chd:hover rect,.chd:focus rect{stroke:var(--ink)}
+.chd text{font:600 13px var(--f);text-anchor:middle;fill:var(--ink)}.chd .rn{font-size:9.5px;opacity:.65;font-weight:500}
+.center1{font:700 64px var(--d);text-anchor:middle;fill:var(--ink)}
+.center2{font:500 15px var(--f);text-anchor:middle;fill:var(--ink);opacity:.75}
+.slider{display:flex;flex-direction:column;gap:6px;align-self:stretch;justify-content:center}
+.slider .cap{text-align:center;font-size:20px}
+.stop{display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:14px;background:var(--glass);border:1px solid var(--line);font-size:12px;font-weight:600;position:relative}
+.stop[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.stop.guess{outline:3px dashed var(--acc);outline-offset:2px}
+.side{display:grid;gap:14px;grid-column:1/-1}
+@media (min-width:960px){.side{grid-column:auto}}
+.cardx{background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:18px;display:grid;gap:10px;backdrop-filter:blur(8px)}
+.cardx h2{font-family:var(--d);font-size:28px;line-height:1.1}
+.cardx p{line-height:1.55;font-size:15px}
+.deg{display:flex;gap:6px;flex-wrap:wrap}
+.deg span{min-width:42px;text-align:center;padding:8px 6px;border-radius:10px;background:var(--glass);border:1px solid var(--line);font-weight:600;font-size:14px}
+.deg span small{display:block;font-weight:400;font-size:11px;opacity:.7}
+.deg span.char{background:var(--acc);color:var(--bg);border-color:transparent}
+.change{font-size:15px;min-height:22px}.change b{font-family:var(--d);font-size:20px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.acts button{padding:12px 16px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:600;min-height:44px}
+.acts button.alt{background:var(--glass);color:var(--ink);border:1px solid var(--line)}
+.game{font-size:15px;font-weight:600;min-height:22px}
+.hint{font-size:13px;opacity:.7}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><h1 id="title"></h1><span class="hint">Sleep over de buitenring om de grondtoon te kiezen · schuif rechts van licht naar donker</span></header>
+  <div class="dial" id="dial"></div>
+  <div class="slider" id="slider" role="group" aria-label="Helderheid: modus"></div>
+  <div class="side">
+    <div class="cardx" id="info"></div>
+    <div class="cardx">
+      <div class="acts">
+        <button id="drone">▶ Hoor de modus</button>
+        <button class="alt" id="charBtn">Kenmerkende noot</button>
+        <button class="alt" id="quiz">🎧 Raad de modus</button>
+      </div>
+      <p class="game" id="game" aria-live="polite"></p>
+    </div>
+  </div>
+</div>
+<script src="engine.js"></script>
+<script>
+/* Elke modus heeft een eigen licht: van ochtendzon (Lydisch) tot nacht (Locrisch). */
+const PAL = [
+  ['#FFF3C4', '#3A2A00', '#E9A100'], ['#FBE8CF', '#3A2400', '#E07F00'], ['#F1D9C4', '#3A1E0E', '#D0592A'],
+  ['#C8D8D5', '#0F2A2C', '#1E8C8C'], ['#56698A', '#F3F6FB', '#A9D8FF'], ['#2D3256', '#EEF0FF', '#B9A4FF'], ['#13142A', '#E8E6FF', '#FF74AA'],
+];
+const S = { r: 2, m: 3, size: 3, last: null, flash: new Set(), quiz: null };
+const $ = (id) => document.getElementById(id);
+const polar = (rad, deg) => [rad * Math.sin(deg * Math.PI / 180), -rad * Math.cos(deg * Math.PI / 180)];
+const fIdx = (pc) => m12(pc * 7);
+
+function setScale(r, m, sound) {
+  const before = scale(S.r, S.m);
+  const after = scale(r, m);
+  S.flash = new Set([...after.pcs].filter((p) => !before.pcs.has(p)));
+  S.last = r === S.r && m !== S.m ? { from: before, to: after } : null;
+  S.r = r; S.m = m;
+  if (sound) Snd.scale(r, m);
+  render();
+}
+
+function render() {
+  const [bg, ink, acc] = PAL[S.m];
+  const st = document.documentElement.style;
+  st.setProperty('--bg', bg); st.setProperty('--ink', ink); st.setProperty('--acc', acc);
+  const sc = scale(S.r, S.m), cs = chords(S.r, S.m, S.size), charN = sc.notes[CHAR[S.m]];
+  $('title').innerHTML = `${nn(sc.notes[0])} ${MODES[S.m]}<small>${sc.sig ? Math.abs(sc.sig) + (sc.sig > 0 ? ' kruisen' : ' mollen') : 'geen voortekens'} · ${['het helderst', 'helder', 'zonnig met schaduw', 'mineur met licht', 'donker', 'donkerder', 'het donkerst'][S.m]}</small>`;
+
+  // de wijzerplaat: 12 posities in kwintvolgorde, de 7 noten van de modus lichten op
+  const start = fIdx(S.r) - S.m;
+  let svg = `<circle class="ring" r="200"/><path class="arc" d="${arcPath(170, (start - .5) * 30, (start + 6.5) * 30)}"/>`;
+  for (let k = 0; k < 12; k++) {
+    const pc = m12(k * 7), [x, y] = polar(200, k * 30), inS = sc.pcs.has(pc);
+    const n = sc.notes.find((q) => q.pc === pc), lab = n ? nn(n) : nn(scale(pc, 1).notes[0]);
+    svg += `<circle class="pos${inS ? ' in' : ''}${pc === S.r ? ' root' : ''}${S.flash.has(pc) ? ' flash' : ''}" cx="${x}" cy="${y}" r="26" data-pc="${pc}"/><text class="pl" x="${x}" y="${y + 5}">${lab}</text>`;
+  }
+  cs.forEach((c) => {
+    const [x, y] = polar(122, fIdx(c.notes[0].pc) * 30);
+    svg += `<g class="chd" tabindex="0" role="button" data-d="${c.deg}" aria-label="${c.name}"><rect x="${x - 30}" y="${y - 19}" width="60" height="38" rx="12"/><text x="${x}" y="${y + 1}">${c.name}</text><text class="rn" x="${x}" y="${y + 13}">${c.roman}</text></g>`;
+  });
+  svg += `<text class="center1" x="0" y="10">${nn(sc.notes[0])}</text><text class="center2" x="0" y="38">${MODES[S.m]}</text>`;
+  $('dial').innerHTML = `<svg viewBox="-240 -240 480 480" role="img" aria-label="Kwintencirkel als draaiknop">${svg}</svg>`;
+  $('dial').querySelectorAll('.chd').forEach((g) => {
+    const play = () => Snd.chord(cs[+g.dataset.d]);
+    g.onclick = play; g.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play(); } };
+  });
+
+  $('slider').innerHTML = '<span class="cap" aria-hidden="true">☀︎</span>' + ABBR.map((a, i) =>
+    `<button class="stop${S.quiz && S.quiz.done && S.quiz.m === i ? ' guess' : ''}" aria-pressed="${i === S.m}" data-m="${i}" title="${MODES[i]}">${a}</button>`).join('') + '<span class="cap" aria-hidden="true">☾</span>';
+  $('slider').querySelectorAll('[data-m]').forEach((b) => b.onclick = () => (S.quiz && !S.quiz.done ? answer(+b.dataset.m) : setScale(S.r, +b.dataset.m, true)));
+
+  const f = ivs(S.m).map((x, i) => { const a = x - LPC[i]; return (a < 0 ? '♭' : a > 0 ? '♯' : '') + (i + 1); });
+  const ch = S.last && S.last.to.notes.filter((n) => !S.last.from.pcs.has(n.pc)).map((n) => {
+    const old = S.last.from.notes.find((o) => o.l === n.l); return `<b>${old ? nn(old) : '?'} → ${nn(n)}</b>`; }).join(', ');
+  $('info').innerHTML = `
+    <h2>${MODES[S.m]}</h2>
+    <div class="deg">${sc.notes.map((n, i) => `<span class="${i === CHAR[S.m] ? 'char' : ''}">${nn(n)}<small>${f[i]}</small></span>`).join('')}</div>
+    <p class="change">${ch ? `Wat veranderde: ${ch}` : ''}</p>
+    <p>Het kenmerk van ${MODES[S.m]} is <b>${nn(charN)}</b>, de ${f[CHAR[S.m]]}. ${S.m < 6 ? `Eén stap donkerder (${MODES[S.m + 1]}) verlaagt precies één noot.` : 'Donkerder kan niet: alleen de grondtoon blijft over als houvast.'}</p>`;
+}
+
+function arcPath(rad, a1, a2) {
+  const [x1, y1] = polar(rad, a1), [x2, y2] = polar(rad, a2);
+  return `M${x1} ${y1} A${rad} ${rad} 0 1 1 ${x2} ${y2}`;
+}
+
+/* Grondtoon kiezen door over de buitenring te slepen, zoals aan een knop draaien. */
+let dragging = false;
+function pick(e) {
+  const svg = $('dial').querySelector('svg'), b = svg.getBoundingClientRect();
+  const x = e.clientX - (b.left + b.width / 2), y = e.clientY - (b.top + b.height / 2);
+  if (Math.hypot(x, y) < b.width * 0.33) return;
+  const k = m12(Math.round(Math.atan2(x, -y) * 180 / Math.PI / 30));
+  const pc = m12(k * 7);
+  if (pc !== S.r) { Snd.note(48 + pc, Snd.c().currentTime + 0.01, 0.4, 0.14); setScale(pc, S.m, false); }
+}
+$('dial').addEventListener('pointerdown', (e) => { if (e.target.closest('.chd')) return; dragging = true; $('dial').setPointerCapture(e.pointerId); pick(e); });
+$('dial').addEventListener('pointermove', (e) => dragging && pick(e));
+$('dial').addEventListener('pointerup', () => dragging = false);
+
+$('drone').onclick = () => Snd.scale(S.r, S.m);
+$('charBtn').onclick = () => {
+  const sc = scale(S.r, S.m), c = Snd.c(), t = c.currentTime + 0.02;
+  Snd.note(48 + S.r, t, 2.2, 0.15); Snd.note(60 + sc.notes[CHAR[S.m]].pc + (sc.notes[CHAR[S.m]].pc < S.r ? 12 : 0), t + 0.5, 1.5, 0.14);
+};
+$('quiz').onclick = () => {
+  let m; do m = Math.floor(Math.random() * 7); while (m === S.m);
+  S.quiz = { m, done: false };
+  Snd.scale(S.r, m);
+  $('game').textContent = `Luister: welke modus op ${nn(scale(S.r, S.m).notes[0])} is dit? Tik op de schuif.`;
+  render();
+};
+function answer(m) {
+  const q = S.quiz; q.done = true;
+  $('game').textContent = m === q.m ? `Juist! Dat was ${MODES[q.m]}.` : `Bijna: het was ${MODES[q.m]} (gemarkeerd). Jij koos ${MODES[m]}.`;
+  setScale(S.r, q.m, false);
+}
+render();
+</script>
+</body>
+</html>

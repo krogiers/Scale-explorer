@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Concept C · Lijnen</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#FAFAF7;--surface:#FFFFFF;--ink:#111418;--muted:#6B7280;--line:#E5E7EB;--grid:#EEF0F2;
+  --bor:#9B5DE5;--hot:#F15A24;--f:'Archivo',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0B0D10;--surface:#14171C;--ink:#F3F4F6;--muted:#9CA3AF;--line:#262B33;--grid:#151920;--bor:#C29BFF;--hot:#FF7A45}}
+:root[data-theme="dark"]{--bg:#0B0D10;--surface:#14171C;--ink:#F3F4F6;--muted:#9CA3AF;--line:#262B33;--grid:#151920;--bor:#C29BFF;--hot:#FF7A45}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f);min-height:100dvh;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.brand{font-weight:800;font-size:20px;letter-spacing:-.02em;margin-right:auto}
+.brand small{font-weight:400;color:var(--muted);font-size:13px;margin-left:6px}
+.pill{padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:600;min-height:44px;font-size:14px}
+.pill[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.go{background:var(--hot);color:#fff;border-color:var(--hot);min-width:96px}
+.bpm{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.bpm input{width:110px;accent-color:var(--hot)}
+.mapbox{overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}
+.mapbox svg{display:block;height:min(62vh,440px)}
+.trk{fill:none;stroke-width:10;stroke-linecap:round;stroke-linejoin:round}
+.br{fill:none;stroke-width:4;stroke-linecap:round;opacity:.75}.br.bor{stroke-dasharray:2 9}
+.st{cursor:pointer}.st circle{fill:var(--surface);stroke-width:5}
+.st.on circle{fill:var(--hot);stroke:var(--hot)}
+.st.sel circle{stroke-width:8}
+.st text.n{font:800 20px var(--f);text-anchor:middle;fill:var(--ink)}
+.st text.r{font:500 11px var(--mono);text-anchor:middle;fill:var(--muted)}
+.opt{cursor:pointer}.opt circle{fill:var(--bg);stroke-width:3}.opt:hover circle,.opt:focus circle{fill:var(--surface);stroke-width:5}
+.opt text{font:600 14px var(--f);text-anchor:middle;fill:var(--ink)}.opt text.w{font:400 10px var(--mono);fill:var(--muted);text-anchor:start}
+.xfer{font:600 11px var(--mono);fill:var(--muted)}
+.train{fill:var(--hot);transition:transform .25s}
+.practice .opt,.practice .br,.practice .branchlbl{display:none}
+.branchlbl{font:600 10px var(--mono);letter-spacing:.1em;fill:var(--muted)}
+.lower{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.lower{grid-template-columns:minmax(0,3fr) minmax(0,2fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;display:grid;gap:10px;align-content:start}
+.panel h2{font-size:32px;letter-spacing:-.03em}
+.panel .k{font-family:var(--mono);color:var(--muted);font-size:13px}
+.panel p{line-height:1.55;color:var(--muted)}.panel p b{color:var(--ink)}
+.tones{display:flex;gap:6px}.tones span{font-family:var(--mono);padding:6px 10px;border-radius:8px;border:1px solid var(--line);font-weight:500}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.row .lbl{font-size:12px;color:var(--muted);margin-right:4px}
+.mini{padding:8px 12px;border-radius:10px;border:1px solid var(--line);min-height:40px;min-width:40px;font-family:var(--mono)}
+.mini[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.lines{display:grid;gap:8px}
+.lines button{display:flex;align-items:center;gap:10px;text-align:left;padding:10px;border-radius:12px;border:1px solid var(--line);min-height:48px}
+.lines button i{width:28px;height:8px;border-radius:4px;flex:0 0 auto}
+.lines button small{color:var(--muted);font-family:var(--mono);font-size:11px;margin-left:auto}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}.legend i{width:22px;height:4px;border-radius:2px;display:inline-block}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">Lijnen <small id="where"></small></div>
+  <button class="pill" data-mode="study">Bouwen</button><button class="pill" data-mode="practice">Spelen</button>
+  <label class="bpm">♩ <span id="bpmv">100</span><input type="range" min="50" max="200" value="100" id="bpm"></label>
+  <button class="pill go" id="play">▶ Rijden</button>
+</header>
+<div class="mapbox" id="mapbox"></div>
+<div class="lower">
+  <section class="panel" id="detail" aria-live="polite"></section>
+  <section class="panel">
+    <h3>Bekende lijnen</h3>
+    <div class="lines" id="lines"></div>
+    <div class="legend"><span><i style="background:var(--ink)"></i>zelfde toonladder</span><span><i style="background:var(--bor)"></i>leenakkoord (stippel)</span><span><i style="background:var(--hot)"></i>overstap: nieuwe toonsoort</span></div>
+  </section>
+</div>
+<script src="engine.js"></script>
+<script>
+const LINE_COLORS = ['#0072CE', '#00A651', '#E4002B', '#F9A01B', '#8E44AD', '#00A3AD', '#C2185B', '#6D4C41'];
+const S = { path: [{ r: 0, m: 1, deg: 0, beats: 4 }], sel: 0, size: 4, mode: 'study', bpm: 100, timer: null, at: -1, beat: 0 };
+const $ = (id) => document.getElementById(id);
+const Y = 220, colorMap = new Map();
+const lineColor = (p) => { const k = p.r + ':' + p.m; if (!colorMap.has(k)) colorMap.set(k, LINE_COLORS[colorMap.size % LINE_COLORS.length]); return colorMap.get(k); };
+const step = (beats) => 90 + Math.min(beats, 16) * 6;
+
+function render() {
+  document.body.className = S.mode;
+  document.querySelectorAll('[data-mode]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.mode === S.mode));
+  colorMap.clear();
+  const xs = []; let x = 70;
+  S.path.forEach((p) => { xs.push(x); x += step(p.beats); });
+  const last = S.path[S.path.length - 1], lx = xs[xs.length - 1];
+  const T = targets(last.r, last.m, last.deg, S.size);
+  const opts = [
+    ...T.bor.slice(0, 2).map((t, i) => ({ t, y: Y - 150 + i * 52, kind: 'bor', color: 'var(--bor)' })),
+    ...T.dia.slice(0, 3).map((t, i) => ({ t, y: Y - 52 + i * 52, kind: 'dia', color: lineColor(last) })),
+    ...T.piv.slice(0, 2).map((t, i) => ({ t, y: Y + 118 + i * 52, kind: 'piv', color: 'var(--hot)' })),
+  ];
+  const ox = lx + 210, W = Math.max(ox + 120, window.innerWidth);
+  let svg = '';
+  // het spoor: elk stuk krijgt de kleur van zijn toonladder; bij een nieuwe toonladder een overstap
+  for (let i = 1; i < S.path.length; i++) svg += `<path class="trk" stroke="${lineColor(S.path[i])}" d="M${xs[i - 1]} ${Y} L${xs[i]} ${Y}"/>`;
+  if (S.mode === 'study') opts.forEach((o) => svg += `<path class="br ${o.kind}" stroke="${o.color}" d="M${lx} ${Y} C${lx + 110} ${Y} ${ox - 110} ${o.y} ${ox - 26} ${o.y}"/>`);
+  if (S.mode === 'study') svg += `<text class="branchlbl" x="${ox}" y="${Y - 186}" text-anchor="middle">WAARHEEN?</text>`;
+  S.path.forEach((p, i) => {
+    const c = chord(p.r, p.m, p.deg, S.size), col = lineColor(p);
+    const newLine = i === 0 || p.r !== S.path[i - 1].r || p.m !== S.path[i - 1].m;
+    if (newLine) svg += `<text class="xfer" x="${xs[i]}" y="${Y + 62}" text-anchor="middle">${i ? '⇄ ' : ''}${label(p.r, p.m)}</text>`;
+    svg += `<g class="st${i === S.at ? ' on' : ''}${i === S.sel ? ' sel' : ''}" data-i="${i}" tabindex="0" role="button" aria-label="${c.name}">
+      <circle cx="${xs[i]}" cy="${Y}" r="${newLine && i ? 20 : 16}" stroke="${col}"/>
+      <text class="n" x="${xs[i]}" y="${Y - 34}">${c.name}</text><text class="r" x="${xs[i]}" y="${Y + 42}">${c.roman}</text></g>`;
+  });
+  if (S.mode === 'study') opts.forEach((o, i) => svg += `<g class="opt" data-o="${i}" tabindex="0" role="button" aria-label="${o.t.name}, ${o.t.why}">
+    <circle cx="${ox}" cy="${o.y}" r="24" stroke="${o.color}"/><text x="${ox}" y="${o.y + 5}">${o.t.name}</text>
+    <text class="w" x="${ox + 34}" y="${o.y + 4}" text-anchor="start">${o.t.roman} · ${o.t.why}</text></g>`);
+  if (S.at >= 0) svg += `<circle class="train" r="9" cx="0" cy="0" style="transform:translate(${xs[S.at] + (S.beat / S.path[S.at].beats) * step(S.path[S.at].beats)}px,${Y}px)"/>`;
+  $('mapbox').innerHTML = `<svg width="${W + 260}" viewBox="0 0 ${W + 260} 440" role="img" aria-label="Progressie als lijnennet">${svg}</svg>`;
+  $('mapbox').querySelectorAll('.st').forEach((g) => act(g, () => { S.sel = +g.dataset.i; const p = S.path[S.sel]; Snd.chord(chord(p.r, p.m, p.deg, S.size)); render(); }));
+  $('mapbox').querySelectorAll('.opt').forEach((g) => act(g, () => {
+    const t = opts[+g.dataset.o].t; S.path.push({ r: t.r, m: t.m, deg: t.deg, beats: 4 }); S.sel = S.path.length - 1;
+    Snd.chord(chord(t.r, t.m, t.deg, S.size)); render(); $('mapbox').scrollLeft = 1e6;
+  }));
+  $('where').textContent = label(last.r, last.m);
+  detail();
+}
+
+function act(el, fn) { el.onclick = fn; el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } }; }
+
+function detail() {
+  const i = S.sel, p = S.path[i], c = chord(p.r, p.m, p.deg, S.size), prev = S.path[i - 1];
+  let why = 'Het vertrekpunt van je lijn.';
+  if (prev) {
+    const pc = chord(prev.r, prev.m, prev.deg, S.size);
+    if (prev.r === p.r && prev.m === p.m) why = `Binnen ${label(p.r, p.m)}: <b>${MOVE[(p.deg - prev.deg + 7) % 7][0]}</b> vanaf ${pc.name}, ${shared(pc, c)} gedeelde noten.`;
+    else if (prev.r === p.r) why = `<b>Leenakkoord</b> uit ${label(p.r, p.m)}: zelfde grondtoon, ${Math.abs(p.m - prev.m)} noot anders.`;
+    else why = `<b>Overstap</b> naar ${label(p.r, p.m)}. ${pc.name} werkt als spil: het zit in beide toonladders.`;
+  }
+  $('detail').innerHTML = `
+    <span class="k">station ${i + 1} · ${label(p.r, p.m)} · ${c.roman}</span>
+    <h2>${c.name}</h2>
+    <div class="tones">${c.notes.map((n) => `<span>${nn(n)}</span>`).join('')}</div>
+    <p>${why}</p>
+    <div class="row"><span class="lbl">Tellen</span>${[2, 4, 8, 16].map((b) => `<button class="mini" data-b="${b}" aria-pressed="${p.beats === b}">${b}</button>`).join('')}
+      <span class="lbl" style="margin-left:12px">Akkoord</span><button class="mini" data-s="3" aria-pressed="${S.size === 3}">3</button><button class="mini" data-s="4" aria-pressed="${S.size === 4}">4</button>
+      <button class="mini" id="del" ${S.path.length < 2 ? 'disabled' : ''}>✕ weg</button></div>`;
+  $('detail').querySelectorAll('[data-b]').forEach((b) => b.onclick = () => { p.beats = +b.dataset.b; render(); });
+  $('detail').querySelectorAll('[data-s]').forEach((b) => b.onclick = () => { S.size = +b.dataset.s; render(); });
+  $('del').onclick = () => { S.path.splice(i, 1); S.sel = Math.min(i, S.path.length - 1); render(); };
+}
+
+$('lines').innerHTML = PRESETS.map((p, i) => `<button data-p="${p.id}"><i style="background:${LINE_COLORS[i]}"></i>${p.name}<small>${p.items.length} stations</small></button>`).join('');
+$('lines').querySelectorAll('[data-p]').forEach((b) => b.onclick = () => {
+  const p = PRESETS.find((x) => x.id === b.dataset.p);
+  S.size = p.size; S.path = p.items.map(([o, m, deg, beats]) => ({ r: m12(o), m, deg, beats })); S.sel = 0; render(); $('mapbox').scrollLeft = 0;
+});
+document.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => { S.mode = b.dataset.mode; render(); });
+$('bpm').oninput = (e) => { S.bpm = +e.target.value; $('bpmv').textContent = S.bpm; };
+
+/* Rijden: de trein volgt de lijn op het tempo; het scherm schuift mee. */
+$('play').onclick = () => {
+  if (S.timer) { clearTimeout(S.timer); S.timer = null; S.at = -1; $('play').textContent = '▶ Rijden'; render(); return; }
+  S.at = 0; S.beat = -1; $('play').textContent = '■ Stop';
+  const tick = () => {
+    S.beat++;
+    if (S.beat >= S.path[S.at].beats) { S.beat = 0; S.at = (S.at + 1) % S.path.length; }
+    const p = S.path[S.at];
+    Snd.tick(S.beat % 4 === 0);
+    if (S.beat === 0) { Snd.chord(chord(p.r, p.m, p.deg, S.size), p.beats * 60 / S.bpm * 0.95); S.sel = S.at; }
+    render();
+    const st = $('mapbox').querySelector('.st.on circle');
+    if (st) $('mapbox').scrollLeft = +st.getAttribute('cx') - $('mapbox').clientWidth / 3;
+    S.timer = setTimeout(tick, 60000 / S.bpm);
+  };
+  tick();
+};
+window.addEventListener('resize', render);
+render();
+</script>
+</body>
+</html>

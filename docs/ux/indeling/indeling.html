@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Indeling · Wireframes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../../src/styles.css">
+<style>
+/* Wireframes op ware schaal: coördinaten in px van een scherm van 1440 × 900, verkleind met --k. */
+.cmp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+.col h3{margin:0 0 8px;font-size:15px}
+.frame{position:relative;width:100%;aspect-ratio:1440 / var(--h);background:var(--bg);border:1px solid var(--line);border-radius:10px;overflow:hidden;container-type:inline-size}
+.box{position:absolute;border:1.5px solid var(--line);background:var(--surface);border-radius:6px;padding:.5cqw .7cqw;font-size:max(9px,1.05cqw);line-height:1.25;overflow:hidden;display:flex;flex-direction:column;gap:2px}
+.box b{font-size:max(10px,1.2cqw)}
+.box span{color:var(--muted)}
+.box.hd{background:transparent;border-style:dashed}
+.box.k-nav{border-color:var(--dia);background:var(--dia-soft)}
+.box.k-chd{border-color:var(--brass);background:var(--brass-soft)}
+.box.k-play{border-color:var(--bor);background:var(--bor-soft)}
+.box.dock{box-shadow:0 -4px 14px rgba(0,0,0,.18);border-width:2px}
+.box.sticky::after{content:"vast bij scrollen";position:absolute;right:.6cqw;bottom:.4cqw;font-size:max(8px,.9cqw);color:var(--dia);font-weight:600}
+.box .new{display:inline-block;vertical-align:1px;font-weight:600;background:var(--ink);color:var(--surface);border-radius:4px;padding:0 5px;font-size:max(8px,.85cqw)}
+.fold{position:absolute;left:0;right:0;border-top:2px dashed var(--bor);pointer-events:none}
+.fold i{position:absolute;right:6px;top:2px;font-style:normal;font-size:max(9px,.95cqw);color:var(--bor);font-weight:600;background:var(--bg);padding:0 4px}
+.stats{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin-top:8px}
+.stats b{color:var(--ink)}
+.pros{margin:8px 0 0;padding-left:18px;font-size:14px;display:grid;gap:3px}
+.legendw{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
+.legendw i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1.5px solid}
+@media (max-width:820px){.cmp{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><div class="intro"><h1>Indeling: wireframes</h1>
+    <p class="muted">Links staat de huidige pagina en rechts een voorstel, allebei op dezelfde schaal (een laptopscherm van 1440 × 900). De paarse stippellijnen tonen waar elk scherm eindigt.</p></div>
+    <div class="seg" id="pick" role="group" aria-label="Variant">
+      <button type="button" data-v="A" aria-pressed="true">A · Twee kolommen + dock</button>
+      <button type="button" data-v="B" aria-pressed="false">B · Drie werkplekken</button>
+      <button type="button" data-v="C" aria-pressed="false">C · Rijen per vraag</button>
+    </div>
+  </header>
+  <div class="legendw">
+    <span><i style="background:var(--dia-soft);border-color:var(--dia)"></i>Waar ben ik? (toonladder, modus)</span>
+    <span><i style="background:var(--brass-soft);border-color:var(--brass)"></i>Welke akkoorden?</span>
+    <span><i style="background:var(--bor-soft);border-color:var(--bor)"></i>Spelen (schema, loop, instrument)</span>
+    <span><i style="border-color:var(--line);border-style:dashed"></i>instellingen</span>
+  </div>
+  <div class="cmp">
+    <div class="col"><h3>Nu</h3><div id="now"></div></div>
+    <div class="col"><h3 id="vt"></h3><div id="var"></div><ul class="pros" id="vp"></ul></div>
+  </div>
+</div>
+<script>
+/* [x, y, w, h, soort, titel, inhoud, extra] in px op 1440 breed. "Nu" is gemeten in de echte app. */
+const NOW = { h: 3846, boxes: [
+  [130, 20, 1180, 170, 'hd', 'Kop + 6 instellingen', 'taal · nootnamen · geluid · blue note · pentatonisch · drie/vier'],
+  [130, 206, 528, 751, 'k-nav', 'Kwintencirkel', 'met uitleg onder de cirkel (veel lege ruimte)'],
+  [676, 206, 634, 751, 'k-nav', 'Modus + modusladder', 'notenrij, blue/penta-uitleg, speel, 7 modi'],
+  [130, 975, 1180, 599, 'k-chd', 'Akkoorden + "Waar kun je naartoe"', 'akkoordenrij en 3 kolommen met stappen'],
+  [130, 1593, 1180, 717, 'k-chd', 'Akkoordnetwerk', 'dezelfde stappen nog eens, als netwerk'],
+  [130, 2328, 1180, 481, 'k-play', 'Schema + meespelen', 'schema, duur, loop, tempo, begeleiding'],
+  [130, 2826, 1180, 471, 'k-play', 'Instrument', '3 schermen onder de akkoorden die je aanklikt'],
+  [130, 3316, 1180, 449, 'k-nav', 'Modale kaart', 'hoort bij de modus, maar staat onderaan'],
+] };
+
+const VARIANTS = {
+  A: { title: 'A · Twee kolommen met een instrumentdock', h: 1500, boxes: [
+    [130, 16, 1180, 64, 'hd', 'Kop', '⚙ instellingen · drie/vier · chips: blue, penta', 'nieuw'],
+    [130, 96, 470, 470, 'k-nav sticky', 'Kwintencirkel', 'compacter; uitleg achter ⓘ'],
+    [130, 580, 470, 380, 'k-nav', 'Modusladder', 'zelfde grondtoon, andere modus'],
+    [618, 96, 692, 180, 'k-nav', 'D Dorisch', 'notenrij (penta/blue gedimd) · ▶ toonladder'],
+    [618, 290, 692, 150, 'k-chd', 'Akkoorden in D Dorisch', '7 akkoorden'],
+    [618, 454, 692, 560, 'k-chd', 'Volgende stap: [Lijst | Netwerk | Modi & bruggen]', 'één blok met drie weergaven in plaats van drie panelen', 'samengevoegd'],
+    [618, 1028, 692, 300, 'k-play', 'Akkoordenschema', 'schema + duur'],
+    [0, 650, 1440, 250, 'k-play dock', 'Dock: instrument + transport', '▶/■ · tempo · nu: Dm → daarna G · klavier/gitaar/sax · inklapbaar tot een balk van 56 px', 'nieuw'],
+  ], pros: [
+    '<b>Elke klik zie en hoor je meteen</b>: het instrument en de loop staan altijd in beeld.',
+    'De cirkel en de ladder blijven links staan als navigatie, rechts staat de uitwerking.',
+    'Lijst, netwerk en de nieuwe "Modi en bruggen" staan in één blok met drie tabs: geen dubbele informatie meer.',
+    'Ongeveer 1,7 schermen in plaats van 4,3.',
+    'Nadeel: het dock neemt 250 px van de hoogte in. Inklappen moet dus vlot gaan.',
+  ] },
+  B: { title: 'B · Drie werkplekken (tabs)', h: 900, boxes: [
+    [130, 16, 1180, 56, 'hd', 'Kop', '⚙ · drie/vier', 'nieuw'],
+    [130, 82, 1180, 46, 'hd', 'Tabs: Verkennen | Akkoorden | Spelen', 'getoond: Akkoorden', 'nieuw'],
+    [130, 142, 1180, 140, 'k-chd', 'Akkoorden in D Dorisch', 'met een kleine kop: D Dorisch · notenrij'],
+    [130, 296, 700, 590, 'k-chd', 'Volgende stap: [Lijst | Netwerk]', 'stappen naar het volgende akkoord'],
+    [848, 296, 462, 590, 'k-play', 'Instrument (compact)', '1 octaaf, of een gitaarhals tot fret 7'],
+  ], pros: [
+    'Elke werkplek past in ongeveer één scherm. Dit is het rustigste beeld.',
+    'Verkennen = cirkel, modusladder en modi en bruggen. Spelen = schema, loop en een groot instrument.',
+    'Nadeel: je wisselt vaak van tab (een modus kiezen staat in een andere tab dan een akkoord kiezen), en het verband tussen modus en akkoord raakt uit beeld.',
+    'Nadeel: dit is de grootste verbouwing, en de URL en navigatie moeten mee (bijvoorbeeld #akkoorden).',
+  ] },
+  C: { title: 'C · Rijen per vraag', h: 1960, boxes: [
+    [130, 16, 1180, 64, 'hd', 'Kop + sprongmenu', '⚙ · 1 Toonladder · 2 Akkoorden · 3 Spelen (vast bovenaan)', 'nieuw'],
+    [130, 96, 470, 560, 'k-nav', '1 · Kwintencirkel', 'uitleg achter ⓘ'],
+    [618, 96, 692, 560, 'k-nav', '1 · Modus + modusladder', 'notenrij, ▶ toonladder'],
+    [130, 670, 1180, 60, 'k-nav', '1 · Modi en bruggen ▸', 'ingeklapt; opent het rooster', 'vervangt de modale kaart'],
+    [130, 750, 1180, 150, 'k-chd', '2 · Akkoorden', '7 akkoorden'],
+    [130, 914, 700, 520, 'k-chd', '2 · Volgende stap: [Lijst | Netwerk]', 'één blok in plaats van twee', 'samengevoegd'],
+    [848, 914, 462, 520, 'k-play sticky', '2 · Instrument', 'naast de akkoorden'],
+    [130, 1454, 1180, 460, 'k-play', '3 · Schema + meespelen', 'loop, tempo, begeleiding'],
+  ], pros: [
+    'De kleinste stap: dezelfde pagina, maar gegroepeerd volgens de drie vragen.',
+    'Het instrument staat naast de akkoorden, dus je ziet het resultaat van een klik meteen.',
+    'Ongeveer 2,2 schermen. Lijst en netwerk zijn samengevoegd en de modale kaart is ingeklapt.',
+    'Nadeel: tijdens de loop scrol je nog tussen het schema en het instrument.',
+  ] },
+};
+
+function frame(def) {
+  const folds = Array.from({ length: Math.floor(def.h / 900) }, (_, i) => (i + 1) * 900)
+    .map((y) => `<div class="fold" style="top:${(y / def.h) * 100}%"><i>einde scherm ${y / 900}</i></div>`).join('');
+  const boxes = def.boxes.map(([x, y, w, h, k, t, c, n]) =>
+    `<div class="box ${k}" style="left:${x / 14.4}%;top:${(y / def.h) * 100}%;width:${w / 14.4}%;height:${(h / def.h) * 100}%"><b>${t}${n ? ` <span class="new">${n}</span>` : ''}</b><span>${c}</span></div>`).join('');
+  return `<div class="frame" style="--h:${def.h}">${boxes}${folds}</div>
+    <div class="stats"><span>hoogte <b>${def.h} px</b></span><span><b>${(def.h / 900).toFixed(1)}</b> schermen</span><span>blokken <b>${def.boxes.filter((b) => b[4] !== 'hd').length}</b></span></div>`;
+}
+document.getElementById('now').innerHTML = frame(NOW);
+function show(v) {
+  const d = VARIANTS[v];
+  document.getElementById('vt').textContent = d.title;
+  document.getElementById('var').innerHTML = frame(d);
+  document.getElementById('vp').innerHTML = d.pros.map((p) => `<li>${p}</li>`).join('');
+  document.querySelectorAll('#pick button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+}
+document.getElementById('pick').onclick = (e) => { const b = e.target.closest('button'); if (b) show(b.dataset.v); };
+show('A');
+</script>
+</body>
+</html>

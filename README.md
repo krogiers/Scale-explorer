@@ -224,6 +224,10 @@ f = 440 · 2^((m − 69) / 12)   Hz          (MIDI 69 = A4 = 440 Hz)
 
 De blue note is de verlaagde kwint van de grondtoon: `blue = (r + 6) mod 12`. Hij wordt gespeld op de letter van de kwint (letter van de grondtoon + 4), dus op D wordt het A♭ en niet G♯, en in B♭ majeur F♭. Zou dat een dubbel voorteken geven, dan wordt hij als ♯4 gespeld: op G♭ wordt het C (niet D𝄫), op D♭ wordt het G. Alleen Locrisch bevat hem al (de ♭5 is zijn kenmerkende noot). Je zet hem aan of uit in de instellingen; dan verschijnt hij gestippeld in de toonladder, in blauw op klavier en gitaar, en in het meespeelvak. Elk akkoord toont ook zijn eigen noten, zodat je weet welke tonen veilig zijn om op te landen.
 
+### 7c. Pentatonisch
+
+De pentatonische ladder houdt vijf trappen van de modus over. De heldere modi (Lydisch, Ionisch, Mixolydisch) geven majeur-pentatonisch, trappen `{1, 2, 3, 5, 6}`. De donkere modi geven mineur-pentatonisch, trappen `{1, ♭3, 4, 5, ♭7}`; in Locrisch wordt dat `1 ♭3 4 ♭5 ♭7`. Op Locrisch na valt telkens de kenmerkende noot weg: daarom past één pentatonische ladder over meerdere buurmodi. Zet je hem aan in de instellingen, dan worden de twee overige noten gedimd (niet verborgen) in de toonladder en op het instrument, en speelt "Speel toonladder" alleen de vijf noten. Mineur-pentatonisch met de blue note erbij is de bluesladder.
+
 ### 8. Uitbreiden
 
 Omdat alles volgt uit "een verzameling toonklassen plus een spelling", passen nieuwe toonladders in hetzelfde model. Harmonisch mineur is bijvoorbeeld het patroon [0, 2, 3, 5, 7, 8, 11], met zijn eigen zeven rotaties. Het enige verschil: die noten liggen niet meer naast elkaar op de kwintencirkel, dus voor die families wordt de afstand tussen toonladders geteld als het aantal verschillende toonklassen in plaats van als stappen op de boog.

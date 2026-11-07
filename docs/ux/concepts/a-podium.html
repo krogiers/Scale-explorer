@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Concept A · Podium</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F4F1EA;--surface:#FFFFFF;--ink:#1B1A17;--muted:#6E6A60;--line:#E2DCCF;
+  --dia:#1F8A70;--bor:#8A4FD8;--piv:#D98E04;--hot:#E4572E;--key:#FFFFFF;--keyb:#1B1A17;
+  --f:'Space Grotesk',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0D0D10;--surface:#17171C;--ink:#F2EFE8;--muted:#9C978C;--line:#2A2A31;
+  --dia:#3CC79F;--bor:#B488F5;--piv:#F2B33D;--hot:#FF7A50;--key:#ECE8DF;--keyb:#0D0D10;}}
+:root[data-theme="dark"]{--bg:#0D0D10;--surface:#17171C;--ink:#F2EFE8;--muted:#9C978C;--line:#2A2A31;
+  --dia:#3CC79F;--bor:#B488F5;--piv:#F2B33D;--hot:#FF7A50;--key:#ECE8DF;--keyb:#0D0D10;}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f);min-height:100dvh;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.app{max-width:1280px;margin:0 auto;padding:12px 16px calc(16px + env(safe-area-inset-bottom));display:grid;gap:14px;
+  grid-template-areas:"top" "hero" "next" "prog" "inst"}
+.app>*{min-width:0}
+@media (min-width:900px){.app{grid-template-columns:minmax(0,5fr) minmax(0,6fr);grid-template-areas:"top top" "hero inst" "next prog";align-items:start}}
+.top{grid-area:top;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.keypill{display:flex;align-items:baseline;gap:8px;padding:10px 16px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:700;font-size:18px;min-height:44px}
+.keypill small{font-weight:400;opacity:.7;font-size:13px}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{padding:8px 14px;border-radius:999px;min-height:38px;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.spacer{flex:1}
+.ibar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hero{grid-area:hero;background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:20px;display:grid;gap:10px;position:relative;overflow:hidden}
+.hero .rn{font-family:var(--mono);color:var(--muted);font-size:15px}
+.hero .big{font-size:clamp(72px,18vw,140px);line-height:.9;font-weight:700;letter-spacing:-.04em}
+.tones{display:flex;gap:8px;flex-wrap:wrap}
+.tones span{font-family:var(--mono);font-weight:600;padding:6px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+.tones span.char{border-color:var(--bor);color:var(--bor)}
+.beats{display:flex;gap:6px}.beats i{width:14px;height:14px;border-radius:50%;background:var(--line)}.beats i.on{background:var(--hot)}
+.upnext{color:var(--muted);font-size:15px}.upnext b{color:var(--ink)}
+.why{font-size:15px;line-height:1.5;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px}
+.why b{color:var(--ink)}
+.practice .why,.practice .card em{display:none}
+.next{grid-area:next;display:grid;gap:14px}
+.lane{min-width:0}
+.lane h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.lane h3 i{width:10px;height:10px;border-radius:50%}
+.cards{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px;scrollbar-width:none}
+.card{scroll-snap-align:start;flex:0 0 auto;min-width:104px;min-height:88px;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--c);text-align:left;display:grid;gap:2px;align-content:start;transition:transform .12s}
+.card:active{transform:scale(.96)}
+.card b{font-size:24px;letter-spacing:-.02em}
+.card span{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.card em{font-style:normal;font-size:12px;color:var(--muted);max-width:150px}
+.card.s0{box-shadow:0 0 0 2px var(--c) inset}
+.prog{grid-area:prog;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:14px;display:grid;gap:12px}
+.prog .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.chip{flex:0 0 auto;padding:8px 12px;border-radius:12px;border:1px solid var(--line);font-weight:600;min-height:44px}
+.chip.on{background:var(--hot);border-color:var(--hot);color:#fff}
+.play{width:56px;height:56px;border-radius:50%;background:var(--hot);color:#fff;font-size:22px;flex:0 0 auto}
+.bpm{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:var(--muted);flex:1;min-width:160px}
+.bpm input{flex:1;accent-color:var(--hot)}
+.presets{display:flex;gap:6px;flex-wrap:wrap}
+.presets button{font-size:13px;padding:6px 10px;border-radius:999px;border:1px dashed var(--line);color:var(--muted);min-height:36px}
+.inst{grid-area:inst;background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:14px;display:grid;gap:10px}
+@media (min-width:900px){.inst{position:sticky;top:12px}}
+.inst svg{width:100%;height:auto;display:block}
+.k-w{fill:var(--key);stroke:var(--line)}.k-b{fill:var(--keyb)}
+.k-w.ch,.k-b.ch{fill:var(--hot)}
+.dot{fill:var(--dia)}.dot.char{fill:var(--bor)}
+.lbl{font:600 13px var(--f);text-anchor:middle;fill:#1B1A17}.lbl.w{fill:#fff}
+.str{stroke:var(--muted);opacity:.5}.fret{stroke:var(--line);stroke-width:2}.nut{stroke:var(--ink);stroke-width:5}
+.gd{fill:var(--surface);stroke:var(--dia);stroke-width:2}.gd.ch{fill:var(--hot);stroke:var(--hot)}.gd.char{stroke:var(--bor)}
+.gl{font:600 10px var(--f);text-anchor:middle;fill:var(--ink)}.gl.w{fill:#fff}
+.sheet{position:fixed;inset:auto 0 0 0;background:var(--surface);border-radius:24px 24px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.25);transform:translateY(110%);visibility:hidden;transition:transform .25s,visibility .25s;z-index:10;max-width:720px;margin:0 auto;display:grid;gap:14px}
+.sheet.open{transform:none;visibility:visible}
+.sheet h4{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.grid12{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.grid12 button,.grid7 button{min-height:48px;border-radius:12px;border:1px solid var(--line);font-weight:600}
+.grid12 button[aria-pressed="true"],.grid7 button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.grid7 button small{display:block;font-size:10px;font-weight:400;opacity:.7}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}.scrim.open{opacity:1;pointer-events:auto}
+.tag{font-family:var(--mono);font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="top">
+    <button class="keypill" id="keyBtn"></button>
+    <div class="seg" role="group" aria-label="Modus van de app">
+      <button data-mode="practice">Oefenen</button><button data-mode="study">Begrijpen</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="seg" role="group" aria-label="Akkoordgrootte"><button data-size="3">Drieklank</button><button data-size="4">Vierklank</button></div>
+  </div>
+
+  <section class="hero" id="hero" aria-live="polite"></section>
+  <section class="next" id="next"></section>
+  <section class="prog" id="prog"></section>
+  <section class="inst">
+    <div class="ibar"><div class="seg" role="group" aria-label="Instrument"><button data-inst="piano">Klavier</button><button data-inst="guitar">Gitaar</button></div><span class="spacer"></span><button class="seg" style="padding:8px 14px" id="playScale">▶ toonladder</button></div>
+    <div id="inst"></div>
+  </section>
+</div>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="Kies toonsoort">
+  <h4>Grondtoon</h4><div class="grid12" id="roots"></div>
+  <h4>Modus · van helder naar donker</h4><div class="grid7" id="modes"></div>
+</div>
+<script src="engine.js"></script>
+<script>
+const S = { r: 2, m: 3, deg: 0, size: 3, mode: 'study', inst: 'piano', path: [], playing: -1, beat: 0, bpm: 96, timer: null };
+const $ = (id) => document.getElementById(id);
+S.path = [{ r: 2, m: 3, deg: 0, beats: 4 }];
+
+function go(t, sound = true) {
+  Object.assign(S, { r: t.r, m: t.m, deg: t.deg });
+  if (!S.timer) { S.path.push({ r: t.r, m: t.m, deg: t.deg, beats: 4 }); if (S.path.length > 16) S.path.shift(); }
+  if (sound) Snd.chord(chord(S.r, S.m, S.deg, S.size));
+  render();
+}
+
+function render() {
+  document.body.className = S.mode;
+  document.querySelectorAll('[data-mode]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.mode === S.mode));
+  document.querySelectorAll('[data-size]').forEach((b) => b.setAttribute('aria-pressed', +b.dataset.size === S.size));
+  document.querySelectorAll('[data-inst]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.inst === S.inst));
+  const sc = scale(S.r, S.m), T = targets(S.r, S.m, S.deg, S.size), c = T.cur;
+  const charPc = sc.notes[CHAR[S.m]].pc;
+  $('keyBtn').innerHTML = `${nn(sc.notes[0])} ${MODES[S.m]} <small>${sc.sig ? Math.abs(sc.sig) + (sc.sig > 0 ? '♯' : '♭') : 'geen voortekens'} ▾</small>`;
+  const nextP = S.timer ? S.path[(S.playing + 1) % S.path.length] : null;
+  const nc = nextP && chord(nextP.r, nextP.m, nextP.deg, S.size);
+  const beats = S.timer ? S.path[S.playing].beats : 4;
+  $('hero').innerHTML = `
+    <div class="rn">${c.roman} · ${label(S.r, S.m)}</div>
+    <div class="big">${c.name}</div>
+    <div class="tones">${c.notes.map((n) => `<span class="${n.pc === charPc ? 'char' : ''}">${nn(n)}</span>`).join('')}</div>
+    ${S.timer ? `<div class="beats">${Array.from({ length: Math.min(beats, 16) }, (_, i) => `<i class="${i === S.beat ? 'on' : ''}"></i>`).join('')}</div>
+      <div class="upnext">daarna <b>${nc.name}</b></div>` : ''}
+    <p class="why">${c.name} is de <b>${c.roman}</b> van ${label(S.r, S.m)}. De kenmerkende noot van ${MODES[S.m]} is <b>${nn(sc.notes[CHAR[S.m]])}</b>${c.hasChar ? ', en die zit in dit akkoord: hier hoor je de kleur van de modus.' : '. Speel hem erbovenop om de modus te laten horen.'}</p>`;
+  const lane = (title, color, list) => list.length ? `<div class="lane"><h3><i style="background:${color}"></i>${title}</h3><div class="cards">${list.map((x, i) =>
+    `<button class="card${x.str === 0 ? ' s0' : ''}" style="--c:${color}" data-go="${i}" data-k="${x.kind}"><b>${x.name}</b><span>${x.roman}${x.kind !== 'dia' ? ' · ' + ABBR[x.m] : ''}</span><em>${x.why}</em></button>`).join('')}</div></div>` : '';
+  $('next').innerHTML = lane('Binnen de modus', 'var(--dia)', T.dia) + lane('Lenen · zelfde grondtoon', 'var(--bor)', T.bor) + lane('Moduleren · nieuwe toonsoort', 'var(--piv)', T.piv.slice(0, 6));
+  $('next').querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(T[b.dataset.k][+b.dataset.go]));
+  $('prog').innerHTML = `
+    <div class="row"><button class="play" id="play" aria-label="${S.timer ? 'Stop' : 'Speel mee'}">${S.timer ? '■' : '▶'}</button>
+      <label class="bpm">${S.bpm} BPM <input type="range" min="50" max="200" value="${S.bpm}" id="bpm"></label>
+      <button class="tag" id="clear">wis</button></div>
+    <div class="chips">${S.path.map((p, i) => `<button class="chip${i === S.playing ? ' on' : ''}" data-i="${i}">${chord(p.r, p.m, p.deg, S.size).name}</button>`).join('')}</div>
+    <div class="presets"><span class="tag">Start met:</span>${PRESETS.map((p) => `<button data-p="${p.id}">${p.name}</button>`).join('')}</div>`;
+  $('play').onclick = toggle;
+  $('bpm').oninput = (e) => { S.bpm = +e.target.value; e.target.previousSibling.textContent = S.bpm + ' BPM '; };
+  $('clear').onclick = () => { S.path = [{ r: S.r, m: S.m, deg: S.deg, beats: 4 }]; render(); };
+  $('prog').querySelectorAll('[data-i]').forEach((b) => b.onclick = () => { const p = S.path[+b.dataset.i]; Object.assign(S, p); Snd.chord(chord(p.r, p.m, p.deg, S.size)); render(); });
+  $('prog').querySelectorAll('[data-p]').forEach((b) => b.onclick = () => loadPreset(b.dataset.p));
+  $('inst').innerHTML = S.inst === 'piano' ? piano(sc, c, charPc) : guitar(sc, c, charPc);
+}
+
+function loadPreset(id) {
+  const p = PRESETS.find((x) => x.id === id), key = 0;
+  S.size = p.size;
+  S.path = p.items.map(([o, m, deg, beats]) => ({ r: m12(key + o), m, deg, beats }));
+  Object.assign(S, S.path[0]);
+  render();
+}
+
+function piano(sc, c, charPc) {
+  const W = 40, H = 150, BW = 24, BH = 92, whites = [0, 2, 4, 5, 7, 9, 11], blacks = [[1, 0], [3, 1], [6, 3], [8, 4], [10, 5]];
+  const nameOf = (pc) => { const n = sc.notes.find((x) => x.pc === pc); return n ? nn(n) : ''; };
+  let out = '';
+  for (let o = 0; o < 2; o++) whites.forEach((pc, i) => {
+    const x = (o * 7 + i) * W, ch = c.pcs.has(pc);
+    out += `<rect class="k-w${ch ? ' ch' : ''}" x="${x + 1}" y="1" width="${W - 2}" height="${H}" rx="6"/>`;
+    if (sc.pcs.has(pc)) out += `<circle class="dot${pc === charPc ? ' char' : ''}" cx="${x + W / 2}" cy="${H - 38}" r="${pc === sc.r ? 7 : 5}"/><text class="lbl${ch ? ' w' : ''}" x="${x + W / 2}" y="${H - 14}">${nameOf(pc)}</text>`;
+  });
+  for (let o = 0; o < 2; o++) blacks.forEach(([pc, wi]) => {
+    const x = (o * 7 + wi + 1) * W - BW / 2, ch = c.pcs.has(pc);
+    out += `<rect class="k-b${ch ? ' ch' : ''}" x="${x}" y="1" width="${BW}" height="${BH}" rx="4"/>`;
+    if (sc.pcs.has(pc)) out += `<circle class="dot${pc === charPc ? ' char' : ''}" cx="${x + BW / 2}" cy="${BH - 30}" r="5"/><text class="lbl w" x="${x + BW / 2}" y="${BH - 10}" style="font-size:10px">${nameOf(pc)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${14 * W + 2} ${H + 3}" role="img" aria-label="Klavier">${out}</svg>`;
+}
+
+function guitar(sc, c, charPc) {
+  const ST = [4, 11, 7, 2, 9, 4], F = 12, FW = 52, SH = 26, L = 30, T = 14;
+  const nameOf = (pc) => { const n = sc.notes.find((x) => x.pc === pc); return n ? nn(n) : ''; };
+  let out = '';
+  for (let f = 0; f <= F; f++) out += `<line class="${f ? 'fret' : 'nut'}" x1="${L + f * FW}" x2="${L + f * FW}" y1="${T}" y2="${T + 5 * SH}"/>`;
+  ST.forEach((_, s) => out += `<line class="str" x1="${L}" x2="${L + F * FW}" y1="${T + s * SH}" y2="${T + s * SH}" stroke-width="${1 + s * .4}"/>`);
+  ST.forEach((open, s) => { for (let f = 0; f <= F; f++) {
+    const pc = (open + f) % 12; if (!sc.pcs.has(pc)) continue;
+    const x = f ? L + f * FW - FW / 2 : L - 16, y = T + s * SH, ch = c.pcs.has(pc);
+    out += `<circle class="gd${ch ? ' ch' : ''}${pc === charPc ? ' char' : ''}" cx="${x}" cy="${y}" r="${pc === sc.r ? 11.5 : 10}"/><text class="gl${ch ? ' w' : ''}" x="${x}" y="${y + 3.5}">${nameOf(pc)}</text>`;
+  } });
+  return `<div style="overflow-x:auto"><svg viewBox="0 0 ${L + F * FW + 8} ${T + 5 * SH + 16}" style="min-width:560px" role="img" aria-label="Gitaarhals">${out}</svg></div>`;
+}
+
+function toggle() {
+  if (S.timer) { clearInterval(S.timer); S.timer = null; S.playing = -1; render(); return; }
+  S.playing = 0; S.beat = -1;
+  const step = () => {
+    S.beat++;
+    if (S.beat >= S.path[S.playing].beats) { S.beat = 0; S.playing = (S.playing + 1) % S.path.length; }
+    const p = S.path[S.playing];
+    Object.assign(S, { r: p.r, m: p.m, deg: p.deg });
+    Snd.tick(S.beat % 4 === 0);
+    if (S.beat === 0) Snd.chord(chord(p.r, p.m, p.deg, S.size), p.beats * 60 / S.bpm * 0.95);
+    render();
+    clearInterval(S.timer); S.timer = setInterval(step, 60000 / S.bpm);
+  };
+  S.timer = setInterval(step, 60000 / S.bpm); step();
+}
+
+/* Toonsoortkiezer als sheet: grondtonen in kwintvolgorde, modi van helder naar donker. */
+function openSheet(open) { $('sheet').classList.toggle('open', open); $('scrim').classList.toggle('open', open); if (open) fillSheet(); }
+function fillSheet() {
+  $('roots').innerHTML = [5, 0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10].map((pc) => `<button data-r="${pc}" aria-pressed="${pc === S.r}">${nn(scale(pc, S.m).notes[0])}</button>`).join('');
+  $('modes').innerHTML = MODES.map((m, i) => `<button data-m="${i}" aria-pressed="${i === S.m}">${ABBR[i]}<small>${i === 1 ? 'majeur' : i === 4 ? 'mineur' : ''}</small></button>`).join('');
+  $('roots').querySelectorAll('button').forEach((b) => b.onclick = () => { S.r = +b.dataset.r; Snd.scale(S.r, S.m); fillSheet(); render(); });
+  $('modes').querySelectorAll('button').forEach((b) => b.onclick = () => { S.m = +b.dataset.m; Snd.scale(S.r, S.m); fillSheet(); render(); });
+}
+$('keyBtn').onclick = () => openSheet(true);
+$('scrim').onclick = () => openSheet(false);
+document.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => { S.mode = b.dataset.mode; render(); });
+document.querySelectorAll('[data-size]').forEach((b) => b.onclick = () => { S.size = +b.dataset.size; render(); });
+document.querySelectorAll('[data-inst]').forEach((b) => b.onclick = () => { S.inst = b.dataset.inst; render(); });
+$('playScale').onclick = () => Snd.scale(S.r, S.m);
+render();
+</script>
+</body>
+</html>

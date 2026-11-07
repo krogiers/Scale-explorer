@@ -11,7 +11,7 @@ function Legend({ items }: { items: [string, string, boolean?][] }) {
   return (
     <div className="legend">
       {items.map(([color, label, round]) => (
-        <span key={label}><i style={{ background: color, borderColor: color, borderRadius: round ? '50%' : undefined }} /><span>{label}</span></span>
+        <span key={label}><i className={color === 'ring' ? 'ring' : undefined} style={color === 'ring' ? { borderRadius: '50%' } : { background: color, borderColor: color, borderRadius: round ? '50%' : undefined }} /><span>{label}</span></span>
       ))}
     </div>
   );
@@ -57,7 +57,7 @@ function Layout() {
         <section className="panel wide"><Chart /></section>
         <section className="panel wide kb">
           <InstrumentPanel />
-          <Legend items={[['var(--dia)', t.lgScale, true], ['var(--brass)', t.lgChord], ['var(--bor)', t.lgChar, true], ...(state.showBlue ? [['var(--blue)', t.blue, true] as [string, string, boolean]] : [])]} />
+          <Legend items={[['var(--dia)', t.lgScale, true], ['var(--brass)', t.lgChord], ['var(--bor)', t.lgChar, true], ...(state.showBlue ? [['var(--blue)', t.blue, true] as [string, string, boolean]] : []), ...(state.showPenta ? [['ring', t.lgPenta, true] as [string, string, boolean]] : [])]} />
         </section>
         <section className="panel wide mapsec">
           <h2>{t.mapTitle}</h2>

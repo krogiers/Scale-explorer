@@ -29,13 +29,13 @@ export function Guitar(v: InstrumentView) {
           const pc = (open + f) % 12;
           const isBlue = blue?.pc === pc;
           if (!v.scale.has(pc) && !isBlue) return null;
-          const inChord = v.chord.has(pc), isRoot = pc === v.root;
-          const cls = isBlue ? 'gt-dot blue' : inChord ? 'gt-dot ch' : pc === v.characteristic ? 'gt-dot char' : 'gt-dot';
+          const inChord = v.chord.has(pc), isRoot = pc === v.root, out = v.outside.has(pc) && !inChord;
+          const cls = isBlue ? 'gt-dot blue' : inChord ? 'gt-dot ch' : out ? 'gt-dot out' : pc === v.characteristic ? 'gt-dot char' : 'gt-dot';
           return (
             <g key={`${s}-${f}`}>
               <circle className={cls} cx={dotX(f)} cy={TOP + s * SH} r={isRoot ? 10 : 8.5} />
               {isRoot && <circle className="gt-root" cx={dotX(f)} cy={TOP + s * SH} r={10} />}
-              <text className={`gt-lbl${inChord || isBlue || pc === v.characteristic ? ' on' : ''}`} x={dotX(f)} y={TOP + s * SH + 3}>{label(pc)}</text>
+              <text className={`gt-lbl${out ? ' out' : inChord || isBlue || pc === v.characteristic ? ' on' : ''}`} x={dotX(f)} y={TOP + s * SH + 3}>{label(pc)}</text>
             </g>
           );
         }),

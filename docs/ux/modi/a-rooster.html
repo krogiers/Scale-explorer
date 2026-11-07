@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modi · Rooster</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,700&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="modi.css">
+<style>
+.cell rect{fill:var(--surface);stroke:var(--line);cursor:pointer}
+.cell text{font-size:14px;font-weight:600;text-anchor:middle;pointer-events:none}
+.cell .d{font-size:9px;font-weight:600;fill:var(--muted);text-anchor:end}
+.cell.row rect{fill:var(--dia-soft);stroke:var(--dia)}
+.cell.par rect{stroke:var(--bor);stroke-width:2;stroke-dasharray:4 3}
+.cell.far text{opacity:.45}
+.cell.van rect{fill:var(--brass);stroke:var(--brass);stroke-dasharray:none}
+.cell.van text{fill:#fff}
+.cell.naar rect{stroke:var(--brass);stroke-width:3;stroke-dasharray:none}
+.cell:hover rect{stroke:var(--brass);stroke-width:2}
+.hd{font-size:12px;font-weight:600;text-anchor:middle}
+.rl{font-size:12px;text-anchor:end}
+.rl.sig{font-size:10px}
+</style>
+</head>
+<body data-size="3">
+<div class="wrap">
+  <header>
+    <h1>Modusrooster</h1>
+    <p class="lead">Alle 84 modi op één blad. Elke <b>rij</b> is één moederladder: zeven modi met dezelfde noten (relatief). Op een <b>diagonaal</b> ligt dezelfde grondtoon in zeven helderheden (parallel). Een rij hoger of lager scheelt precies één noot.</p>
+  </header>
+  <div class="bar" id="bar">
+    <label>Centreer op <select id="center"></select></label>
+    <button type="button" class="btn" id="swap">Wissel van ↔ naar</button>
+    <button type="button" class="btn" id="reset">Begin opnieuw</button>
+  </div>
+  <div class="layout">
+    <div class="card">
+      <div class="svgbox"><svg id="grid" viewBox="0 0 400 470" role="img" aria-label="Rooster van moederladders en modi"></svg></div>
+      <div class="legend">
+        <span><i style="background:var(--brass)"></i>van</span>
+        <span><i style="border:3px solid var(--brass)"></i>naar</span>
+        <span><i style="background:var(--dia-soft);border:1px solid var(--dia)"></i>zelfde noten</span>
+        <span><i style="border:2px dashed var(--bor)"></i>zelfde grondtoon</span>
+        <span>cijfer = aantal andere noten</span>
+      </div>
+    </div>
+    <div class="card" id="panel" aria-live="polite"></div>
+  </div>
+  <p class="foot">Schets B: <a href="b-brugmatrix.html">Brugmatrix</a> · Schets C: <a href="c-route.html">Route</a> · Tik een vak voor “van”, een tweede vak voor “naar”. Op desktop toont zweven een voorbeeld.</p>
+</div>
+<script src="../concepts/engine.js"></script>
+<script src="modi.js"></script>
+<script>
+let size = 3, center = 0, van = { r: 0, m: 1 }, naar = null, hover = null;
+const CW = 44, CH = 34, LX = 92, TY = 44;
+$('#center').innerHTML = rootOptions(center);
+$('#center').onchange = (e) => { center = Number(e.target.value); draw(); };
+$('#bar').prepend(sizeSeg(size, (s) => { size = s; draw(); }));
+$('#swap').onclick = () => { if (naar) { [van, naar] = [naar, van]; draw(); } };
+$('#reset').onclick = () => { van = { r: center, m: 1 }; naar = null; draw(); };
+
+/** Rij i toont moederladder k = kC + 3 - i: zo past de hele parallelle diagonaal van de centrale grondtoon (rij 2 tot 8). */
+const rowK = (i) => m12(fifths(center) + 3 - i);
+
+function draw() {
+  const target = naar ?? hover, kV = parentOf(van.r, van.m);
+  let s = '';
+  MODES.forEach((_, m) => {
+    const x = LX + m * CW + CW / 2;
+    s += `<rect x="${x - 16}" y="6" width="32" height="10" rx="3" style="fill:var(--m${m});stroke:var(--line)"/>`;
+    s += `<text class="hd" x="${x}" y="34">${ABBR[m]}</text>`;
+  });
+  s += `<text class="hd mut" x="${LX + CW * 3.5}" y="${TY + 12 * CH + 18}">helder → donker</text>`;
+  for (let i = 0; i < 12; i++) {
+    const k = rowK(i), y = TY + i * CH;
+    s += `<text class="rl" x="${LX - 30}" y="${y + 22}">${nn(scale(m12(k * 7), 1).notes[0])}-ladder</text>`;
+    s += `<text class="rl sig mut" x="${LX - 6}" y="${y + 22}">${sigText(k)}</text>`;
+    for (let m = 0; m < 7; m++) {
+      const r = rootAt(k, m), c = { r, m }, x = LX + m * CW;
+      const cls = ['cell'];
+      if (k === kV) cls.push('row');
+      if (r === van.r && !(m === van.m)) cls.push('par');
+      if (r === van.r && m === van.m) cls.push('van');
+      if (target && r === target.r && m === target.m) cls.push('naar');
+      const dist = diffCount(van, c);
+      if (dist > 2) cls.push('far');
+      s += `<g class="${cls.join(' ')}" data-r="${r}" data-m="${m}" tabindex="0" role="button" aria-label="${label(r, m)}">
+        <rect x="${x + 2}" y="${y + 2}" width="${CW - 4}" height="${CH - 4}" rx="6"/>
+        <text x="${x + CW / 2}" y="${y + 22}">${rootName(r, m)}</text>
+        ${dist ? `<text class="d" x="${x + CW - 6}" y="${y + 13}">${dist}</text>` : ''}</g>`;
+    }
+  }
+  $('#grid').innerHTML = s;
+  panel(target);
+}
+
+function pick(r, m) {
+  const c = { r, m };
+  if (r === van.r && m === van.m) naar = null;
+  else naar = c;
+  hover = null;
+  draw();
+}
+$('#grid').addEventListener('click', (e) => { const g = e.target.closest('.cell'); if (g) pick(Number(g.dataset.r), Number(g.dataset.m)); });
+$('#grid').addEventListener('dblclick', (e) => { const g = e.target.closest('.cell'); if (g) { van = { r: Number(g.dataset.r), m: Number(g.dataset.m) }; naar = null; draw(); } });
+$('#grid').addEventListener('keydown', (e) => { const g = e.target.closest('.cell'); if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); pick(Number(g.dataset.r), Number(g.dataset.m)); } });
+$('#grid').addEventListener('mouseover', (e) => {
+  if (naar || !matchMedia('(hover:hover)').matches) return;
+  const g = e.target.closest('.cell');
+  const h = g ? { r: Number(g.dataset.r), m: Number(g.dataset.m) } : null;
+  if (h?.r !== hover?.r || h?.m !== hover?.m) { hover = h; draw(); }
+});
+
+const KIND = { relatief: ['rel', 'zelfde noten'], parallel: ['par', 'zelfde grondtoon'], buur: ['', 'andere grondtoon'] };
+function panel(t) {
+  const sv = scale(van.r, van.m), cv = chords(van.r, van.m, size);
+  let h = `<h2>Van</h2><h3><span class="sw" style="background:var(--m${van.m})"></span>${esc(label(van.r, van.m))}</h3>
+    <div class="notes">${sv.notes.map((n, i) => `<span${i === CHAR[van.m] ? ' class="new" title="kenmerkende noot"' : ''}>${nn(n)}</span>`).join('')}</div>
+    <div class="chips">${cv.map((c, i) => chipHtml(c, i === 0 ? 'piv' : i === CHARDEG[van.m] ? 'new' : '', c.roman)).join('')}</div>
+    <p class="small muted">Goud = tonica, paars = kenmerkend akkoord. Dubbelklik een vak om het de nieuwe “van” te maken.</p>`;
+  if (!t || (t.r === van.r && t.m === van.m)) {
+    $('#panel').innerHTML = h + `<p class="muted">Kies een tweede vak om te zien welke akkoorden je erheen brengen.</p>`;
+    return;
+  }
+  const br = bridge(van, t, size), [kc, kt] = KIND[br.kind] ?? ['', ''];
+  h += `<hr style="border:0;border-top:1px solid var(--line);width:100%">
+    <h2>Naar <span class="badge ${kc}">${kt}</span></h2>
+    <h3><span class="sw" style="background:var(--m${t.m})"></span>${esc(label(t.r, t.m))}</h3>
+    <div class="notes">${br.B.notes.map((n) => `<span${br.newNotes.some((x) => x.pc === n.pc) ? ' class="new"' : ''}>${nn(n)}</span>`).join('')}</div>`;
+  if (br.kind === 'relatief') {
+    h += `<p>Dezelfde zeven akkoorden: alleen het <b>thuis</b> verschuift. Laat <b>${esc(br.tonic.name)}</b> rusten en kleur met het kenmerkende <b>${esc(br.char.name)}</b>.</p>
+      <div class="chips">${chipHtml(br.tonic, 'piv', 'nieuwe tonica')}${chipHtml(br.char, 'new', 'kenmerkend')}</div>`;
+  } else if (br.newNotes.length === 1) {
+    h += `<p><b>Eén noot</b> anders: ${br.newNotes.map(nn).join(', ')}. De ${br.shared.length} akkoorden zonder die noot zijn je brug, een akkoord mét de nieuwe noot maakt de sprong hoorbaar.</p>
+      <h2>Brug: in beide</h2><div class="chips">${br.shared.map((c) => chipHtml(c, 'sh', c.roman)).join('')}</div>
+      <h2>Sprong: brengt de nieuwe noot</h2><div class="chips">${br.fresh.map((c) => chipHtml(c, 'new', c.key === br.char.key ? c.roman + ' ★' : c.roman)).join('')}</div>
+      <h2>Valt weg</h2><div class="chips">${br.gone.map((c) => chipHtml(c, 'gone')).join('')}</div>
+      <div><button type="button" class="btn main" id="hear">Speel brug → sprong → thuis</button></div>`;
+  } else {
+    const steps = route(van, t, size);
+    h += `<p><b>${br.newNotes.length} noten</b> anders (${br.newNotes.map(nn).join(', ')}). ${br.shared.length ? `Gedeeld: ${br.shared.map((c) => c.name).join(', ')}.` : 'Geen enkel akkoord gedeeld.'} Stap voor stap gaat het zo:</p>
+      <ol style="margin:0;padding-left:20px;display:grid;gap:6px">${steps.map((s) => s.pivot
+        ? `<li>${esc(label(s.to.r, s.to.m))}: via ${chipHtml(s.pivot, 'sh')} naar ${chipHtml(s.signal, 'new')}</li>`
+        : `<li>${esc(label(s.to.r, s.to.m))}: zelfde noten, rust op ${chipHtml(s.br.tonic, 'piv')}</li>`).join('')}</ol>
+      <div><button type="button" class="btn main" id="hear">Speel de route</button> <a class="small muted" href="c-route.html?van=${van.r},${van.m}&naar=${t.r},${t.m}">open in Route</a></div>`;
+  }
+  $('#panel').innerHTML = h;
+  const hear = $('#hear');
+  if (hear) hear.onclick = () => {
+    if (br.newNotes.length === 1) { const p = pickPair(br); playSeq([cv[0], p.pivot, p.signal, br.tonic]); }
+    else playSeq([cv[0], ...route(van, t, size).flatMap((s) => s.pivot ? [s.pivot, s.signal] : [s.br.tonic]), br.tonic]);
+  };
+}
+draw();
+</script>
+</body>
+</html>

@@ -18,6 +18,8 @@ export interface InstrumentView {
   characteristic: PitchClass;
   /** Blue note (♭5), als die getoond moet worden en niet al in de modus zit. */
   blue: Note | null;
+  /** Noten van de modus die buiten de pentatonische ladder vallen: gedimd tonen (leeg = alles normaal). */
+  outside: Set<PitchClass>;
   names: Names;
   label: string;
 }

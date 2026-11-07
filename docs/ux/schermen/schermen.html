@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schermen · Prototype</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../../src/styles.css">
+<style>
+/* Eén laptopscherm (1440 × 900) per scherm, coördinaten in px en verkleind via container-eenheden. */
+.frame{position:relative;width:100%;max-width:1200px;aspect-ratio:1440 / 900;background:var(--bg);border:1px solid var(--line);border-radius:10px;overflow:hidden;container-type:inline-size}
+.box{position:absolute;border:1.5px solid var(--line);background:var(--surface);border-radius:6px;padding:.5cqw .7cqw;font-size:max(9px,1.05cqw);line-height:1.3;overflow:hidden;display:flex;flex-direction:column;gap:2px}
+.box b{font-size:max(10px,1.2cqw)}
+.box span{color:var(--muted)}
+.box.bar{border-radius:0;border-width:0 0 1.5px;background:var(--surface);flex-direction:row;align-items:center;gap:1.4cqw}
+.box.bar .tab{padding:.3cqw .9cqw;border-radius:6px;border:1px solid var(--line);color:var(--ink);cursor:pointer;font-weight:600}
+.box.bar .tab[aria-current="true"]{background:var(--ink);color:var(--surface)}
+.box.bar .ctx{margin-left:auto;color:var(--ink);font-weight:600}
+.box.k-nav{border-color:var(--dia);background:var(--dia-soft)}
+.box.k-chd{border-color:var(--brass);background:var(--brass-soft)}
+.box.k-play{border-color:var(--bor);background:var(--bor-soft)}
+.box.dock{border-radius:0;border-width:2px 0 0;box-shadow:0 -4px 14px rgba(0,0,0,.16)}
+.box .new{display:inline-block;font-weight:600;background:var(--ink);color:var(--surface);border-radius:4px;padding:0 5px;font-size:max(8px,.85cqw);vertical-align:1px}
+.screens{display:flex;flex-wrap:wrap;gap:8px}
+.flow{border-collapse:collapse;width:100%;font-size:14px}
+.flow th,.flow td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.flow td.ok{color:var(--dia);font-weight:600} .flow td.bad{color:var(--bor);font-weight:600}
+.note2{max-width:75ch}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><div class="intro"><h1>Logische schermen</h1>
+    <p class="muted">Een prototype van drie schermen met een vaste balk bovenaan en een instrumentdock onderaan. Elk kader is één laptopscherm van 1440 × 900, zonder scrollen. Klik op de tabs in het kader of op de knoppen hieronder.</p></div></header>
+  <div class="screens seg" id="pick" role="group" aria-label="Scherm"></div>
+  <div class="frame" id="frame"></div>
+  <p class="muted small note2" id="why"></p>
+
+  <section class="panel">
+    <h2>Typische taken: lukt het binnen één scherm?</h2>
+    <table class="flow">
+      <thead><tr><th>Taak</th><th>Nodig</th><th>Nu (één lange pagina)</th><th>Met schermen</th></tr></thead>
+      <tbody>
+        <tr><td>Een modus leren kennen</td><td>cirkel/ladder · noten · instrument · ▶ toonladder</td><td class="bad">instrument 2 schermen verder</td><td class="ok">Ladder, met het dock open</td></tr>
+        <tr><td>Een progressie bouwen</td><td>akkoorden · volgende stap · schema</td><td class="bad">schema 1,5 schermen verder</td><td class="ok">Akkoorden: alles naast elkaar</td></tr>
+        <tr><td>Meespelen of improviseren</td><td>loop · huidig + volgend akkoord · noten (penta/blue) · groot instrument</td><td class="bad">de loop en het instrument passen net, maar zonder toonladder</td><td class="ok">Spelen</td></tr>
+        <tr><td>Moduleren of lenen</td><td>volgende stap · modi en bruggen · nieuwe toonladder</td><td class="bad">verspreid over 4 panelen</td><td class="ok">Akkoorden; de contextbalk toont de nieuwe toonladder</td></tr>
+        <tr><td>Een andere modus kiezen tijdens het bouwen</td><td>ladder + akkoorden</td><td class="ok">scrollen</td><td>1 tik naar Ladder en terug. Sneltoetsen 1, 2 en 3</td></tr>
+      </tbody>
+    </table>
+  </section>
+</div>
+<script>
+const BAR = (cur) => [0, 0, 1440, 56, 'bar', '', ''];
+const DOCK_SMALL = [0, 844, 1440, 56, 'k-play dock', '▶ Start loop · 90 BPM · nu Dm → daarna G', '🎹 instrument uitklappen'];
+const DOCK_OPEN = [0, 640, 1440, 260, 'k-play dock', 'Dock: instrument (klavier · gitaar · sax) + ▶ loop', 'toont de toonladder en het gekozen akkoord · inklapbaar tot een balk · blijft staan als je van scherm wisselt'];
+
+const SCREENS = {
+  ladder: { name: '1 · Ladder', why: 'Waar ben ik? Grondtoon, modus en noten. Het dock staat open, zodat je de noten meteen op je instrument ziet. Modi en bruggen staat op het scherm Akkoorden, omdat het daar over springen met akkoorden gaat.', boxes: [
+    [130, 72, 500, 556, 'k-nav', 'Kwintencirkel', 'buitenring: grondtoon · binnenring: relatieve modus · uitleg achter ⓘ'],
+    [648, 72, 662, 176, 'k-nav', 'D Dorisch', 'notenrij · chips: blue · penta · ▶ toonladder · "gebruikt de noten van C majeur"'],
+    [648, 262, 662, 366, 'k-nav', 'Zelfde grondtoon, andere modus', '7 modi van helder naar donker, met de noot die verandert'],
+    DOCK_OPEN,
+  ] },
+  akkoorden: { name: '2 · Akkoorden', why: 'Welke akkoorden, en waarheen? Een klik op een akkoord komt meteen in het schema rechts. Zo zie je wat je klik doet. Moduleer je, dan toont de contextbalk de nieuwe toonladder.', boxes: [
+    [130, 72, 820, 140, 'k-chd', 'Akkoorden in D Dorisch', '7 akkoorden · drie/vier'],
+    [130, 226, 820, 602, 'k-chd', 'Volgende stap: [Lijst | Netwerk | Modi & bruggen]', 'één blok in plaats van drie panelen · netwerk past hier in de volle hoogte', 'samengevoegd'],
+    [968, 72, 342, 756, 'k-play', 'Schema', 'verticaal, 2 kolommen · duur · ↶ ongedaan maken · ▶ progressie · leeg: "Start met een preset"'],
+    DOCK_SMALL,
+  ] },
+  spelen: { name: '3 · Spelen', why: 'Meespelen: alles wat je nodig hebt om te improviseren, groot genoeg voor een lessenaar of een scherm op enkele meters. Het dock is hier het scherm zelf.', boxes: [
+    [130, 72, 1180, 84, 'k-play', 'Transport', '▶/■ · tempo · maatsoort · begeleiding · klank · metronoom · aftellen'],
+    [130, 170, 1180, 130, 'k-play', 'Schema als strook', 'de huidige maat licht op en loopt mee · tik om te springen'],
+    [130, 314, 400, 514, 'k-chd', 'Nu: Dm  →  daarna G', 'groot · noten D F A · speel D Dorisch (penta/blue gedimd of blauw)'],
+    [548, 314, 762, 514, 'k-play', 'Instrument, groot', 'akkoord in goud, toonladder in groen · gitaar tot fret 12 · sax-grepen'],
+  ] },
+};
+const order = ['ladder', 'akkoorden', 'spelen'];
+let cur = location.hash.slice(1) in SCREENS ? location.hash.slice(1) : 'ladder';
+
+function box([x, y, w, h, k, t, c, n]) {
+  return `<div class="box ${k}" style="left:${x / 14.4}%;top:${y / 9}%;width:${w / 14.4}%;height:${h / 9}%"><b>${t}${n ? ` <span class="new">${n}</span>` : ''}</b><span>${c}</span></div>`;
+}
+function draw() {
+  const s = SCREENS[cur];
+  const bar = `<div class="box bar" style="left:0;top:0;width:100%;height:${56 / 9}%"><b style="font-family:var(--f-display)">Scale Explorer</b>${order.map((id) => `<span class="tab" data-s="${id}" aria-current="${id === cur}">${SCREENS[id].name}</span>`).join('')}<span class="ctx">D Dorisch · Dm · ▶</span><span>⚙</span></div>`;
+  document.getElementById('frame').innerHTML = bar + s.boxes.map(box).join('');
+  document.getElementById('why').textContent = s.why;
+  document.getElementById('pick').innerHTML = order.map((id) => `<button type="button" data-s="${id}" aria-pressed="${id === cur}">${SCREENS[id].name}</button>`).join('');
+  history.replaceState(null, '', '#' + cur);
+}
+document.addEventListener('click', (e) => { const t = e.target.closest('[data-s]'); if (t) { cur = t.dataset.s; draw(); } });
+document.addEventListener('keydown', (e) => { const i = '123'.indexOf(e.key); if (i >= 0 && !e.target.closest('input,select,textarea')) { cur = order[i]; draw(); } });
+draw();
+</script>
+</body>
+</html>

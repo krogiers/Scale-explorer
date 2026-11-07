@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modi · Brugmatrix</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,700&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="modi.css">
+<style>
+.col{cursor:pointer}
+.col rect{fill:transparent}
+.col:hover > rect:first-child{fill:var(--line);fill-opacity:.35}
+.col.van > rect:first-child{fill:var(--line);fill-opacity:.6;stroke:var(--brass);stroke-width:1.5}
+.col.naar > rect:first-child{fill:var(--line);fill-opacity:.6;stroke:var(--bor);stroke-width:1.5;stroke-dasharray:4 3}
+.hd{font-size:12px;font-weight:600;text-anchor:middle}
+.bar1{fill:var(--bor-soft);stroke:var(--bor)} .bar2{fill:var(--dia-soft);stroke:var(--dia)} .bar3{fill:var(--brass-soft);stroke:var(--brass)}
+.row{cursor:pointer}
+.row.dim{opacity:.28}
+.row .nm{font-size:13px;font-weight:600}
+.row .rn{font-size:11px;fill:var(--muted)}
+.row.bridge .bar{stroke-width:2.5}
+.bar,.dot,.star{pointer-events:none}
+.dot{fill:var(--ink)}
+.star{fill:var(--bor);font-size:12px;text-anchor:middle}
+.tag{font-size:11px;font-weight:600}
+.tag.br{fill:var(--dia)} .tag.nw{fill:var(--bor)} .tag.gn{fill:var(--muted)} .tag.rl{fill:var(--muted);font-weight:400}
+.row:hover .nm{fill:var(--brass)}
+</style>
+</head>
+<body data-size="3">
+<div class="wrap">
+  <header>
+    <h1>Brugmatrix</h1>
+    <p class="lead">Elke rij is een akkoord en de balk toont in welke modi op deze grondtoon het voorkomt. Waar balken over twee modi lopen, heb je een brug: met dat akkoord stap je ongemerkt over. Geen akkoord zit in meer dan drie modi naast elkaar.</p>
+  </header>
+  <div class="bar" id="bar">
+    <label>Grondtoon <select id="root"></select></label>
+    <label>Van <select id="van"></select></label>
+    <button type="button" class="btn" id="clear">Wis “naar”</button>
+  </div>
+  <div class="layout">
+    <div class="card">
+      <div class="svgbox"><svg id="mx" role="img" aria-label="Akkoorden per modus"></svg></div>
+      <div class="legend">
+        <span><i class="" style="background:var(--brass-soft);border:1px solid var(--brass)"></i>in 3 modi</span>
+        <span><i style="background:var(--dia-soft);border:1px solid var(--dia)"></i>in 2 modi</span>
+        <span><i style="background:var(--bor-soft);border:1px solid var(--bor)"></i>maar in 1: eigen kleur</span>
+        <span>★ kenmerkend akkoord</span>
+      </div>
+    </div>
+    <div class="card" id="panel" aria-live="polite"></div>
+  </div>
+  <p class="foot">Tik een kolomkop om een “naar”-modus te kiezen. Tik een akkoord om het te horen. Rechts van de balken staat bij de “van”-akkoorden welke relatieve modus erop thuis is; tik die om de matrix daarheen te draaien. · <a href="a-rooster.html">Rooster</a> · <a href="c-route.html">Route</a></p>
+</div>
+<script src="../concepts/engine.js"></script>
+<script src="modi.js"></script>
+<script>
+let size = 3, R = 0, van = 1, naar = null;
+const LX = 104, CW = 40, TY = 54, RH = 26, TX = LX + 7 * CW + 8;
+$('#root').innerHTML = rootOptions(R);
+$('#root').onchange = (e) => { R = Number(e.target.value); draw(); };
+$('#van').innerHTML = modeOptions(van);
+$('#van').onchange = (e) => { van = Number(e.target.value); if (naar === van) naar = null; draw(); };
+$('#clear').onclick = () => { naar = null; draw(); };
+$('#bar').prepend(sizeSeg(size, (s) => { size = s; draw(); }));
+
+/** Unie van de akkoorden van de zeven parallelle modi, gesorteerd zodat de balken een trap van helder naar donker vormen. */
+function rows() {
+  const map = new Map();
+  for (let m = 0; m < 7; m++) chords(R, m, size).forEach((c) => {
+    if (!map.has(c.key)) map.set(c.key, { c, ms: [] });
+    map.get(c.key).ms.push(m);
+  });
+  return [...map.values()].sort((a, b) => a.ms[0] - b.ms[0] || a.ms.at(-1) - b.ms.at(-1) || fifths(a.c.notes[0].pc) - fifths(b.c.notes[0].pc));
+}
+
+function draw() {
+  const list = rows(), inV = new Set(chords(R, van, size).map((c) => c.key));
+  const inN = naar === null ? null : new Set(chords(R, naar, size).map((c) => c.key));
+  const H = TY + list.length * RH + 10;
+  const svg = $('#mx');
+  svg.setAttribute('viewBox', `0 0 ${TX + 92} ${H}`);
+  let s = '';
+  for (let m = 0; m < 7; m++) {
+    const x = LX + m * CW, cls = m === van ? 'van' : m === naar ? 'naar' : '';
+    s += `<g class="col ${cls}" data-m="${m}" tabindex="0" role="button" aria-label="${label(R, m)}">
+      <rect x="${x}" y="0" width="${CW}" height="${H}" rx="6"/>
+      <rect x="${x + 6}" y="8" width="${CW - 12}" height="10" rx="3" style="fill:var(--m${m});stroke:var(--line)"/>
+      <text class="hd" x="${x + CW / 2}" y="36">${ABBR[m]}</text>
+      ${m === van ? `<text class="hd" x="${x + CW / 2}" y="49" style="fill:var(--brass);font-size:9px">VAN</text>` : m === naar ? `<text class="hd" x="${x + CW / 2}" y="49" style="fill:var(--bor);font-size:9px">NAAR</text>` : ''}</g>`;
+  }
+  list.forEach(({ c, ms }, i) => {
+    const y = TY + i * RH, a = ms[0], b = ms.at(-1), span = Math.min(3, b - a + 1);
+    const inv = inV.has(c.key), inn = inN?.has(c.key);
+    const cls = ['row'];
+    if (!inv && !(inN && inn)) cls.push('dim');
+    if (inN && inv && inn) cls.push('bridge');
+    let tag = '';
+    if (inN) tag = inv && inn ? '<tspan class="tag br">brug</tspan>' : inn ? '<tspan class="tag nw">nieuw</tspan>' : inv ? '<tspan class="tag gn">valt weg</tspan>' : '';
+    else if (inv) {
+      const k = parentOf(R, van), m2 = modeOn(k, c.notes[0].pc);
+      tag = `<tspan class="tag rl" data-rel="${c.notes[0].pc},${m2}">thuis in ${esc(rootName(c.notes[0].pc, m2))} ${ABBR[m2]} ›</tspan>`;
+    }
+    s += `<g class="${cls.join(' ')}">
+      <g data-chord="${c.r},${c.m},${c.deg}" tabindex="0" role="button"><text class="nm" x="8" y="${y + 17}">${esc(c.name)}</text><text class="rn" x="${LX - 8}" y="${y + 17}" text-anchor="end">${esc(c.roman)}</text></g>
+      <rect class="bar bar${span}" x="${LX + a * CW + 4}" y="${y + 4}" width="${(b - a + 1) * CW - 8}" height="${RH - 8}" rx="${(RH - 8) / 2}"/>
+      ${ms.map((m) => chords(R, m, size)[CHARDEG[m]].key === c.key ? `<text class="star" x="${LX + m * CW + CW / 2}" y="${y + 17}">★</text>` : (m === van || m === naar) ? `<circle class="dot" cx="${LX + m * CW + CW / 2}" cy="${y + RH / 2}" r="3"/>` : '').join('')}
+      <text x="${TX}" y="${y + 17}">${tag}</text></g>`;
+  });
+  svg.innerHTML = s;
+  panel();
+}
+
+$('#mx').addEventListener('click', (e) => {
+  const rel = e.target.closest('[data-rel]');
+  if (rel) { const [r, m] = rel.dataset.rel.split(',').map(Number); R = r; van = m; naar = null; $('#root').innerHTML = rootOptions(R); $('#van').value = van; draw(); return; }
+  const col = e.target.closest('.col');
+  if (col && !e.target.closest('[data-chord]')) { const m = Number(col.dataset.m); naar = m === van || m === naar ? null : m; draw(); }
+});
+
+function panel() {
+  const a = { r: R, m: van }, cv = chords(R, van, size);
+  let h = `<h2>Van</h2><h3><span class="sw" style="background:var(--m${van})"></span>${esc(label(R, van))}</h3>
+    <div class="chips">${cv.map((c, i) => chipHtml(c, i === 0 ? 'piv' : i === CHARDEG[van] ? 'new' : '', c.roman)).join('')}</div>`;
+  const nb = [van - 1, van + 1].filter((m) => m >= 0 && m < 7);
+  if (naar === null) {
+    h += `<p>De buren op deze grondtoon:</p>` + nb.map((m) => {
+      const br = bridge(a, { r: R, m }, size);
+      return `<p><b>${esc(label(R, m))}</b>: één noot anders (${br.newNotes.map(nn).join('')}). Brug via ${br.shared.map((c) => c.name).join(', ')}.</p>`;
+    }).join('') + `<p class="muted small">De zeven “van”-akkoorden zijn ook de zeven relatieve modi: rechts in de matrix staat waar elk akkoord thuis is. Zelfde noten, ander thuis.</p>`;
+  } else {
+    const br = bridge(a, { r: R, m: naar }, size), p = pickPair(br);
+    h += `<hr style="border:0;border-top:1px solid var(--line);width:100%">
+      <h2>Naar <span class="badge par">zelfde grondtoon</span></h2><h3><span class="sw" style="background:var(--m${naar})"></span>${esc(label(R, naar))}</h3>
+      <p><b>${br.newNotes.length} ${br.newNotes.length === 1 ? 'noot' : 'noten'}</b> anders: ${br.newNotes.map(nn).join(', ')}.${Math.abs(naar - van) > 1 ? ` Geen directe buur: ${br.shared.length ? 'er blijven nog maar ' + br.shared.length + ' bruggen over' : 'geen enkele brug, je springt'}.` : ''}</p>
+      ${br.shared.length ? `<h2>Brug</h2><div class="chips">${br.shared.map((c) => chipHtml(c, 'sh', c.roman)).join('')}</div>` : ''}
+      <h2>Nieuw</h2><div class="chips">${br.fresh.map((c) => chipHtml(c, 'new', c.roman)).join('')}</div>
+      <div><button type="button" class="btn main" id="hear">Speel ${esc(cv[0].name)} → ${p.pivot ? esc(p.pivot.name) + ' → ' : ''}${esc(p.signal.name)} → ${esc(br.tonic.name)}</button></div>`;
+  }
+  $('#panel').innerHTML = h;
+  const hear = $('#hear');
+  if (hear) hear.onclick = () => { const br = bridge(a, { r: R, m: naar }, size), p = pickPair(br); playSeq([cv[0], p.pivot, p.signal, br.tonic]); };
+}
+draw();
+</script>
+</body>
+</html>

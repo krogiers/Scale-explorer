@@ -6,7 +6,7 @@ _Senior analyst, 2026-11-02. Tests: 26/26 groen. Typecheck: geen fouten._
 De architectuur is degelijk: een pure theoriekern, verwisselbare onderdelen met een registry en een planner die vooruit plant op de klok van de geluidskaart. De grootste zwakte is muzikaal. Elk akkoord moet diatonisch zijn in één van de 84 modi, en dat sluit de meeste standards uit (dim7, V7 in mineur, alterations). De begeleiding heeft ook twee hoorbare fouten.
 
 ## Bugs
-_Status 2026-11-02: pakket 1 is opgelost (alle bugs behalve de sax, plus de dode i18n-sleutels en de labels in donkere modus). De sax volgt in pakket 2._
+_Status 2026-11-02: pakket 1 is opgelost (alle bugs behalve de sax, plus de dode i18n-sleutels en de labels in donkere modus). Pakket 2 is ook opgelost: saxtranspositie, stemvoering, invoegen na de selectie, ongedaan maken, melding bij een vol schema, drie- of vierklank per akkoord en een Worker-timer. Pentatonisch (als gedimde overlay) is gebouwd op 2026-11-07. Open blijven het akkoordmodel, verslepen in het schema, de deploy-branch en de muzikale uitbreidingen._
 
 | Ernst | Waar | Probleem |
 | --- | --- | --- |

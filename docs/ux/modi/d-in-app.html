@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modi · In de app</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../../src/styles.css">
+<style>
+/* Alleen wat nieuw is; de rest komt uit src/styles.css. */
+.ghost-panel{opacity:.45;min-height:120px;justify-content:center;align-items:center;color:var(--muted);font-size:13px;border-style:dashed}
+.ghost-panel.tall{min-height:220px}
+.newtag{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:6px;background:var(--brass-soft);color:var(--brass);font-size:11px;letter-spacing:0;text-transform:none}
+.modi{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:980px){.modi{grid-template-columns:minmax(0,5fr) minmax(0,6fr)}}
+.modi svg{display:block;width:100%;height:auto}
+.modi svg text{fill:var(--ink);font-family:var(--f-body)}
+.modi .mut{fill:var(--muted)}
+.cell rect{fill:var(--surface);stroke:var(--line);cursor:pointer}
+.cell text{font-size:13px;font-weight:600;text-anchor:middle;pointer-events:none}
+.cell .d{font-size:9px;fill:var(--muted);text-anchor:end;font-family:var(--f-mono)}
+.cell.row rect{fill:var(--brass-soft);stroke:var(--brass)}
+.cell.one rect{fill:var(--dia-soft)}
+.cell.par rect{stroke:var(--bor);stroke-width:2;stroke-dasharray:4 3}
+.cell.far text{opacity:.45}
+.cell.cur rect{fill:var(--brass);stroke:var(--brass);stroke-dasharray:none}
+.cell.cur text{fill:var(--surface)}
+.cell.naar rect{stroke:var(--ink);stroke-width:2.5;stroke-dasharray:none}
+.cell:hover rect{stroke:var(--ink)}
+.hd{font-size:12px;font-weight:600;text-anchor:middle}
+.rl{font-size:12px;text-anchor:end}
+.col{cursor:pointer} .col > rect:first-child{fill:transparent}
+.col:hover > rect:first-child{fill:var(--line);fill-opacity:.35}
+.col.cur > rect:first-child{fill:var(--line);fill-opacity:.55;stroke:var(--brass);stroke-width:1.5}
+.col.naar > rect:first-child{fill:var(--line);fill-opacity:.55;stroke:var(--ink);stroke-width:1.5;stroke-dasharray:4 3}
+.bar,.dot,.star{pointer-events:none}
+.bar1{fill:var(--bor-soft);stroke:var(--bor)} .bar2{fill:var(--dia-soft);stroke:var(--dia)} .bar3{fill:var(--brass-soft);stroke:var(--brass)}
+.mrow.dim{opacity:.25}
+.mrow.bridge .bar{stroke-width:2.5}
+.mrow .nm{font-size:13px;font-weight:600;cursor:pointer}
+.mrow .rn{font-size:11px;fill:var(--muted)}
+.dot{fill:var(--ink)} .star{fill:var(--bor);font-size:12px;text-anchor:middle}
+.tag{font-size:11px;font-weight:600} .tag.br{fill:var(--dia)} .tag.nw{fill:var(--bor)} .tag.gn{fill:var(--muted)}
+.jump{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.jump h3{font-size:16px;margin:0}
+.bchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.bchip{display:inline-flex;align-items:baseline;gap:5px;border:1px solid var(--line);border-left-width:4px;background:var(--surface);border-radius:8px;padding:4px 10px;font-weight:600;cursor:pointer}
+.bchip small{font-weight:400;font-size:11px;color:var(--muted)}
+.bchip.sh{border-left-color:var(--dia)} .bchip.sh:hover{background:var(--dia-soft)}
+.bchip.nw{border-left-color:var(--bor)} .bchip.nw:hover{background:var(--bor-soft)}
+.bchip.gn{opacity:.55;text-decoration:line-through;border-left-color:var(--line)}
+.bchip.ton{border-left-color:var(--brass)} .bchip.ton:hover{background:var(--brass-soft)}
+.lbl{font-size:12px;font-weight:600;color:var(--muted);min-width:64px}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.acts button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 12px;cursor:pointer}
+.acts button.pri{background:var(--brass);border-color:var(--brass);color:var(--surface)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="intro"><h1>Toonladders, modi en akkoorden</h1><p class="muted">Schets: het nieuwe paneel “Modi en bruggen” op de plek van de modale kaart.</p></div>
+  </header>
+  <main class="grid">
+    <section class="panel ghost-panel tall">Kwintencirkel (bestaand)</section>
+    <section class="panel ghost-panel tall">Modus + modusladder (bestaand)</section>
+    <section class="panel wide ghost-panel">Akkoorden + volgende stap (bestaand)</section>
+    <section class="panel wide ghost-panel">Akkoordnetwerk · Schema · Instrument (bestaand)</section>
+
+    <section class="panel wide" id="modi">
+      <div class="toolbar">
+        <div class="stack" style="gap:6px">
+          <h2>Modi en bruggen <span class="newtag">vervangt de modale kaart</span></h2>
+          <p class="muted small">Links alle 84 modi: een rij heeft dezelfde noten, een diagonaal dezelfde grondtoon, één rij verder is één noot anders. Kies een vak om te zien welke akkoorden je erheen brengen.</p>
+        </div>
+        <div class="seg" id="size" role="group" aria-label="Akkoordgrootte"><button type="button" data-s="3" aria-pressed="true">Drieklank</button><button type="button" data-s="4" aria-pressed="false">Vierklank</button></div>
+      </div>
+      <div class="modi">
+        <div class="stack" style="gap:10px">
+          <svg id="grid" role="img" aria-label="Rooster van moederladders en modi"></svg>
+          <div class="legend">
+            <span><i style="background:var(--brass);border-color:var(--brass)"></i><span>waar je nu bent</span></span>
+            <span><i style="background:var(--brass-soft);border-color:var(--brass)"></i><span>zelfde noten</span></span>
+            <span><i style="background:var(--dia-soft)"></i><span>één noot anders</span></span>
+            <span><i style="border:2px dashed var(--bor)"></i><span>zelfde grondtoon</span></span>
+          </div>
+        </div>
+        <div class="stack" style="gap:12px">
+          <div class="jump" id="jump" aria-live="polite"></div>
+          <h2 id="mxTitle"></h2>
+          <svg id="mx" role="img" aria-label="Akkoorden per modus op deze grondtoon"></svg>
+          <div class="legend">
+            <span><i style="background:var(--brass-soft);border-color:var(--brass)"></i><span>in 3 modi</span></span>
+            <span><i style="background:var(--dia-soft);border-color:var(--dia)"></i><span>in 2 modi: brug</span></span>
+            <span><i style="background:var(--bor-soft);border-color:var(--bor)"></i><span>in 1: eigen kleur</span></span>
+            <span>★ kenmerkend akkoord</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="muted small credits">Standalone-varianten: <a href="a-rooster.html">Rooster</a> · <a href="b-brugmatrix.html">Brugmatrix</a> · <a href="c-route.html">Route</a></footer>
+</div>
+<script src="../concepts/engine.js"></script>
+<script src="modi.js"></script>
+<script>
+/* "cur" speelt de rol van de app-toestand (root + mode). In de app komt die uit useApp(). */
+let size = 3, cur = { r: 0, m: 1 }, naar = null;
+$('#size').onclick = (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  size = Number(b.dataset.s); document.body.dataset.size = size;
+  $('#size').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  draw();
+};
+const same = (a, b) => a && b && a.r === b.r && a.m === b.m;
+
+function grid() {
+  const CW = 46, CH = 32, LX = 80, TY = 30, kC = parentOf(cur.r, cur.m), k0 = fifths(cur.r);
+  const rowK = (i) => m12(k0 + 3 - i);
+  let s = MODES.map((_, m) => `<rect x="${LX + m * CW + 8}" y="2" width="${CW - 16}" height="8" rx="3" style="fill:var(--m${m});stroke:var(--line)"/><text class="hd" x="${LX + m * CW + CW / 2}" y="24">${ABBR[m]}</text>`).join('');
+  for (let i = 0; i < 12; i++) {
+    const k = rowK(i), y = TY + i * CH;
+    s += `<text class="rl" x="${LX - 30}" y="${y + 20}">${nn(scale(m12(k * 7), 1).notes[0])}</text><text class="rl mut" x="${LX - 6}" y="${y + 20}" style="font-family:var(--f-mono);font-size:11px">${sigText(k)}</text>`;
+    for (let m = 0; m < 7; m++) {
+      const c = { r: rootAt(k, m), m }, x = LX + m * CW, d = diffCount(cur, c), cls = ['cell'];
+      if (same(c, cur)) cls.push('cur'); else if (d === 0) cls.push('row'); else if (d === 1) cls.push('one');
+      if (c.r === cur.r && !same(c, cur)) cls.push('par');
+      if (same(c, naar)) cls.push('naar');
+      if (d > 2) cls.push('far');
+      s += `<g class="${cls.join(' ')}" data-r="${c.r}" data-m="${m}" tabindex="0" role="button" aria-label="${label(c.r, m)}"><rect x="${x + 2}" y="${y + 2}" width="${CW - 4}" height="${CH - 4}" rx="6"/><text x="${x + CW / 2}" y="${y + 21}">${rootName(c.r, m)}</text>${d ? `<text class="d" x="${x + CW - 6}" y="${y + 12}">${d}</text>` : ''}</g>`;
+    }
+  }
+  const g = $('#grid');
+  g.setAttribute('viewBox', `0 0 ${LX + 7 * CW + 2} ${TY + 12 * CH + 4}`);
+  g.innerHTML = s;
+}
+
+/** Brugmatrix voor de grondtoon van "naar" als dat een parallelle stap is, anders die van "waar je nu bent". */
+function matrix() {
+  const R = naar && naar.r !== cur.r ? naar.r : cur.r, vm = R === cur.r ? cur.m : naar.m;
+  const nm = naar && naar.r === R && naar.m !== vm ? naar.m : null;
+  $('#mxTitle').textContent = `Akkoorden per modus op ${nn(scale(R, vm).notes[0])}`;
+  const map = new Map();
+  for (let m = 0; m < 7; m++) chords(R, m, size).forEach((c) => { if (!map.has(c.key)) map.set(c.key, { c, ms: [] }); map.get(c.key).ms.push(m); });
+  const list = [...map.values()].sort((a, b) => a.ms[0] - b.ms[0] || a.ms.at(-1) - b.ms.at(-1) || fifths(a.c.notes[0].pc) - fifths(b.c.notes[0].pc));
+  const inV = new Set(chords(R, vm, size).map((c) => c.key)), inN = nm === null ? null : new Set(chords(R, nm, size).map((c) => c.key));
+  const LX = 96, CW = 46, TY = 34, RH = 22, TX = LX + 7 * CW + 8, H = TY + list.length * RH + 6;
+  let s = '';
+  for (let m = 0; m < 7; m++) {
+    const x = LX + m * CW;
+    s += `<g class="col${m === vm ? ' cur' : m === nm ? ' naar' : ''}" data-m="${m}" data-r="${R}" tabindex="0" role="button" aria-label="${label(R, m)}"><rect x="${x}" y="0" width="${CW}" height="${H}" rx="6"/><rect x="${x + 8}" y="4" width="${CW - 16}" height="8" rx="3" style="fill:var(--m${m});stroke:var(--line)"/><text class="hd" x="${x + CW / 2}" y="27">${ABBR[m]}</text></g>`;
+  }
+  list.forEach(({ c, ms }, i) => {
+    const y = TY + i * RH, a = ms[0], b = ms.at(-1), iv = inV.has(c.key), inn = inN?.has(c.key);
+    const tag = inN ? (iv && inn ? '<tspan class="tag br">brug</tspan>' : inn ? '<tspan class="tag nw">nieuw</tspan>' : iv ? '<tspan class="tag gn">valt weg</tspan>' : '') : '';
+    s += `<g class="mrow${!iv && !inn ? ' dim' : ''}${iv && inn ? ' bridge' : ''}">
+      <text class="nm" data-chord="${c.r},${c.m},${c.deg}" x="6" y="${y + 15}">${esc(c.name)}</text><text class="rn" x="${LX - 8}" y="${y + 15}" text-anchor="end">${esc(c.roman)}</text>
+      <rect class="bar bar${b - a + 1}" x="${LX + a * CW + 4}" y="${y + 3}" width="${(b - a + 1) * CW - 8}" height="${RH - 6}" rx="${(RH - 6) / 2}"/>
+      ${ms.map((m) => chords(R, m, size)[CHARDEG[m]].key === c.key ? `<text class="star" x="${LX + m * CW + CW / 2}" y="${y + 15}">★</text>` : (m === vm || m === nm) ? `<circle class="dot" cx="${LX + m * CW + CW / 2}" cy="${y + RH / 2}" r="3"/>` : '').join('')}
+      <text x="${TX}" y="${y + 15}">${tag}</text></g>`;
+  });
+  const g = $('#mx');
+  g.setAttribute('viewBox', `0 0 ${TX + 70} ${H}`);
+  g.innerHTML = s;
+}
+
+const bc = (c, cls, sub) => `<button type="button" class="bchip ${cls}" data-chord="${c.r},${c.m},${c.deg}">${esc(c.name)}${sub ? `<small>${esc(sub)}</small>` : ''}</button>`;
+function jump() {
+  const here = chords(cur.r, cur.m, size);
+  if (!naar) {
+    const nb = [cur.m - 1, cur.m + 1].filter((m) => m >= 0 && m < 7).map((m) => ({ r: cur.r, m }));
+    $('#jump').innerHTML = `<h3>${esc(label(cur.r, cur.m))}</h3>
+      <div class="bchips"><span class="lbl">thuis</span>${bc(here[0], 'ton', here[0].roman)}<span class="lbl" style="margin-left:8px">kleur</span>${bc(here[CHARDEG[cur.m]], 'nw', here[CHARDEG[cur.m]].roman + ' ★')}</div>
+      ${nb.map((t) => { const br = bridge(cur, t, size); return `<div class="bchips"><span class="lbl">${ABBR[t.m]}</span><span class="small muted">${br.newNotes.map(nn).join('')} · brug</span>${br.shared.map((c) => bc(c, 'sh')).join('')}</div>`; }).join('')}
+      <p class="muted small">Kies een vak in het rooster of een kolom in de matrix.</p>`;
+    return;
+  }
+  const br = bridge(cur, naar, size), kind = { relatief: 'zelfde noten', parallel: 'zelfde grondtoon', buur: 'andere grondtoon' }[br.kind];
+  let h = `<h3>${esc(label(cur.r, cur.m))} → ${esc(label(naar.r, naar.m))} <span class="muted small" style="font-weight:400">· ${kind} · ${br.newNotes.length ? br.newNotes.length + (br.newNotes.length === 1 ? ' noot' : ' noten') + ' anders: ' + br.newNotes.map(nn).join(', ') : 'geen noot anders'}</span></h3>`;
+  let seq;
+  if (br.kind === 'relatief') {
+    h += `<div class="bchips"><span class="lbl">nieuw thuis</span>${bc(br.tonic, 'ton', 'tonica')}${bc(br.char, 'nw', 'kenmerkend ★')}</div><p class="muted small">Dezelfde zeven akkoorden: alleen het thuis verschuift.</p>`;
+    seq = [here[0], br.char, br.tonic];
+  } else if (br.newNotes.length === 1) {
+    h += `<div class="bchips"><span class="lbl">brug</span>${br.shared.map((c) => bc(c, 'sh', c.roman)).join('')}</div>
+      <div class="bchips"><span class="lbl">sprong</span>${br.fresh.map((c) => bc(c, 'nw', c.roman + (c.key === br.char.key ? ' ★' : ''))).join('')}</div>
+      <div class="bchips"><span class="lbl">valt weg</span>${br.gone.map((c) => bc(c, 'gn')).join('')}</div>`;
+    const p = pickPair(br); seq = [here[0], p.pivot, p.signal, br.tonic];
+  } else {
+    const st = route(cur, naar, size);
+    h += st.map((s, i) => s.pivot
+      ? `<div class="bchips"><span class="lbl">stap ${i + 1}</span>${bc(s.pivot, 'sh', 'brug')}<span class="muted">→</span>${bc(s.signal, 'nw', 'sprong')}<span class="small muted">${esc(label(s.to.r, s.to.m))}</span></div>`
+      : `<div class="bchips"><span class="lbl">stap ${i + 1}</span>${bc(s.br.tonic, 'ton', 'thuis')}<span class="small muted">${esc(label(s.to.r, s.to.m))}, zelfde noten</span></div>`).join('');
+    seq = [here[0], ...st.flatMap((s) => s.pivot ? [s.pivot, s.signal] : [s.br.tonic]), br.tonic];
+  }
+  seq = seq.filter((c, i) => c && (i === 0 || c.key !== seq[i - 1]?.key));
+  h += `<div class="acts"><button type="button" class="pri" id="hear">▶ ${seq.map((c) => esc(c.name)).join(' → ')}</button><button type="button" id="go">Ga naar ${esc(label(naar.r, naar.m))}</button><button type="button" disabled title="later">+ in schema</button></div>`;
+  $('#jump').innerHTML = h;
+  $('#hear').onclick = () => playSeq(seq);
+  $('#go').onclick = () => { cur = naar; naar = null; draw(); };
+}
+
+function choose(c) { naar = same(c, cur) || same(c, naar) ? null : c; draw(); }
+for (const id of ['#grid', '#mx']) {
+  $(id).addEventListener('click', (e) => {
+    if (e.target.closest('[data-chord]')) return;
+    const g = e.target.closest('.cell, .col');
+    if (g) choose({ r: Number(g.dataset.r), m: Number(g.dataset.m) });
+  });
+  $(id).addEventListener('keydown', (e) => { const g = e.target.closest('.cell, .col'); if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); choose({ r: Number(g.dataset.r), m: Number(g.dataset.m) }); } });
+}
+function draw() { grid(); matrix(); jump(); }
+document.body.dataset.size = size;
+draw();
+</script>
+</body>
+</html>

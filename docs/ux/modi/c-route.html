@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modi · Route</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,700&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="modi.css">
+<style>
+.pick{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pick b{min-width:40px}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.chain{display:flex;flex-direction:column;gap:0}
+.st{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;align-items:start}
+.st .dotc{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);margin-top:2px}
+.st.end .dotc{border:3px solid var(--brass)}
+.st h3{font-size:17px}
+.link{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px}
+.link .ln{width:2px;margin:0 auto;background:var(--line);min-height:100%}
+.link .ln.rel{background:repeating-linear-gradient(var(--dia) 0 4px,transparent 4px 8px)}
+.link .body{padding:8px 0 14px;display:flex;flex-direction:column;gap:6px}
+.step{font-size:13px;color:var(--muted)}
+.mini svg{display:block;width:100%;max-width:420px;height:auto}
+.mini .c{fill:var(--surface);stroke:var(--line)}
+.mini .on{fill:none;stroke:var(--brass);stroke-width:3}
+.mini .on.end{fill:var(--brass);fill-opacity:.25}
+.mini path{fill:none;stroke:var(--brass);stroke-width:2;stroke-linejoin:round;stroke-dasharray:5 4}
+.sum{font-size:16px}
+</style>
+</head>
+<body data-size="3">
+<div class="wrap">
+  <header>
+    <h1>Route tussen modi</h1>
+    <p class="lead">Kies waar je bent en waar je heen wilt. De route verandert telkens één noot: per stap zie je het akkoord dat in beide zit (de brug) en het akkoord dat de nieuwe noot laat horen (de sprong).</p>
+  </header>
+  <div class="card">
+    <div class="pick"><b>Van</b><select id="vr" aria-label="Van: grondtoon"></select><select id="vm" aria-label="Van: modus"></select></div>
+    <div class="pick"><b>Naar</b><select id="nr" aria-label="Naar: grondtoon"></select><select id="nm" aria-label="Naar: modus"></select><button type="button" class="btn" id="swap">↕ wissel</button></div>
+    <div class="bar" id="bar"></div>
+    <div class="presets" id="presets"></div>
+  </div>
+  <div class="layout">
+    <div class="card" id="out" aria-live="polite"></div>
+    <div class="card">
+      <h2>Op het rooster</h2>
+      <div class="mini" id="mini"></div>
+      <p class="small muted">Rijen zijn moederladders (één noot per rij), kolommen gaan van helder naar donker. Zie <a href="a-rooster.html">Rooster</a> en <a href="b-brugmatrix.html">Brugmatrix</a>.</p>
+    </div>
+  </div>
+</div>
+<script src="../concepts/engine.js"></script>
+<script src="modi.js"></script>
+<script>
+let size = 3, van = { r: 0, m: 1 }, naar = { r: 0, m: 3 };
+const q = new URLSearchParams(location.search);
+if (q.get('van')) { const [r, m] = q.get('van').split(',').map(Number); van = { r, m }; }
+if (q.get('naar')) { const [r, m] = q.get('naar').split(',').map(Number); naar = { r, m }; }
+
+const ROUTES = [
+  ['Ionisch → Dorisch', { r: 0, m: 1 }, { r: 0, m: 3 }],
+  ['Majeur → relatief mineur', { r: 0, m: 1 }, { r: 9, m: 4 }],
+  ['Aeolisch → Frygisch', { r: 9, m: 4 }, { r: 9, m: 5 }],
+  ['Dorisch → Lydisch, ander thuis', { r: 2, m: 3 }, { r: 3, m: 0 }],
+  ['C → E majeur', { r: 0, m: 1 }, { r: 4, m: 1 }],
+  ['So What: D → E♭ Dorisch', { r: 2, m: 3 }, { r: 3, m: 3 }],
+];
+$('#presets').innerHTML = ROUTES.map((p, i) => `<button type="button" class="btn" data-p="${i}">${p[0]}</button>`).join('');
+$('#presets').onclick = (e) => { const b = e.target.closest('[data-p]'); if (!b) return; const p = ROUTES[b.dataset.p]; van = { ...p[1] }; naar = { ...p[2] }; sync(); };
+$('#bar').append(sizeSeg(size, (s) => { size = s; draw(); }));
+$('#swap').onclick = () => { [van, naar] = [naar, van]; sync(); };
+['vr', 'vm', 'nr', 'nm'].forEach((id) => $('#' + id).onchange = () => {
+  van = { r: Number($('#vr').value), m: Number($('#vm').value) };
+  naar = { r: Number($('#nr').value), m: Number($('#nm').value) };
+  draw();
+});
+function sync() {
+  $('#vr').innerHTML = rootOptions(van.r); $('#vm').innerHTML = modeOptions(van.m);
+  $('#nr').innerHTML = rootOptions(naar.r); $('#nm').innerHTML = modeOptions(naar.m);
+  draw();
+}
+
+const station = (c, end) => {
+  const s = scale(c.r, c.m), ch = chords(c.r, c.m, size);
+  return `<div class="st${end ? ' end' : ''}"><span class="dotc" style="background:var(--m${c.m})"></span><div>
+    <h3>${esc(label(c.r, c.m))}</h3><span class="small muted">${sigText(parentOf(c.r, c.m))} · tonica ${esc(ch[0].name)}</span></div></div>`;
+};
+
+let seq = [];
+function draw() {
+  const steps = route(van, naar, size), cv = chords(van.r, van.m, size), cn = chords(naar.r, naar.m, size);
+  const total = diffCount(van, naar);
+  let h = `<p class="sum">${total === 0 ? (van.r === naar.r && van.m === naar.m ? 'Je bent er al.' : 'Zelfde noten: je verschuift alleen het thuis.') : `<b>${total} ${total === 1 ? 'noot' : 'noten'}</b> anders, <b>${steps.length} ${steps.length === 1 ? 'stap' : 'stappen'}</b>.`}</p>`;
+  if (van.r === naar.r && van.m === naar.m) { $('#out').innerHTML = h; mini([]); seq = []; return; }
+  h += `<div class="chain">` + station(van, false);
+  seq = [cv[0]];
+  steps.forEach((s, i) => {
+    const last = i === steps.length - 1;
+    if (s.pivot) {
+      h += `<div class="link"><span class="ln"></span><div class="body">
+        <span class="step">Stap ${i + 1} · nieuwe noot <b style="color:var(--bor)">${s.br.newNotes.map(nn).join(', ')}</b>${s.br.gone.length ? ' · valt weg: ' + s.br.gone.map((c) => c.name).join(', ') : ''}</span>
+        <div class="chips">${chipHtml(s.pivot, 'sh', 'brug')}<span class="muted">→</span>${chipHtml(s.signal, 'new', 'sprong')}</div>
+        <span class="small muted">Andere bruggen: ${s.br.shared.filter((c) => c.key !== s.pivot.key).map((c) => c.name).join(', ') || 'geen'}</span></div></div>`;
+      seq.push(s.pivot, s.signal);
+    } else {
+      h += `<div class="link"><span class="ln rel"></span><div class="body">
+        <span class="step">Stap ${i + 1} · zelfde noten, nieuw thuis</span>
+        <div class="chips">${chipHtml(s.br.tonic, 'piv', 'rust hier')}${chipHtml(s.br.char, 'new', 'kenmerkend')}</div></div></div>`;
+      seq.push(s.br.char);
+    }
+    h += station(s.to, last);
+  });
+  seq.push(cn[0]);
+  seq = seq.filter((c, i) => i === 0 || c.key !== seq[i - 1].key);
+  h += `</div><div><button type="button" class="btn main" id="hear">Speel de route (${seq.map((c) => c.name).join(' → ')})</button></div>`;
+  if (total >= 4) h += `<p class="small muted">Zo ver weg klinkt een route met bruggen al snel als een omweg. Muzikanten springen hier vaak bewust zonder brug (So What gaat gewoon een halve toon omhoog): de schok is dan het effect.</p>`;
+  $('#out').innerHTML = h;
+  $('#hear').onclick = () => playSeq(seq);
+  mini([van, ...steps.map((s) => s.to)]);
+}
+
+/** Klein rooster met alleen de rijen die de route raakt (plus één rij marge). */
+function mini(path) {
+  if (!path.length) { $('#mini').innerHTML = ''; return; }
+  const ks = path.map((c) => parentOf(c.r, c.m)), k0 = ks[0];
+  const off = ks.map((k) => signedK(k - k0)), top = Math.max(...off) + 1, bot = Math.min(...off) - 1;
+  const CW = 46, CH = 30, LX = 54, n = top - bot + 1;
+  const at = (c) => [LX + c.m * CW + CW / 2, (top - signedK(parentOf(c.r, c.m) - k0)) * CH + 15 + 22];
+  let s = MODES.map((_, m) => `<text x="${LX + m * CW + CW / 2}" y="14" text-anchor="middle" style="font-size:11px;font-weight:600">${ABBR[m]}</text>`).join('');
+  for (let i = 0; i < n; i++) {
+    const k = m12(k0 + top - i), y = 22 + i * CH;
+    s += `<text class="mut" x="${LX - 8}" y="${y + 19}" text-anchor="end" style="font-size:11px">${sigText(k)}</text>`;
+    for (let m = 0; m < 7; m++) s += `<rect class="c" x="${LX + m * CW + 2}" y="${y + 2}" width="${CW - 4}" height="${CH - 4}" rx="5"/><text x="${LX + m * CW + CW / 2}" y="${y + 19}" text-anchor="middle" style="font-size:12px">${rootName(rootAt(k, m), m)}</text>`;
+  }
+  s += `<path d="M${path.map((c) => at(c).join(' ')).join(' L')}"/>`;
+  path.forEach((c, i) => { const [x, y] = at(c); s += `<rect class="on${i === 0 || i === path.length - 1 ? ' end' : ''}" x="${x - CW / 2 + 2}" y="${y - CH / 2 + 2}" width="${CW - 4}" height="${CH - 4}" rx="5"/>`; });
+  $('#mini').innerHTML = `<svg viewBox="0 0 ${LX + 7 * CW + 4} ${22 + n * CH + 4}" role="img" aria-label="Route op het rooster">${s}</svg>`;
+}
+sync();
+</script>
+</body>
+</html>

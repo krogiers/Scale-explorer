@@ -23,13 +23,13 @@ const FINGERING: Record<number, Key[]> = {
 
 const CW = 58, CH = 182;
 
-function Diagram({ x, pressed, octave, label, inChord, isRoot, isChar }: {
-  x: number; pressed: Key[]; octave: boolean; label: string; inChord: boolean; isRoot: boolean; isChar: boolean;
+function Diagram({ x, pressed, octave, label, inChord, isRoot, isChar, out }: {
+  x: number; pressed: Key[]; octave: boolean; label: string; inChord: boolean; isRoot: boolean; isChar: boolean; out: boolean;
 }) {
   const on = (k: Key) => (pressed.includes(k) ? ' on' : '');
   const hole = (k: 1 | 2 | 3 | 4 | 5 | 6, y: number) => <circle key={k} className={`sx-key${on(k)}`} cx={x + 29} cy={y} r={8} />;
   return (
-    <g className={`sx-card${inChord ? ' ch' : ''}${isChar ? ' char' : ''}`}>
+    <g className={`sx-card${inChord ? ' ch' : ''}${isChar ? ' char' : ''}${out ? ' out' : ''}`}>
       <rect className="sx-bg" x={x + 2} y={2} width={CW - 4} height={CH - 4} rx={8} />
       <ellipse className={`sx-key${octave ? ' on' : ''}`} cx={x + 12} cy={20} rx={5} ry={7} />
       <text className="sx-tiny" x={x + 12} y={36}>8va</text>
@@ -65,7 +65,7 @@ export function Sax(v: InstrumentView) {
         const pressed = FINGERING[(midi - (octave ? 12 : 0)) % 12];
         return (
           <Diagram key={i} x={i * CW} pressed={pressed} octave={octave} label={v.names.note(n)}
-            inChord={v.chord.has(n.pc)} isRoot={n.pc === v.root} isChar={n.pc === v.characteristic} />
+            inChord={v.chord.has(n.pc)} isRoot={n.pc === v.root} isChar={n.pc === v.characteristic} out={v.outside.has(n.pc)} />
         );
       })}
     </svg>

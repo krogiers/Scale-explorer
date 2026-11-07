@@ -1,0 +1,56 @@
+/* Gedeelde stijl voor de modi-schetsen. Kleuren en lettertypes van de app (src/styles.css). */
+:root{
+  --bg:#F2F4F7; --surface:#FFFFFF; --ink:#172033; --muted:#5B6577; --line:#D8DDE5;
+  --brass:#9E6A12; --brass-soft:#F4E7CD; --dia:#1C716B; --dia-soft:#DCEEEB; --bor:#76468A; --bor-soft:#EFE4F3;
+  --m0:#F6E7A6; --m1:#E9D58A; --m2:#C9C79A; --m3:#8FA9A6; --m4:#5E7F95; --m5:#3F5577; --m6:#2A2F55;
+  --f-display:"Bodoni Moda", Georgia, serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E131B; --surface:#161D28; --ink:#E6EAF0; --muted:#9AA4B4; --line:#2A3443;
+  --brass:#E0AE52; --brass-soft:#3A2D15; --dia:#55C3B6; --dia-soft:#142F2C; --bor:#C69CDA; --bor-soft:#2D2137; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E131B; --surface:#161D28; --ink:#E6EAF0; --muted:#9AA4B4; --line:#2A3443;
+  --brass:#E0AE52; --brass-soft:#3A2D15; --dia:#55C3B6; --dia-soft:#142F2C; --bor:#C69CDA; --bor-soft:#2D2137; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;padding:20px 16px 40px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{margin:0;font-family:var(--f-display);font-size:clamp(26px,4vw,36px);line-height:1.1}
+h2{margin:0;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h3{margin:0;font-size:18px}
+p{margin:0}
+.lead{color:var(--muted);max-width:70ch}
+.muted{color:var(--muted)} .small{font-size:13px}
+button,select{font:inherit;color:inherit}
+select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-height:36px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:6px 12px;min-height:36px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;min-height:36px;cursor:pointer}
+.btn:hover{border-color:var(--brass)}
+.btn.main{background:var(--brass);border-color:var(--brass);color:#fff}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.layout{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.layout{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start}}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:baseline;gap:5px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 11px;font-weight:600;font-size:14px;cursor:pointer}
+.chip small{font-weight:400;font-size:11px;color:var(--muted)}
+.chip.sh{border-color:var(--dia);background:var(--dia-soft)}
+.chip.new{border-color:var(--bor);background:var(--bor-soft)}
+.chip.piv{border-color:var(--brass);background:var(--brass-soft)}
+.chip.gone{opacity:.55;text-decoration:line-through}
+.badge{display:inline-block;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:600;background:var(--brass-soft);color:var(--brass)}
+.badge.rel{background:var(--dia-soft);color:var(--dia)} .badge.par{background:var(--bor-soft);color:var(--bor)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:5px}
+.notes{display:flex;flex-wrap:wrap;gap:4px}
+.notes span{min-width:34px;text-align:center;border:1px solid var(--line);border-radius:8px;padding:2px 4px;font-weight:600;font-size:14px}
+.notes span.new{border-color:var(--bor);background:var(--bor-soft);color:var(--bor)}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px;border:1px solid var(--line)}
+svg text{fill:var(--ink);font-family:var(--f-body)}
+svg .mut{fill:var(--muted)}
+.svgbox svg{display:block;width:100%;height:auto}
+.foot{font-size:13px;color:var(--muted)}
+.foot a{color:inherit}

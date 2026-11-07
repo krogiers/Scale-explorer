@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
-import { chordsOf, scaleOf, type Chord, type ChordSize, type ModeIndex, type Scale } from '../core/theory';
+import { chordsOf, pentatonic, scaleOf, type Chord, type ChordSize, type ModeIndex, type Scale } from '../core/theory';
 import type { Destination } from '../core/navigation';
 import { MESSAGES, type Lang, type Messages } from '../i18n';
 import { makeNames, namerById, type Names } from '../naming';
@@ -24,6 +24,8 @@ export interface State extends Position {
   timbre: Timbre;
   /** Blue note (♭5) tonen in de toonladder en op het instrument. */
   showBlue: boolean;
+  /** Pentatonisch tonen: de twee noten buiten de pentatonische ladder worden gedimd. */
+  showPenta: boolean;
   /** Maatsoort: tellen per maat (4 = 4/4, 3 = 3/4). */
   meter: 3 | 4;
   /** Tempo in tellen per minuut, voor de loop en voor "Speel progressie". */
@@ -35,7 +37,7 @@ export interface State extends Position {
   history: { path: PathEntry[]; focus: number }[];
 }
 
-export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue' | 'bpm' | 'saxKey'>>;
+export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue' | 'showPenta' | 'bpm' | 'saxKey'>>;
 
 export const BPM_MIN = 40, BPM_MAX = 220;
 /** Tempo binnen het bereik van de schuif; onzin (NaN, tekst) wordt het standaardtempo. */
@@ -92,6 +94,7 @@ function initial(): State {
     meter: p.meter === 3 ? 3 : 4,
     bpm: clampBpm(p.bpm ?? legacyLoopBpm()),
     showBlue: p.showBlue !== false,
+    showPenta: p.showPenta === true,
     focus: (saved?.length ?? 1) - 1,
     size,
     history: [],
@@ -192,11 +195,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: state.lang, namer: state.namer, size: state.size, sound: state.sound, instrument: state.instrument, timbre: state.timbre, meter: state.meter, showBlue: state.showBlue, bpm: state.bpm, saxKey: state.saxKey }));
+      localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: state.lang, namer: state.namer, size: state.size, sound: state.sound, instrument: state.instrument, timbre: state.timbre, meter: state.meter, showBlue: state.showBlue, showPenta: state.showPenta, bpm: state.bpm, saxKey: state.saxKey }));
     } catch { /* opslag niet beschikbaar: geen probleem */ }
     document.documentElement.lang = state.lang;
     document.title = t.title;
-  }, [state.lang, state.namer, state.size, state.sound, state.instrument, state.timbre, state.meter, state.showBlue, state.bpm, state.saxKey, t.title]);
+  }, [state.lang, state.namer, state.size, state.sound, state.instrument, state.timbre, state.meter, state.showBlue, state.showPenta, state.bpm, state.saxKey, t.title]);
 
   useEffect(() => {
     try { localStorage.setItem(CHART_KEY, JSON.stringify(state.path)); } catch { /* niet erg */ }
@@ -217,7 +220,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return {
       state, dispatch, t, names, scale, chords,
       scaleLabel: (s: Scale) => `${names.note(s.notes[0])} ${t.modes[s.mode]}`,
-      playScale: () => play(scaleEvents(scale)),
+      playScale: () => play(scaleEvents(scale, state.showPenta ? pentatonic(scale).notes : scale.notes)),
       playPath: () => play(progressionEvents(state.path.map((p) => ({ chord: chordOf(p), beats: p.beats })), 60 / state.bpm)),
     };
   }, [state, t, names, scale, chords]);

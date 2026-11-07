@@ -269,3 +269,12 @@ table.map td{padding:0}
 .tones-big{font-family:var(--f-mono);font-size:15px;font-weight:500;letter-spacing:.02em}
 .tones-big .bl{color:var(--blue)}
 .bluehint{font-size:13px;color:var(--blue)}
+
+/* pentatonisch: noten buiten de ladder gedimd, niet verborgen */
+.note.out{opacity:.4;border-style:dashed}
+.k-dot.out{fill:none;stroke:var(--muted);stroke-width:1.3}
+.gt-dot.out{fill:var(--surface);stroke:var(--muted);stroke-dasharray:2 2}
+.gt-lbl.out{fill:var(--muted)}
+.sx-card.out{opacity:.35}
+.pentahint{font-size:13px;color:var(--dia)}
+.legend i.ring{background:none;border:1.5px dashed var(--muted)}

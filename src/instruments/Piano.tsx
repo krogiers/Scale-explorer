@@ -19,7 +19,7 @@ export function Piano(v: InstrumentView) {
         <g key={`w${o}-${pc}`}>
           <rect className={`k-w${inChord ? ' ch' : ''}`} x={x + 0.5} y={0.5} width={W - 1} height={H} rx={3} />
           {(v.scale.has(pc) || blue?.pc === pc) && <>
-            <circle className={`k-dot${pc === v.characteristic ? ' char' : ''}${blue?.pc === pc ? ' blue' : ''}`} cx={x + W / 2} cy={H - 30} r={pc === v.root ? 6 : 4} />
+            <circle className={`k-dot${pc === v.characteristic ? ' char' : ''}${blue?.pc === pc ? ' blue' : ''}${v.outside.has(pc) ? ' out' : ''}`} cx={x + W / 2} cy={H - 30} r={pc === v.root ? 6 : 4} />
             <text className={`k-lbl${inChord ? ' on-ch' : ''}`} x={x + W / 2} y={H - 10}>{label(pc)}</text>
           </>}
         </g>,
@@ -33,7 +33,7 @@ export function Piano(v: InstrumentView) {
         <g key={`b${o}-${pc}`}>
           <rect className={`k-b${inChord ? ' ch' : ''}`} x={x} y={0.5} width={BW} height={BH} rx={2} />
           {(v.scale.has(pc) || blue?.pc === pc) && <>
-            <circle className={`k-dot${pc === v.characteristic ? ' char' : ''}${blue?.pc === pc ? ' blue' : ''}`} cx={x + BW / 2} cy={BH - 26} r={pc === v.root ? 5 : 3.5} />
+            <circle className={`k-dot${pc === v.characteristic ? ' char' : ''}${blue?.pc === pc ? ' blue' : ''}${v.outside.has(pc) ? ' out' : ''}`} cx={x + BW / 2} cy={BH - 26} r={pc === v.root ? 5 : 3.5} />
             <text className="k-lbl on-b" x={x + BW / 2} y={BH - 8} style={{ fontSize: 8 }}>{label(pc)}</text>
           </>}
         </g>,

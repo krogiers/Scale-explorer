@@ -7,7 +7,7 @@
  * - kleine willekeurige verschillen in timing en aanslag ("humanize"), zoals een echte speler.
  * Zolang de opnames nog niet ingeladen zijn, valt hij terug op een eenvoudige synthesizer.
  */
-import type { Chord, Scale } from '../core/theory';
+import type { Chord, Note, Scale } from '../core/theory';
 import { SAMPLES } from './samples';
 import { progressionVoicings, voicing } from './voicing';
 
@@ -207,16 +207,17 @@ export { progressionVoicings, voiceLead, voicing } from './voicing';
 export const chordEvents = (c: Chord, at = 0, dur = 1.1, notes: number[] = voicing(c)): NoteEvent[] =>
   notes.map((m, i) => [m, at + i * 0.018, dur, i === 0 ? 'bass' : 'keys']);
 
-export function scaleEvents(s: Scale): NoteEvent[] {
+/** Toonladder oplopend vanaf de grondtoon; met notes speel je een deel ervan (bv. pentatonisch). */
+export function scaleEvents(s: Scale, notes: Note[] = s.notes): NoteEvent[] {
   let prev = 60 + s.root - (s.root > 6 ? 12 : 0) - 1;
-  const ev: NoteEvent[] = s.notes.map((n, i) => {
+  const ev: NoteEvent[] = notes.map((n, i) => {
     let x = 60 + n.pc;
     while (x <= prev) x += 12;
     while (x > prev + 12) x -= 12;
     prev = x;
     return [x, i * 0.28, 0.3];
   });
-  ev.push([ev[0][0] + 12, 7 * 0.28, 0.6]);
+  ev.push([ev[0][0] + 12, notes.length * 0.28, 0.6]);
   return ev;
 }
 

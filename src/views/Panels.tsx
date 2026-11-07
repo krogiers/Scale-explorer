@@ -1,4 +1,4 @@
-import { CHAR_DEGREE, blueNote, fifthsIndex, pcFromFifths, scaleOf, transposed, type ModeIndex } from '../core/theory';
+import { CHAR_DEGREE, blueNote, fifthsIndex, pcFromFifths, pentatonic, scaleOf, transposed, type ModeIndex } from '../core/theory';
 import { fill, LANGS } from '../i18n';
 import { NOTE_NAMERS } from '../naming';
 import { INSTRUMENTS, SAX_KEYS, SAX_TRANSPOSE, instrumentById, type SaxKey } from '../instruments';
@@ -30,6 +30,12 @@ export function Settings() {
         <div className="seg" role="group">
           <button type="button" aria-pressed={state.showBlue} onClick={() => set({ showBlue: true })}>{t.show}</button>
           <button type="button" aria-pressed={!state.showBlue} onClick={() => set({ showBlue: false })}>{t.hide}</button>
+        </div>
+      </div>
+      <div className="field"><span className="lbl">{t.penta}</span>
+        <div className="seg" role="group">
+          <button type="button" aria-pressed={state.showPenta} onClick={() => set({ showPenta: true })}>{t.show}</button>
+          <button type="button" aria-pressed={!state.showPenta} onClick={() => set({ showPenta: false })}>{t.hide}</button>
         </div>
       </div>
       <div className="field"><span className="lbl">{t.chords}</span>
@@ -81,6 +87,7 @@ export function InstrumentPanel() {
   const shift = state.instrument === 'sax' ? SAX_TRANSPOSE[state.saxKey] : 0;
   const shown = shift ? transposed(scale, shift) : scale;
   const chord = new Set([...chords[state.degree].pcs].map((pc) => (pc + shift) % 12));
+  const outside = new Set(state.showPenta ? pentatonic(shown).dropped.map((n) => n.pc) : []);
   return (
     <>
       <div className="instrhead">
@@ -101,7 +108,7 @@ export function InstrumentPanel() {
         </div>
       </div>
       <Instrument scaleNotes={shown.notes} scale={shown.pcs} chord={chord} root={shown.root}
-        characteristic={shown.notes[CHAR_DEGREE[shown.mode]].pc} blue={state.showBlue ? blueNote(shown).note : null} names={names} label={t.instruments[state.instrument] ?? ''} />
+        characteristic={shown.notes[CHAR_DEGREE[shown.mode]].pc} blue={state.showBlue ? blueNote(shown).note : null} outside={outside} names={names} label={t.instruments[state.instrument] ?? ''} />
       {shift > 0 && <p className="small">{fill(t.saxWritten, { scale: scaleLabel(shown), concert: scaleLabel(scale) })}</p>}
       {t.instrumentHelp[state.instrument] && <p className="muted small">{t.instrumentHelp[state.instrument]}</p>}
     </>

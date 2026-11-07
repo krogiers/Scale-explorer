@@ -50,6 +50,8 @@ export function initial(): State {
     instrument: typeof p.instrument === 'string' ? p.instrument : 'piano',
     saxKey: p.saxKey && SAX_KEYS.includes(p.saxKey) ? p.saxKey : 'Eb',
     sound: p.sound !== false,
+    timbreFollows: p.timbreFollows !== false,
+    theme: p.theme === 'light' || p.theme === 'dark' ? p.theme : 'auto',
     path: saved ?? [start],
   };
 }
@@ -57,7 +59,7 @@ export function initial(): State {
 /** Voorkeuren bewaren (alles behalve het schema en de huidige positie). */
 export function savePrefs(s: State) {
   try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: s.lang, namer: s.namer, size: s.size, sound: s.sound, instrument: s.instrument, timbre: s.timbre, meter: s.meter, showBlue: s.showBlue, showPenta: s.showPenta, bpm: s.bpm, saxKey: s.saxKey }));
+    localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: s.lang, namer: s.namer, size: s.size, sound: s.sound, instrument: s.instrument, timbre: s.timbre, meter: s.meter, showBlue: s.showBlue, showPenta: s.showPenta, bpm: s.bpm, saxKey: s.saxKey, timbreFollows: s.timbreFollows, theme: s.theme }));
   } catch { /* opslag niet beschikbaar: geen probleem */ }
 }
 

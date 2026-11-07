@@ -10,7 +10,13 @@ _UX designer, 2026-11-08. Vervangt de versie van 2026-11-02. Screenshots: [docs/
   - de knoppen van 44 px op touch uit **F**, behalve de SVG-elementen van de cirkel en het netwerk;
   - `theme-color`, een beschrijving en een SVG-favicon.
 - **Resultaat:** de pagina is 4426 px hoog op desktop (was 5300) en 6920 px op een telefoon (was 9043).
-- **Nog open:** A, C, E, H, de rest van D en F, en de PWA.
+- **Ook gebouwd (2026-11-08):**
+  - **A**: drie schermen, een bovenbalk met context en een dock. De loop staat in de store en blijft lopen bij een schermwissel.
+  - **C**: `PlayButton` met ▶/■ voor de toonladder, de progressie, de sequenties en het akkoord in de bovenbalk.
+  - **E**: instellingen achter ⚙ met een themaschakelaar. Blue note en pentatonisch zijn chips geworden, drie- of vierklanken staat bij de akkoorden.
+  - **H**: klank volgt instrument, met de nieuwe klanken altsax en nylongitaar.
+  - **D**: uitleg achter ⓘ, en een toast met Ongedaan maken na Wis, Verwijder en het invoegen van een sequentie.
+- **Nog open:** de rest van F (het netwerk en de cirkel op een telefoon) en de PWA.
 
 ## Samenvatting
 De app is inhoudelijk sterk gegroeid. Er kwamen pentatonisch, tien klanken, vier blazers, vier ritmestijlen met drums, jazzsequenties en verslepen bij. Elke uitbreiding kreeg haar eigen plek op dezelfde lange pagina.

@@ -58,7 +58,7 @@ export class LoopPlayer {
     const o = this.getOptions();
     this.nextTime = now + 0.15;
     this.beat = o.countIn ? -o.meter : 0;
-    takeOver(this.halt);
+    takeOver('loop', this.halt);
     this.stopTicker = startTicker(25, () => this.tick());
     loopState.running = true;
   }

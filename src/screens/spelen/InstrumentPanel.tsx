@@ -2,6 +2,7 @@ import { CHAR_DEGREE, blueNote, pentatonic, transposed } from '../../core';
 import { fill } from '../../i18n';
 import { INSTRUMENTS, SAX_KEYS, SAX_TRANSPOSE, instrumentById, type SaxKey } from '../../instruments';
 import { useApp } from '../../state';
+import { Heading } from '../../ui';
 
 export function InstrumentPanel() {
   const { state, dispatch, t, names, scale, chords, scaleLabel } = useApp();
@@ -14,9 +15,8 @@ export function InstrumentPanel() {
   const outside = new Set(state.showPenta ? pentatonic(shown).dropped.map((n) => n.pc) : []);
   return (
     <>
-      <div className="instrhead">
-        <h2>{t.instrTitle}</h2>
-        <div className="row">
+      <Heading title={t.instrTitle} help={t.instrumentHelp[state.instrument]}>
+        <div className="row instrtools">
           {state.instrument === 'sax' && (
             <div className="field"><label htmlFor="saxkey">{t.saxKey}</label>
               <select id="saxkey" value={state.saxKey} onChange={(e) => dispatch({ type: 'settings', patch: { saxKey: e.target.value as SaxKey } })}>
@@ -30,11 +30,10 @@ export function InstrumentPanel() {
             </select>
           </div>
         </div>
-      </div>
+      </Heading>
       <Instrument scaleNotes={shown.notes} scale={shown.pcs} chord={chord} root={shown.root}
         characteristic={shown.notes[CHAR_DEGREE[shown.mode]].pc} blue={state.showBlue ? blueNote(shown).note : null} outside={outside} names={names} label={t.instruments[state.instrument] ?? ''} />
       {shift > 0 && <p className="small">{fill(t.saxWritten, { scale: scaleLabel(shown), concert: scaleLabel(scale) })}</p>}
-      {t.instrumentHelp[state.instrument] && <p className="muted small">{t.instrumentHelp[state.instrument]}</p>}
     </>
   );
 }

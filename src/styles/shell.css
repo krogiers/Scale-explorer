@@ -1,0 +1,63 @@
+/* app-schil: bovenbalk met schermen, context en ⚙; paneelkoppen met ⓘ; chips; afspeelknop; instellingen; meldingen */
+.appbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb, var(--bg) 90%, transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.appbar-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px))}
+.brand{font-family:var(--f-display);font-weight:700;font-size:22px;letter-spacing:-.01em;white-space:nowrap}
+.tabs{display:flex;gap:4px}
+.tab{display:inline-flex;align-items:center;gap:6px;border:1px solid transparent;background:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:600;color:var(--muted)}
+.tab:hover{border-color:var(--line-strong);color:var(--ink)}
+.tab[aria-current="page"]{background:var(--ink);color:var(--surface)}
+.tab-n{font-family:var(--f-mono);font-size:11px;opacity:.7}
+.ctx{margin-left:auto;display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
+.ctx-scale{border:0;background:none;padding:4px 2px;font-weight:600;cursor:pointer;color:var(--ink);text-decoration:underline dotted var(--line-strong);text-underline-offset:4px}
+.ctx b{font-family:var(--f-display);font-size:18px}
+.ctx-play{min-width:34px;padding:4px 8px}
+.gear{font-size:18px;line-height:1;padding:6px 10px}
+@media (max-width:720px){
+  .tabs{order:3;width:100%}
+  .tab{flex:1;justify-content:center}
+  .brand{font-size:18px}
+}
+
+/* schermen: dezelfde panelen als vroeger, per scherm geschikt */
+.screen-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:18px}
+.screen-grid.spelen{grid-template-columns:minmax(0,1fr)}
+@media (max-width:820px){.screen-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* paneelkop: titel, ⓘ voor de uitleg, rechts bediening */
+.phead{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap}
+.info{position:relative;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1px solid var(--line-strong);background:none;color:var(--muted);font-size:12px;line-height:1;cursor:pointer;padding:0}
+.info::after{content:"";position:absolute;inset:-11px}
+.info[aria-expanded="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.phead-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:100%}
+.phead-right > .row{flex-wrap:wrap}
+.phead-right .ghost{white-space:nowrap}
+.help{background:var(--bg);border-radius:8px;padding:8px 12px;max-width:80ch}
+
+/* chips: weergave-opties aan of uit (blue note, pentatonisch) */
+.chip{border:1px solid var(--line-strong);border-radius:999px;background:none;padding:4px 12px;font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.chip[aria-pressed="true"]::before{content:"✓ "}
+.scale-actions{flex-wrap:wrap;align-items:center}
+
+/* afspeelknop: ▶ wordt ■ zolang hij zelf speelt */
+.playbtn{display:inline-flex;align-items:center;gap:6px}
+.pb-ico{color:var(--brass);font-size:.85em}
+.playbtn.on{border-color:var(--brass);background:var(--brass-soft)}
+.playbtn.on .pb-ico{color:var(--brass-ink)}
+
+/* instellingen als dialoogvenster */
+dialog.sheet{border:1px solid var(--line-strong);border-radius:14px;padding:18px 20px 22px;width:min(520px, calc(100vw - 32px));background:var(--surface);color:var(--ink)}
+dialog.sheet::backdrop{background:rgba(10,14,20,.45)}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.sheet-head h2{font-family:var(--f-display);font-size:24px;letter-spacing:0;text-transform:none;color:var(--ink)}
+.sheet .settings{flex-direction:column;align-items:flex-start;gap:16px}
+
+/* melding bovenaan, onder de balk */
+.toast-wrap{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:30;max-width:calc(100vw - 32px)}
+.toast{display:flex;align-items:center;gap:14px;background:var(--ink);color:var(--surface);border-radius:10px;padding:10px 12px 10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.toast-act{border:0;background:none;color:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px 4px}
+.toast-x{border:0;background:none;color:inherit;opacity:.7;font-size:18px;cursor:pointer;padding:4px 6px}
+
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (pointer:coarse){.chip,.tab,.ctx-scale,.gear,.ctx-play{min-height:44px}}
+@media (max-width:720px){.toast-wrap{top:124px}}

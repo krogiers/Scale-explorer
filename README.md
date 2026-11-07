@@ -22,7 +22,12 @@ De app bestaat uit kleine pakketjes. Elk pakket is een map met een voordeur (`in
 core  ←  i18n, naming, audio, instruments  ←  state  ←  ui  ←  screens/*  ←  App
 ```
 
-De schermen importeren elkaar niet: `App.tsx` zet ze samen. De test `src/architecture.test.ts` bewaakt deze regels.
+De app heeft drie schermen: **Ladder** (waar ben ik?), **Akkoorden** (welke akkoorden en waarheen, met het schema) en **Spelen** (de loop, het schema als strook en een groot instrument). De schermen importeren elkaar niet. `App.tsx` zet ze samen met:
+- een bovenbalk met de tabs, de huidige ladder en het huidige akkoord, en ⚙ voor de instellingen;
+- de navigatie via `#ladder`, `#akkoorden` en `#spelen`, zodat terug en vooruit in de browser werken, met de sneltoetsen 1, 2 en 3;
+- een dock onderaan (de loop, en het instrument dat je kunt uitklappen) op Ladder en Akkoorden.
+
+De loop zit in de gedeelde toestand (`state/loop.tsx`) en blijft lopen als je van scherm wisselt. De test `src/architecture.test.ts` bewaakt deze regels.
 
 | Map | Wat erin zit | Iets toevoegen |
 | --- | --- | --- |
@@ -31,9 +36,9 @@ De schermen importeren elkaar niet: `App.tsx` zet ze samen. De test `src/archite
 | `src/i18n/` | Interfacetaal: één woordenboek per taal (`nl.ts`, `en.ts`). TypeScript controleert dat elke taal alle sleutels heeft. | Een bestand `fr.ts` maken en in `index.ts` registreren |
 | `src/audio/` | Interface `AudioEngine` (`types.ts`). `engine/` is de motor: opnames (`sampler`), klankinstellingen (`voices`), `synth` en `drums`. `loop/` is de meespeelloop: `plan` (wat er per tel klinkt), `grooves` (ritmepatronen), `tones` (bastonen) en `player` (de klok). `events` bepaalt wat een akkoord, ladder of progressie speelt, `voicing` de stemvoering. De opnames staan in `samples/`. | Een klank: een bestand in `samples/` en een regel in `voices.ts`. Een groove: een patroon in `grooves.ts` |
 | `src/instruments/` | Interface `InstrumentView` (`types.ts`) en het register (`index.ts`). Klavier, gitaar, en in `wind/` de blazers (sax, trompet, klarinet, dwarsfluit) met gedeelde greepkaarten. | Een component schrijven en in `INSTRUMENTS` zetten |
-| `src/state/` | `model` (toestand en acties), `reducer` (pure overgangen, ongedaan maken), `persist` (bewaren in de browser) en `store` (provider, speelt het geluid bij een klik) | Een actie in `model.ts` en een geval in `reducer.ts` |
-| `src/ui/` | Gedeelde onderdelen voor de schermen: `Legend` en opmaak van teksten | |
-| `src/screens/` | Eén map per scherm, elk met zijn eigen componenten en CSS. `ladder/` (kwintencirkel, modus, modusladder, modale kaart), `akkoorden/` (akkoordenrij, volgende stap, netwerk, sequenties, `chart/` het schema), `spelen/` (meespeelloop, instrument), `settings/` | Een paneel in de map van zijn scherm, en exporteren via `index.ts` |
+| `src/state/` | `model` (toestand en acties), `reducer` (pure overgangen, ongedaan maken, klank volgt instrument), `persist` (bewaren in de browser), `store` (provider, speelt het geluid bij een klik, `usePlaying`) en `loop` (de gedeelde meespeelloop) | Een actie in `model.ts` en een geval in `reducer.ts` |
+| `src/ui/` | Gedeelde onderdelen voor de schermen: `Legend`, `Heading` (paneelkop met de uitleg achter ⓘ), `PlayButton` (▶ of ■ per naam), `Toast` (melding met Ongedaan maken), `chartLayout` (maten) en opmaak van teksten | |
+| `src/screens/` | Eén map per scherm, elk met zijn eigen componenten en CSS. `ladder/` (kwintencirkel, modus met de chips blue note en pentatonisch, modusladder, modale kaart), `akkoorden/` (akkoordenrij, volgende stap als Lijst, Netwerk of Sequenties, `chart/` het schema), `spelen/` (meespeelloop, schema als strook, instrument, en het `Dock`), `settings/` (dialoog met taal, nootnamen, geluid en thema) | Een paneel in de map van zijn scherm, en exporteren via `index.ts` |
 | `src/styles/` | `base.css` (kleuren, layout, knoppen), `overlays.css` (blue note, pentatonisch) en `index.css`, dat alle CSS in een vaste volgorde laadt | |
 
 Taal en nootnamen staan los van elkaar: de interface kan in het Nederlands staan met do re mi, of in het Engels met Nederlandse nootnamen.

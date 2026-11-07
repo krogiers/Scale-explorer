@@ -1,18 +1,17 @@
 import { useApp } from '../../state';
-import { Legend } from '../../ui';
+import { Heading, Legend } from '../../ui';
 import { CircleOfFifths } from './CircleOfFifths';
 import { ModalMap } from './ModalMap';
 import { ModeLadder } from './ModeLadder';
 import { ScaleHeader } from './ScaleHeader';
 
-/** Kwintencirkel met uitleg. */
+/** Kwintencirkel; de uitleg zit achter ⓘ. */
 export function CirclePanel() {
   const { t } = useApp();
   return (
     <>
-      <h2>{t.circleTitle}</h2>
+      <Heading title={t.circleTitle} help={t.circleHelp} />
       <CircleOfFifths />
-      <p className="muted small">{t.circleHelp}</p>
     </>
   );
 }
@@ -23,10 +22,7 @@ export function ScalePanel() {
   return (
     <>
       <ScaleHeader />
-      <div className="stack" style={{ gap: 6 }}>
-        <h2>{t.ladderTitle}</h2>
-        <p className="muted small">{t.ladderHelp}</p>
-      </div>
+      <Heading title={t.ladderTitle} help={t.ladderHelp} />
       <ModeLadder />
     </>
   );
@@ -37,10 +33,20 @@ export function MapPanel() {
   const { t } = useApp();
   return (
     <>
-      <h2>{t.mapTitle}</h2>
+      <Heading title={t.mapTitle} help={t.mapHelp} />
       <ModalMap />
       <Legend items={[['var(--brass)', t.lgNow], ['var(--brass-soft)', t.lgSame], ['var(--dia-soft)', t.lgOne]]} />
-      <p className="muted small">{t.mapHelp}</p>
     </>
+  );
+}
+
+/** Scherm Ladder: waar ben ik? Links de cirkel, rechts de modus, daaronder de modale kaart. */
+export function LadderScreen() {
+  return (
+    <div className="screen-grid">
+      <section className="panel circle"><CirclePanel /></section>
+      <section className="panel"><ScalePanel /></section>
+      <section className="panel wide mapsec"><MapPanel /></section>
+    </div>
   );
 }

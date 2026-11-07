@@ -2,4 +2,5 @@
 export * from './model';
 export { reducer, MAX_CHORDS } from './reducer';
 export { validChart } from './persist';
-export { AppProvider, useApp } from './store';
+export { AppProvider, stopPlaying, useApp, usePlaying } from './store';
+export { LoopProvider, useLoop, type LoopSettings } from './loop';

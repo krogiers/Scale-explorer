@@ -1,3 +1,7 @@
-/** Gedeelde onderdelen voor alle schermen: legenda, opmaak van teksten en toegankelijkheid. */
+/** Gedeelde onderdelen voor alle schermen: legenda, paneelkop met ⓘ, afspeelknop, meldingen, maatindeling en opmaak van teksten. */
 export { Legend } from './Legend';
+export { Heading } from './Heading';
+export { PlayButton } from './PlayButton';
+export { showToast, Toaster, type ToastMsg } from './Toast';
+export { layoutBars, type Bar, type Segment } from './chartLayout';
 export * from './format';

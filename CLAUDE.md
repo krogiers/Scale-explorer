@@ -10,10 +10,11 @@ Static React 18 + TS + Vite app for exploring modes, scales and chords. No backe
 - Push to `main` deploys to GitHub Pages (CI runs test + build). Keep `base: './'` in `vite.config.ts`.
 
 ## Architecture
-- Packages = folders with an `index.ts` front door; import other packages only through it. Layers: `core` ← `i18n`, `naming`, `audio`, `instruments` ← `state` ← `ui` ← `screens/*` ← `App`. Screens never import each other (App wires them, e.g. Chart gets LoopControls as a render prop). `src/architecture.test.ts` enforces this.
+- Packages = folders with an `index.ts` front door; import other packages only through it. Layers: `core` ← `i18n`, `naming`, `audio`, `instruments` ← `state` ← `ui` ← `screens/*` ← `App`. Screens never import each other; `App.tsx` holds the app bar, hash navigation (`#ladder|#akkoorden|#spelen`, keys 1–3) and the dock. `src/architecture.test.ts` enforces this.
 - `core/`: pure theory on pitch classes 0–11 (`pitch`, `scale`, `chords`, `colour`, `navigation`, `sequences`). No names, i18n or React.
 - Registries: `naming/` (`NOTE_NAMERS`), `i18n/` (`nl.ts` is the source of truth via `Messages = typeof nl`), `instruments/` (`INSTRUMENTS`; winds in `wind/`), `audio/` (`engine/` sound, `loop/` scheduler + grooves on the AudioContext clock).
-- `state/`: `model`, pure `reducer`, `persist` (`tln-prefs`, `tln-chart`), `store` (provider, plays audio on dispatch).
+- `state/`: `model`, pure `reducer`, `persist` (`tln-prefs`, `tln-chart`), `store` (provider, plays audio on dispatch), `loop` (one shared LoopPlayer, survives screen switches).
+- Only one thing plays at a time: `audio/transport` (`takeOver(id, stop)`); `usePlaying()` + `ui/PlayButton` show ▶/■ per id.
 - CSS lives next to its screen/instrument; `styles/index.css` imports all in the original cascade order. Don't reorder.
 - `ModeIndex` 0–6 runs bright→dark (Lyd, Ion, Mix, Dor, Aeo, Phr, Loc), not the classical order. Chords are compared by `key` (`"10:maj"`), independent of spelling.
 - README (Dutch) has the full math model. Read it before changing theory or navigation.

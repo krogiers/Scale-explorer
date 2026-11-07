@@ -9,6 +9,7 @@ export interface Position { root: number; mode: ModeIndex; degree: number }
 export interface PathEntry extends Position { beats: number; size: ChordSize }
 export const chordOf = (p: PathEntry): Chord => chordsOf(scaleOf(p.root, p.mode), p.size)[p.degree];
 export type { Timbre };
+export type Theme = 'auto' | 'light' | 'dark';
 export interface State extends Position {
   /** Drie- of vierklanken in de akkoordenrij en voor nieuwe akkoorden in het schema. */
   size: ChordSize;
@@ -19,6 +20,10 @@ export interface State extends Position {
   saxKey: SaxKey;
   sound: boolean;
   timbre: Timbre;
+  /** Klank volgt instrument: kies je Trompet, dan speelt ook de trompetklank. */
+  timbreFollows: boolean;
+  /** Kleurthema: volgt het systeem, of vast licht of donker. */
+  theme: Theme;
   /** Blue note (♭5) tonen in de toonladder en op het instrument. */
   showBlue: boolean;
   /** Pentatonisch tonen: de twee noten buiten de pentatonische ladder worden gedimd. */
@@ -34,7 +39,7 @@ export interface State extends Position {
   history: { path: PathEntry[]; focus: number }[];
 }
 
-export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue' | 'showPenta' | 'bpm' | 'saxKey'>>;
+export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue' | 'showPenta' | 'bpm' | 'saxKey' | 'timbreFollows' | 'theme'>>;
 
 export const BPM_MIN = 40, BPM_MAX = 220;
 /** Tempo binnen het bereik van de schuif; onzin (NaN, tekst) wordt het standaardtempo. */

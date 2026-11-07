@@ -9,6 +9,8 @@ export const EXTRA: Partial<Record<Timbre, () => Promise<{ default: Record<numbe
   clarinet: () => import('../samples/clarinet'),
   trumpet: () => import('../samples/trumpet'),
   flute: () => import('../samples/flute'),
+  sax: () => import('../samples/sax'),
+  guitar: () => import('../samples/guitar'),
 };
 
 /** Hoe een klank aanzet en uitklinkt: aanzet en uitklank in seconden, sterkte, en het stuk [van, tot] dat zich herhaalt. */
@@ -24,4 +26,6 @@ export const VOICES: Record<string, Voice> = {
   clarinet: { attack: 0.03, release: 0.2, level: 0.45, loop: [0.8, 2.9] },
   trumpet: { attack: 0.02, release: 0.15, level: 0.55, loop: [0.8, 2.9] },
   flute: { attack: 0.05, release: 0.25, level: 0.5, loop: [0.8, 2.9] },
+  sax: { attack: 0.03, release: 0.2, level: 0.5, loop: [0.8, 2.9] },
+  guitar: { attack: 0, release: 0.3, level: 0.7 },
 };

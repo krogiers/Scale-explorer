@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { clampBpm, MAX_CHORDS, reducer, validChart, type State } from '.';
 
-const base: State = { root: 0, mode: 1, degree: 0, size: 3, lang: 'nl', namer: 'en', instrument: 'piano', saxKey: 'Eb', sound: false, timbre: 'piano', showBlue: true, showPenta: false, meter: 4, bpm: 90, focus: 0, history: [], path: [{ root: 0, mode: 1, degree: 0, beats: 4, size: 3 }] };
+const base: State = { root: 0, mode: 1, degree: 0, size: 3, lang: 'nl', namer: 'en', instrument: 'piano', saxKey: 'Eb', sound: false, timbre: 'piano', timbreFollows: true, theme: 'auto', showBlue: true, showPenta: false, meter: 4, bpm: 90, focus: 0, history: [], path: [{ root: 0, mode: 1, degree: 0, beats: 4, size: 3 }] };
 
 describe('opgeslagen gegevens', () => {
   it('neemt een geldig schema over', () => {
@@ -125,5 +125,16 @@ describe('akkoord verplaatsen', () => {
     expect(c.path[4].beats).toBe(2);
     expect(c.focus).toBe(4);
     expect(roots(reducer(c, { type: 'undo' }))).toEqual([0, 2, 4, 5]);
+  });
+});
+
+describe('klank volgt instrument', () => {
+  it('kiest de klank van het instrument, tenzij dat uit staat', () => {
+    expect(reducer(base, { type: 'settings', patch: { instrument: 'trumpet' } }).timbre).toBe('trumpet');
+    expect(reducer({ ...base, timbreFollows: false }, { type: 'settings', patch: { instrument: 'trumpet' } }).timbre).toBe('piano');
+    expect(reducer({ ...base, instrument: 'sax', timbreFollows: false }, { type: 'settings', patch: { timbreFollows: true } }).timbre).toBe('sax');
+  });
+  it('een klank die je zelf kiest blijft staan', () => {
+    expect(reducer(base, { type: 'settings', patch: { timbre: 'strings' } }).timbre).toBe('strings');
   });
 });

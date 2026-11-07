@@ -1,2 +1,2 @@
-/** Instellingen: taal, nootnamen, geluid, blue note, pentatonisch, drie- of vierklanken. */
+/** Instellingen achter ⚙: taal, nootnamen, geluid en thema. */
 export { Settings } from './Settings';

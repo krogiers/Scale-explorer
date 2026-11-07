@@ -25,4 +25,6 @@ export interface Instrument {
   component: ComponentType<InstrumentView>;
   /** Vaste stemming: halve tonen dat de geschreven noot boven de klinkende ligt (B♭-instrumenten: 2). */
   transpose?: number;
+  /** De klank die bij dit instrument hoort (een Timbre uit audio), voor "klank volgt instrument". */
+  timbre?: string;
 }

@@ -1,0 +1,10 @@
+/* scherm Akkoorden: links kiezen en verder, rechts het schema (blijft staan bij scrollen) */
+.screen-grid.akkoorden{grid-template-columns:minmax(0,7fr) minmax(0,5fr);align-items:start}
+.akkoorden .col{display:flex;flex-direction:column;gap:18px;min-width:0}
+.chartpanel{position:sticky;top:76px;container-type:inline-size}
+#volgende-stap{scroll-margin-top:80px}
+@container (max-width:600px){
+  .chart{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pathtools{width:100%}
+}
+@media (max-width:1000px){.screen-grid.akkoorden{grid-template-columns:minmax(0,1fr)}.chartpanel{position:static}}

@@ -1,22 +1,22 @@
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { scaleOf } from '../../../core';
-import type { BeatInfo } from '../../../audio/loop';
 import { fill } from '../../../i18n';
-import { chordOf, MAX_CHORDS, useApp } from '../../../state';
-import { layoutBars } from './chartLayout';
+import { chordOf, MAX_CHORDS, useApp, useLoop } from '../../../state';
+import { Heading, layoutBars, PlayButton, showToast } from '../../../ui';
 import { useChartDrag } from './useChartDrag';
 
 const DURATIONS = [1, 2, 3, 4, 6, 8, 12, 16];
 
 /**
  * Akkoordenschema: maten met akkoorden, elk met een eigen duur. Klik om te selecteren en te bewerken.
- * player: de meespeelbediening onder het schema. Die komt van het scherm Spelen; App geeft ze mee,
- * zodat de schermen elkaar niet importeren. onBeat markeert het akkoord dat de loop speelt.
+ * Het akkoord dat de loop speelt, licht op. onShowSequences: de lege toestand verwijst naar de sequenties.
  */
-export function Chart({ player }: { player: (onBeat: (info: BeatInfo | null) => void) => ReactNode }) {
+export function Chart({ onShowSequences }: { onShowSequences: () => void }) {
   const { state, dispatch, t, names, scaleLabel, playPath } = useApp();
-  const [beat, setBeat] = useState<BeatInfo | null>(null);
-  const playing = beat && beat.chord >= 0 ? beat.chord : -1;
+  const { info } = useLoop();
+  const playing = info && info.chord >= 0 ? info.chord : -1;
+  // wissen en verwijderen kun je meteen terugdraaien vanuit de melding
+  const undoToast = (text: string) => showToast({ text, action: { label: t.undo, run: () => dispatch({ type: 'undo' }) } });
   const chordAt = (i: number) => {
     const p = state.path[i];
     const s = scaleOf(p.root, p.mode);
@@ -62,19 +62,18 @@ export function Chart({ player }: { player: (onBeat: (info: BeatInfo | null) => 
 
   return (
     <>
-      <div className="pathhead">
-        <h2>{t.chartTitle}</h2>
-        <div className="row">
+      <Heading title={t.chartTitle} help={t.chartHelp}>
+        <div className="row pathtools">
           <div className="seg" role="group" aria-label={t.meter}>
             {([4, 3] as const).map((m) => (
               <button key={m} type="button" aria-pressed={state.meter === m} onClick={() => dispatch({ type: 'settings', patch: { meter: m } })}>{m}/4</button>
             ))}
           </div>
-          <button type="button" className="ghost play" onClick={playPath}>{t.playPath}</button>
+          <PlayButton id="path" label={t.playPath} onPlay={playPath} />
           <button type="button" className="ghost" disabled={!canUndo} onClick={() => dispatch({ type: 'undo' })} title="Ctrl/⌘+Z">↶ {t.undo}</button>
-          <button type="button" className="ghost" onClick={() => dispatch({ type: 'clearPath' })}>{t.clear}</button>
+          <button type="button" className="ghost" disabled={n <= 1} onClick={() => { dispatch({ type: 'clearPath' }); undoToast(t.toastCleared); }}>{t.clear}</button>
         </div>
-      </div>
+      </Heading>
       <div ref={chartRef} className={`chart${drag ? ' dragging' : ''}${drag?.copy ? ' copying' : ''}`}>
         {bars.map((bar, b) => (
           <div className="bar" key={b}>
@@ -119,12 +118,10 @@ export function Chart({ player }: { player: (onBeat: (info: BeatInfo | null) => 
             ))}
           </div>
         </div>
-        <button type="button" className="ghost" disabled={state.path.length <= 1} onClick={() => dispatch({ type: 'removeAt', index: focus })}>{t.remove}</button>
+        <button type="button" className="ghost" disabled={state.path.length <= 1} onClick={() => { dispatch({ type: 'removeAt', index: focus }); undoToast(fill(t.toastRemoved, { chord: names.chord(f.c) })); }}>{t.remove}</button>
       </div>
-      {n === 1 && <p className="chart-empty">{t.chartEmpty} <a href="#sequenties">{t.chartEmptySeq}</a></p>}
+      {n === 1 && <p className="chart-empty">{t.chartEmpty} <button type="button" className="linkbtn" onClick={onShowSequences}>{t.chartEmptySeq}</button></p>}
       {state.path.length >= MAX_CHORDS && <p className="small" role="status">{fill(t.chartFull, { n: MAX_CHORDS })}</p>}
-      <p className="muted small">{t.chartHelp}</p>
-      {player(setBeat)}
     </>
   );
 }

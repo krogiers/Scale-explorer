@@ -3,6 +3,7 @@
  * instrument waar het bij hoort. Latere regels winnen bij gelijke specificiteit: volgorde niet herschikken.
  */
 @import './base.css';
+@import './shell.css';
 @import '../screens/ladder/circle.css';
 @import '../screens/ladder/scale.css';
 @import '../screens/akkoorden/chords.css';
@@ -16,3 +17,5 @@
 @import '../screens/akkoorden/chart/chart.css';
 @import './overlays.css';
 @import '../screens/akkoorden/sequences.css';
+@import '../screens/akkoorden/screen.css';
+@import '../screens/spelen/dock.css';

@@ -1,0 +1,24 @@
+/* dock: de loop en het instrument onderaan op Ladder en Akkoorden */
+.dock{position:sticky;bottom:0;z-index:15;background:var(--surface);border-top:1px solid var(--line-strong);box-shadow:0 -6px 18px rgba(0,0,0,.10)}
+.dock-bar{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;padding:8px max(16px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.dock .loopbtn{padding:6px 16px;min-width:116px}
+.dock-tempo{display:flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:13px}
+.dock-tempo input{width:110px;accent-color:var(--brass)}
+.dock-now{flex:1;min-width:160px}
+.dock-now b{font-family:var(--f-display);font-size:18px}
+.dock-body{max-width:1180px;margin:0 auto;padding:0 16px 12px;max-height:46vh;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.dock-body svg{max-height:min(26vh,200px);width:auto;max-width:100%;display:block;margin:0 auto}
+@media (max-width:640px){.dock select{display:none}.dock-tempo input{width:80px}.dock-body{max-height:40vh}.dock-body svg{max-height:22vh}.dock .legend{display:none}}
+
+/* het schema als strook om mee te lezen (scherm Spelen) */
+.strip{display:flex;overflow-x:auto;border-left:2px solid var(--ink);padding-bottom:4px}
+.sbar{position:relative;flex:0 0 auto;display:flex;gap:4px;min-width:200px;padding:16px 6px 6px;border-right:2px solid var(--ink)}
+.scell{flex-basis:0;min-width:56px;border:1px solid transparent;border-radius:6px;background:none;padding:6px 8px;font-family:var(--f-display);font-size:24px;line-height:1.1;text-align:left;cursor:pointer;color:inherit}
+.scell.focus{border-color:var(--ink)}
+.scell.playing{background:var(--brass);border-color:var(--brass);color:var(--surface)}
+.scell.cont{cursor:default;text-align:center;color:var(--muted)}
+.scell.cont.playing{color:var(--surface)}
+.spelen .loop{border-top:0;padding-top:0}
+.spelen .loop-chord{font-size:56px}
+.spelen .loop-now{min-height:110px}
+.spelen .kb svg{max-height:40vh;width:auto;max-width:100%;display:block;margin:0 auto}

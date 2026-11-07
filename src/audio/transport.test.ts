@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { release, takeOver } from './transport';
+import { playing, release, stopCurrent, subscribe, takeOver } from './transport';
 import { LoopPlayer, loopState } from './loop';
 import type { AudioEngine } from './types';
 
@@ -12,17 +12,17 @@ describe('er speelt maar één ding', () => {
 
   it('wie begint, zet het vorige stil', () => {
     const a = vi.fn(), b = vi.fn();
-    takeOver(a);
-    takeOver(b);
+    takeOver('a', a);
+    takeOver('b', b);
     expect(a).toHaveBeenCalledOnce();
     expect(b).not.toHaveBeenCalled();
   });
 
   it('wie zelf stopt, wordt later niet nog eens stilgezet', () => {
     const a = vi.fn();
-    takeOver(a);
+    takeOver('a', a);
     release(a);
-    takeOver(vi.fn());
+    takeOver('b', vi.fn());
     expect(a).not.toHaveBeenCalled();
   });
 
@@ -33,7 +33,7 @@ describe('er speelt maar één ding', () => {
     const loop = new LoopPlayer(engine, () => [{ voicing: [38, 50, 53], beats: 4 }], () => ({ bpm: 90, metronome: false, drums: false, style: 'comp', countIn: false, meter: 4 }), onBeat);
     loop.start();
     expect(loop.running).toBe(true);
-    takeOver(() => engine.stopAll()); // wat playOnly doet
+    takeOver('scale', () => engine.stopAll()); // wat playOnly doet
     expect(loop.running).toBe(false);
     expect(loopState.running).toBe(false);
     expect(engine.stopAll).toHaveBeenCalled();
@@ -44,10 +44,23 @@ describe('er speelt maar één ding', () => {
     vi.stubGlobal('window', globalThis);
     const engine = fakeEngine();
     const before = vi.fn();
-    takeOver(before);
+    takeOver('scale', before);
     const loop = new LoopPlayer(engine, () => [{ voicing: [38], beats: 4 }], () => ({ bpm: 90, metronome: false, drums: false, style: 'comp', countIn: false, meter: 4 }), vi.fn());
     loop.start();
     expect(before).toHaveBeenCalledOnce();
     loop.stop();
+  });
+
+  it('weet wie er speelt, en ■ zet het stil', () => {
+    const a = vi.fn();
+    const seen: (string | null)[] = [];
+    const off = subscribe(() => seen.push(playing()));
+    takeOver('scale', a);
+    expect(playing()).toBe('scale');
+    stopCurrent();
+    expect(a).toHaveBeenCalledOnce();
+    expect(playing()).toBeNull();
+    expect(seen).toEqual(['scale', null]);
+    off();
   });
 });

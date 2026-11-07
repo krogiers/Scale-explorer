@@ -1,6 +1,8 @@
 import { useApp } from '../../state';
-import { Legend } from '../../ui';
+import { Heading, Legend } from '../../ui';
+import { ChartStrip } from './ChartStrip';
 import { InstrumentPanel as Instrument } from './InstrumentPanel';
+import { LoopControls } from './LoopControls';
 
 type Item = [string, string, boolean?];
 
@@ -15,5 +17,17 @@ export function InstrumentPanel() {
       <Instrument />
       <Legend items={items} />
     </>
+  );
+}
+
+/** Scherm Spelen: de loop met het grote "nu", het schema als meelopende strook, en het instrument groot. */
+export function SpelenScreen() {
+  const { t } = useApp();
+  return (
+    <div className="screen-grid spelen">
+      <section className="panel wide"><LoopControls /></section>
+      <section className="panel wide"><Heading title={t.chartTitle} /><ChartStrip /></section>
+      <section className="panel wide kb"><InstrumentPanel /></section>
+    </div>
   );
 }

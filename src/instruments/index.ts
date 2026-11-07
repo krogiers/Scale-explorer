@@ -10,12 +10,12 @@ import { Clarinet, Flute, Sax, Trumpet } from './wind';
 export type { Instrument, InstrumentView } from './types';
 
 export const INSTRUMENTS: Instrument[] = [
-  { id: 'piano', component: Piano },
-  { id: 'sax', component: Sax },
-  { id: 'guitar', component: Guitar },
-  { id: 'trumpet', component: Trumpet, transpose: 2 },
-  { id: 'clarinet', component: Clarinet, transpose: 2 },
-  { id: 'flute', component: Flute },
+  { id: 'piano', component: Piano, timbre: 'piano' },
+  { id: 'sax', component: Sax, timbre: 'sax' },
+  { id: 'guitar', component: Guitar, timbre: 'guitar' },
+  { id: 'trumpet', component: Trumpet, transpose: 2, timbre: 'trumpet' },
+  { id: 'clarinet', component: Clarinet, transpose: 2, timbre: 'clarinet' },
+  { id: 'flute', component: Flute, timbre: 'flute' },
 ];
 /**
  * Stemming van de sax: hoeveel halve tonen de geschreven noot boven de klinkende ligt.

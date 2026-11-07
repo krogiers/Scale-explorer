@@ -1,3 +1,3 @@
-/** Scherm Spelen: meespeelloop en het instrument. */
-export { InstrumentPanel } from './panels';
-export { LoopControls } from './LoopControls';
+/** Scherm Spelen: meespeelloop, schema als strook en het instrument; plus het dock voor de andere schermen. */
+export { SpelenScreen } from './panels';
+export { Dock } from './Dock';

@@ -4,6 +4,7 @@
  * komende 120 ms vallen op de klok van de geluidskaart. Zo blijft het ritme strak,
  * ook als de browser even druk is.
  */
+import { release, takeOver } from '../transport';
 import type { AudioEngine } from '../types';
 import { planDrums } from './grooves';
 import { locate, planBeat } from './plan';
@@ -57,15 +58,24 @@ export class LoopPlayer {
     const o = this.getOptions();
     this.nextTime = now + 0.15;
     this.beat = o.countIn ? -o.meter : 0;
+    takeOver(this.halt);
     this.stopTicker = startTicker(25, () => this.tick());
     loopState.running = true;
   }
 
-  stop() {
-    this.stopTicker?.();
+  /** Stoppen, ook als iets anders begint te spelen (dan roept de transport dit aan). */
+  private halt = () => {
+    if (this.stopTicker === null) return;
+    this.stopTicker();
     this.stopTicker = null;
     loopState.running = false;
+    this.engine.stopAll();
     this.onBeat(null);
+  };
+
+  stop() {
+    release(this.halt);
+    this.halt();
   }
 
   private tick() {

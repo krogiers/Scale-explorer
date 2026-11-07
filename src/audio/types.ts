@@ -21,6 +21,8 @@ export interface AudioEngine {
   clickAt(time: number, accent: boolean): void;
   /** Eén drumslag op een absoluut tijdstip; vel is de sterkte (0 tot 1). */
   drumAt(time: number, kind: Drum, vel?: number): void;
+  /** Alles wat klinkt of al gepland is kort laten uitdoven en stilzetten. */
+  stopAll(): void;
   /** Kies de klank; de belofte is ingelost zodra de opnames ervan klaar zijn. */
   setTimbre(t: Timbre): Promise<void>;
 }

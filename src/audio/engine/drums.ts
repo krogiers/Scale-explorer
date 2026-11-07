@@ -27,6 +27,7 @@ export function playClick(c: AudioContext, out: Out, t: number, accent: boolean)
   bp.connect(g);
   g.connect(out.dry);
   src.start(t);
+  out.track(src);
 }
 
 /** Eén drumslag, opgewekt met oscillatoren en ruis (geen opnames). */
@@ -49,6 +50,7 @@ export function playDrum(c: AudioContext, out: Out, noiseBuf: AudioBuffer, t: nu
     g.connect(out.dry);
     if (wet) g.connect(out.wet);
     src.start(t, Math.random() * 0.5);
+    out.track(src);
     src.stop(t + decay + 0.02);
   };
   // toon die in toonhoogte zakt (kick, vel van de snare, rimshot)
@@ -62,6 +64,7 @@ export function playDrum(c: AudioContext, out: Out, noiseBuf: AudioBuffer, t: nu
     o.connect(g);
     g.connect(out.dry);
     o.start(t);
+    out.track(o);
     o.stop(t + decay + 0.02);
   };
   switch (kind) {
@@ -86,6 +89,7 @@ export function playDrum(c: AudioContext, out: Out, noiseBuf: AudioBuffer, t: nu
         o.frequency.value = hz * 2.2;
         o.connect(f);
         o.start(t);
+        out.track(o);
         o.stop(t + 0.95);
       }
       noise('highpass', 8000, 0.08 * vel, 0.3, true);

@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useReducer, useRef, type
 import { chordsOf, pentatonic, scaleOf, type Chord, type Scale } from '../core';
 import { MESSAGES, type Messages } from '../i18n';
 import { makeNames, namerById, type Names } from '../naming';
-import { audio, chordEvents, progressionEvents, scaleEvents } from '../audio';
+import { audio, chordEvents, playOnly, progressionEvents, scaleEvents } from '../audio';
 import { loopState } from '../audio/loop';
 import { chordOf, type Action, type State } from './model';
 import { initial, saveChart, savePrefs } from './persist';
@@ -45,14 +45,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => { audio.setTimbre(state.timbre); }, [state.timbre]);
 
   const value = useMemo<Ctx>(() => {
-    const play = (events: Parameters<typeof audio.play>[0]) => { if (state.sound) audio.play(events); };
+    const play = (events: Parameters<typeof audio.play>[0]) => { if (state.sound) playOnly(events); };
     // geluid hoort bij een klik: we spelen het akkoord van de nieuwe toestand direct in de dispatch
     const dispatch = (a: Action) => {
       const next = reducer(latest.current, a);
       latest.current = next;
       rawDispatch(a);
       const plays = a.type === 'select' || a.type === 'go' || a.type === 'focusPath' || a.type === 'setSize' || (a.type === 'settings' && a.patch.sound === true);
-      const preview = () => audio.play(chordEvents(chordsOf(scaleOf(next.root, next.mode), next.size)[next.degree]));
+      const preview = () => playOnly(chordEvents(chordsOf(scaleOf(next.root, next.mode), next.size)[next.degree]));
       if (next.sound && !loopState.running) {
         if (plays) preview();
         // een nieuwe klank meteen laten horen, maar pas als de opnames ervan geladen zijn

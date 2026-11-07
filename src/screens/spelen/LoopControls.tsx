@@ -41,7 +41,7 @@ export function LoopControls({ onBeat }: { onBeat: (info: BeatInfo | null) => vo
 
   const player = useRef<LoopPlayer | null>(null);
   if (!player.current) {
-    player.current = new LoopPlayer(audio, () => timeline.current, () => optsRef.current, (i) => { setInfo(i); onBeatRef.current(i); });
+    player.current = new LoopPlayer(audio, () => timeline.current, () => optsRef.current, (i) => { setInfo(i); if (!i) setRunning(false); onBeatRef.current(i); });
   }
   useEffect(() => () => player.current?.stop(), []);
   useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(opts)); } catch { /* niet erg */ } }, [opts]);

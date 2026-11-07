@@ -1,5 +1,8 @@
-/** Waar een klank naartoe gaat: droog, en eventueel ook naar de galm. */
-export interface Out { dry: AudioNode; wet: AudioNode }
+/**
+ * Waar een klank naartoe gaat: droog, en eventueel ook naar de galm.
+ * track: elke gestarte bron aanmelden, zodat stopAll ze echt kan stoppen.
+ */
+export interface Out { dry: AudioNode; wet: AudioNode; track: (n: AudioScheduledSourceNode) => void }
 
 export const jitter = (amount: number) => (Math.random() * 2 - 1) * amount;
 

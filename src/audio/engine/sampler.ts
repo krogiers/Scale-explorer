@@ -1,10 +1,11 @@
+import type { Out } from './util';
 import type { Voice } from './voices';
 
 /**
  * Eén opname spelen met de aanzet en uitklank van de klank. rate = toonhoogteverschuiving naar de gevraagde noot.
- * Aangehouden klanken (voice.loop) herhalen een stuk van de opname zolang de noot duurt.
+ * Aangehouden klanken (voice.loop) herhalen een stuk van de opname zolang de noot duurt. wet = ook naar de galm.
  */
-export function playSample(c: AudioContext, out: AudioNode[], buffer: AudioBuffer, rate: number, v: Voice, t: number, dur: number, vel: number) {
+export function playSample(c: AudioContext, out: Out, wet: boolean, buffer: AudioBuffer, rate: number, v: Voice, t: number, dur: number, vel: number) {
   const env = c.createGain();
   const level = v.level * vel;
   const end = t + dur + v.release;
@@ -14,13 +15,15 @@ export function playSample(c: AudioContext, out: AudioNode[], buffer: AudioBuffe
   } else env.gain.setValueAtTime(level, t);
   env.gain.setValueAtTime(level, t + dur);
   env.gain.exponentialRampToValueAtTime(0.0005, end);
-  out.forEach((o) => env.connect(o));
-  if (v.loop) return sustain(c, buffer, rate, t, end + 0.05, env, v.loop);
+  env.connect(out.dry);
+  if (wet) env.connect(out.wet);
+  if (v.loop) return sustain(c, buffer, rate, t, end + 0.05, env, out.track, v.loop);
   const src = c.createBufferSource();
   src.buffer = buffer;
   src.playbackRate.value = rate;
   src.connect(env);
   src.start(t);
+  out.track(src);
   src.stop(end + 0.05);
 }
 
@@ -29,7 +32,7 @@ export function playSample(c: AudioContext, out: AudioNode[], buffer: AudioBuffe
  * Elke herhaling start iets vóór het einde van de vorige en ze vloeien in elkaar over (xf seconden),
  * zodat je geen tik hoort waar het stuk opnieuw begint.
  */
-function sustain(c: AudioContext, buffer: AudioBuffer, rate: number, t: number, end: number, out: AudioNode, [a, b]: [number, number]) {
+function sustain(c: AudioContext, buffer: AudioBuffer, rate: number, t: number, end: number, out: AudioNode, track: Out['track'], [a, b]: [number, number]) {
   const xf = 0.1;
   let at = t;
   let offset = 0;
@@ -51,6 +54,7 @@ function sustain(c: AudioContext, buffer: AudioBuffer, rate: number, t: number, 
     src.connect(g);
     g.connect(out);
     src.start(at, offset);
+    track(src);
     src.stop(last ? end : stop);
     if (last) return;
     at = stop - xf;

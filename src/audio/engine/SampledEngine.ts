@@ -19,7 +19,10 @@ type Bank = Map<number, AudioBuffer>;
 
 export class SampledEngine implements AudioEngine {
   private ctx: AudioContext | null = null;
-  private out: Out | null = null;
+  /** Vaste uitgang naar de luidspreker (droog en galm). */
+  private out: Omit<Out, 'track'> | null = null;
+  /** Huidige bus: alle noten lopen hierlangs, zodat stopAll ze in één keer kan laten uitdoven. */
+  private bus: Out | null = null;
   private noise: AudioBuffer | null = null;
   private banks = new Map<string, Bank>();
   private loading = false;
@@ -58,6 +61,7 @@ export class SampledEngine implements AudioEngine {
         wet.connect(verb);
         verb.connect(master);
         this.out = { dry, wet };
+        this.bus = this.newBus(c);
         void this.load(c);
       }
       if (this.ctx.state === 'suspended') void this.ctx.resume();
@@ -65,6 +69,42 @@ export class SampledEngine implements AudioEngine {
     } catch {
       return null;
     }
+  }
+
+  /** Bronnen die op de huidige bus spelen of gepland staan. */
+  private sources = new Set<AudioScheduledSourceNode>();
+
+  private newBus(c: AudioContext): Out {
+    const dry = c.createGain();
+    const wet = c.createGain();
+    dry.connect(this.out!.dry);
+    wet.connect(this.out!.wet);
+    const sources = new Set<AudioScheduledSourceNode>();
+    this.sources = sources;
+    const track = (n: AudioScheduledSourceNode) => {
+      sources.add(n);
+      n.addEventListener('ended', () => sources.delete(n));
+    };
+    return { dry, wet, track };
+  }
+
+  stopAll() {
+    const c = this.ctx;
+    const old = this.bus;
+    if (!c || !old) return;
+    // de oude bus kort laten uitdoven (geen tik) en loskoppelen; wat er nog gepland stond, valt in het niets
+    for (const g of [old.dry, old.wet] as GainNode[]) {
+      g.gain.setValueAtTime(g.gain.value, c.currentTime);
+      g.gain.linearRampToValueAtTime(0, c.currentTime + 0.04);
+    }
+    // na het uitdoven alles echt stoppen, ook wat nog gepland stond
+    const sources = this.sources;
+    window.setTimeout(() => {
+      sources.forEach((n) => { try { n.stop(); } catch { /* nog niet gestart of al gestopt */ } });
+      old.dry.disconnect();
+      old.wet.disconnect();
+    }, 60);
+    this.bus = this.newBus(c);
   }
 
   private async decode(c: AudioContext, name: string, notes: Record<number, string>) {
@@ -103,7 +143,7 @@ export class SampledEngine implements AudioEngine {
   noteAt(midi: number, t: number, dur: number, vel = 1, part: Part = 'keys') {
     const c = this.ensure();
     if (!c) return;
-    const out = this.out!;
+    const out = this.bus!;
     // een beetje menselijk: aanslag en timing variëren licht
     t = Math.max(c.currentTime, t + jitter(0.008));
     vel = Math.min(1, Math.max(0.1, vel * (1 + jitter(0.1))));
@@ -114,12 +154,12 @@ export class SampledEngine implements AudioEngine {
     if (!hit) return synthNote(c, out, midi, t, dur, vel);
     const [buffer, sampleMidi] = hit;
     const rate = Math.pow(2, (midi - sampleMidi) / 12);
-    playSample(c, part === 'keys' ? [out.dry, out.wet] : [out.dry], buffer, rate, VOICES[bankName] ?? VOICES.piano, t, dur, vel);
+    playSample(c, out, part === 'keys', buffer, rate, VOICES[bankName] ?? VOICES.piano, t, dur, vel);
   }
 
   clickAt(t: number, accent: boolean) {
     const c = this.ensure();
-    if (c) playClick(c, this.out!, t, accent);
+    if (c) playClick(c, this.bus!, t, accent);
   }
 
   drumAt(time: number, kind: Drum, vel = 1) {
@@ -127,7 +167,7 @@ export class SampledEngine implements AudioEngine {
     if (!c) return;
     this.noise ??= noiseBuffer(c);
     const t = Math.max(c.currentTime, time + jitter(0.004));
-    playDrum(c, this.out!, this.noise, t, kind, Math.min(1, Math.max(0.05, vel * (1 + jitter(0.08)))));
+    playDrum(c, this.bus!, this.noise, t, kind, Math.min(1, Math.max(0.05, vel * (1 + jitter(0.08)))));
   }
 
   play(events: NoteEvent[]) {

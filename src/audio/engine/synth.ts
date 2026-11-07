@@ -24,6 +24,7 @@ export function synthNote(c: AudioContext, out: Out, midi: number, t: number, du
     o.connect(g);
     g.connect(env);
     o.start(t);
+    out.track(o);
     o.stop(t + dur + 0.5);
   }
 }

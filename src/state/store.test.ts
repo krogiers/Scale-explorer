@@ -90,3 +90,17 @@ describe('navigatie in de toestand', () => {
     expect(s.size).toBe(4);
   });
 });
+
+describe('sequentie invoegen', () => {
+  const seq = [{ root: 2, mode: 3 as const, degree: 0, beats: 4, size: 4 as const }, { root: 7, mode: 2 as const, degree: 0, beats: 4, size: 4 as const }];
+  it('voegt in na het geselecteerde akkoord en selecteert het eerste nieuwe', () => {
+    const s = reducer(base, { type: 'insertPath', entries: seq, replace: false });
+    expect(s.path.map((p) => p.root)).toEqual([0, 2, 7]);
+    expect([s.focus, s.root, s.mode]).toEqual([1, 2, 3]);
+  });
+  it('vervangt het schema, en één keer ongedaan maken zet alles terug', () => {
+    const s = reducer(base, { type: 'insertPath', entries: seq, replace: true });
+    expect(s.path.map((p) => p.root)).toEqual([2, 7]);
+    expect(reducer(s, { type: 'undo' }).path).toEqual(base.path);
+  });
+});

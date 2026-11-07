@@ -82,9 +82,10 @@ export function ModalMap() {
 
 export function InstrumentPanel() {
   const { state, dispatch, t, names, scale, chords, scaleLabel } = useApp();
-  const Instrument = instrumentById(state.instrument).component;
-  // een sax leest geschreven noten: dezelfde modus, getransponeerd naar zijn stemming
-  const shift = state.instrument === 'sax' ? SAX_TRANSPOSE[state.saxKey] : 0;
+  const instrument = instrumentById(state.instrument);
+  const Instrument = instrument.component;
+  // blazers lezen geschreven noten: dezelfde modus, getransponeerd naar hun stemming
+  const shift = state.instrument === 'sax' ? SAX_TRANSPOSE[state.saxKey] : instrument.transpose ?? 0;
   const shown = shift ? transposed(scale, shift) : scale;
   const chord = new Set([...chords[state.degree].pcs].map((pc) => (pc + shift) % 12));
   const outside = new Set(state.showPenta ? pentatonic(shown).dropped.map((n) => n.pc) : []);

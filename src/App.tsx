@@ -6,6 +6,7 @@ import { ChordRow, NextSteps } from './views/Chords';
 import { ChordNetwork } from './views/ChordNetwork';
 import { InstrumentPanel, ModalMap, Settings } from './views/Panels';
 import { Chart } from './views/Chart';
+import { Sequences } from './views/Sequences';
 
 function Legend({ items }: { items: [string, string, boolean?][] }) {
   return (
@@ -54,6 +55,7 @@ function Layout() {
           <ChordNetwork />
           <Legend items={[['var(--dia)', t.lgNetDiatonic], ['var(--bor)', t.lgNetBorrowed], ['var(--brass)', t.lgNetPivot]]} />
         </section>
+        <section className="panel wide"><Sequences /></section>
         <section className="panel wide"><Chart /></section>
         <section className="panel wide kb">
           <InstrumentPanel />

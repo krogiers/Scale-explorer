@@ -187,7 +187,7 @@ table.map td{padding:0}
 .row{display:flex;gap:8px}
 .alias{font-size:.55em;font-family:var(--f-body);font-weight:400;color:var(--muted)}
 
-/* saxofoon */
+/* blaasinstrumenten (sax, trompet, klarinet, fluit) */
 .sx-bg{fill:transparent;stroke:var(--line)}
 .sx-card.ch .sx-bg{fill:var(--brass-soft);stroke:var(--brass)}
 .sx-card.char .sx-bg{stroke:var(--bor);stroke-width:2}
@@ -197,6 +197,7 @@ table.map td{padding:0}
 .sx-tiny{font-family:var(--f-mono);font-size:7px;fill:var(--muted);text-anchor:middle}
 .sx-lbl{font-family:var(--f-body);font-size:12px;font-weight:600;fill:var(--ink);text-anchor:middle}
 .sx-lbl.root{fill:var(--brass)}
+.sx-tiny.on{fill:var(--ink);font-weight:600}
 /* gitaar */
 .gt-str{stroke:var(--muted)}
 .gt-fret{stroke:var(--key-line);stroke-width:1.5}
@@ -278,3 +279,20 @@ table.map td{padding:0}
 .sx-card.out{opacity:.35}
 .pentahint{font-size:13px;color:var(--dia)}
 .legend i.ring{background:none;border:1.5px dashed var(--muted)}
+
+/* jazzsequenties */
+.seqs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.seq{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+.seq h3{margin:0;font-size:15px}
+.seq-top{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:start}
+.seq-map{width:72px;height:72px}
+.seq-ring{fill:none;stroke:var(--line)}
+.seq-dot{fill:var(--muted)}
+.seq-tonic{fill:var(--brass)}
+.seq-step{stroke:var(--dia);stroke-width:1.6}
+.seq-head{fill:var(--dia)}
+.seq-chords{display:flex;flex-wrap:wrap;gap:4px}
+.seq-ch{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:6px;padding:2px 6px;min-width:48px}
+.seq-ch b{font-size:14px}
+.seq-ch small{font-size:11px;color:var(--muted);white-space:nowrap}
+.seq-actions{gap:6px;flex-wrap:wrap;margin-top:auto}

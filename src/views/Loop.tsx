@@ -1,20 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { blueNote, CHAR_DEGREE, scaleOf } from '../core/theory';
-import { audio, progressionVoicings } from '../audio';
-import { LoopPlayer, type BeatInfo, type LoopOptions, type LoopStyle, type TimelineItem } from '../audio/loop';
+import { audio, progressionVoicings, TIMBRES } from '../audio';
+import { LOOP_STYLES, LoopPlayer, type BeatInfo, type LoopOptions, type LoopStyle, type TimelineItem } from '../audio/loop';
 import { fill } from '../i18n';
 import { BPM_MAX, BPM_MIN, chordOf, useApp, type Timbre } from '../state/store';
 
 const KEY = 'tln-loop';
 /** Het tempo zit in de gedeelde toestand (ook "Speel progressie" gebruikt het); de rest bewaart de loop zelf. */
 type Saved = Omit<LoopOptions, 'meter' | 'bpm'>;
-const DEFAULTS: Saved = { metronome: true, style: 'comp', countIn: true };
+const DEFAULTS: Saved = { metronome: true, drums: true, style: 'comp', countIn: true };
 function load(): Saved {
   try {
     const s = JSON.parse(localStorage.getItem(KEY) ?? '{}');
     return {
       metronome: typeof s.metronome === 'boolean' ? s.metronome : DEFAULTS.metronome,
-      style: s.style === 'sustain' ? 'sustain' : 'comp',
+      drums: typeof s.drums === 'boolean' ? s.drums : DEFAULTS.drums,
+      style: LOOP_STYLES.includes(s.style) ? s.style : 'comp',
       countIn: typeof s.countIn === 'boolean' ? s.countIn : DEFAULTS.countIn,
     };
   } catch { return DEFAULTS; }
@@ -90,17 +91,15 @@ export function LoopControls({ onBeat }: { onBeat: (info: BeatInfo | null) => vo
         </div>
         <div className="field"><label htmlFor="style">{t.accompaniment}</label>
           <select id="style" value={opts.style} onChange={(e) => set({ style: e.target.value as LoopStyle })}>
-            <option value="comp">{t.styleComp}</option>
-            <option value="sustain">{t.styleSustain}</option>
+            {LOOP_STYLES.map((k) => <option key={k} value={k}>{t.styles[k]}</option>)}
           </select>
         </div>
         <div className="field"><label htmlFor="timbre">{t.timbre}</label>
           <select id="timbre" value={state.timbre} onChange={(e) => dispatch({ type: 'settings', patch: { timbre: e.target.value as Timbre } })}>
-            <option value="piano">{t.timbres.piano}</option>
-            <option value="rhodes">{t.timbres.rhodes}</option>
-            <option value="synth">{t.timbres.synth}</option>
+            {TIMBRES.map((k) => <option key={k} value={k}>{t.timbres[k]}</option>)}
           </select>
         </div>
+        <label className="check"><input id="drums" type="checkbox" checked={opts.drums} onChange={(e) => set({ drums: e.target.checked })} /> {t.drums}</label>
         <label className="check"><input id="metro" type="checkbox" checked={opts.metronome} onChange={(e) => set({ metronome: e.target.checked })} /> {t.metronome}</label>
         <label className="check"><input id="countin" type="checkbox" checked={opts.countIn} onChange={(e) => set({ countIn: e.target.checked })} /> {t.countIn}</label>
       </div>

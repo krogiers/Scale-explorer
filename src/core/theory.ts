@@ -140,6 +140,15 @@ export function romanNumeral(s: Scale, c: Chord): string {
   return prefix + n + ROMAN_SUFFIX[c.quality];
 }
 
+/** Trap en voorteken voor elk interval boven de tonica, zoals in jazzanalyse: ♭II, ♭III, ♭V, ♭VI, ♭VII. */
+const IV_DEGREE: [number, number][] = [[0, 0], [1, -1], [1, 0], [2, -1], [2, 0], [3, 0], [4, -1], [4, 0], [5, -1], [5, 0], [6, -1], [6, 0]];
+/** Trapnummer van een akkoord met deze kwaliteit op iv halve tonen boven de tonica, bv. ♭II7 of iiø7. */
+export function numeralAt(iv: number, quality: Quality): string {
+  const [d, a] = IV_DEGREE[mod12(iv)];
+  const n = NUMERALS[d];
+  return (a < 0 ? '♭' : '') + (MINOR_LIKE.has(quality) ? n.toLowerCase() : n) + ROMAN_SUFFIX[quality];
+}
+
 /** Trapformule van een modus, bv. "1 2 ♭3 4 5 6 ♭7". */
 export function formula(mode: ModeIndex): string[] {
   return intervals(mode).map((x, i) => {

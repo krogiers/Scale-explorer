@@ -3,7 +3,7 @@ import { chordsOf, pentatonic, scaleOf, type Chord, type ChordSize, type ModeInd
 import type { Destination } from '../core/navigation';
 import { MESSAGES, type Lang, type Messages } from '../i18n';
 import { makeNames, namerById, type Names } from '../naming';
-import { audio, chordEvents, progressionEvents, scaleEvents } from '../audio';
+import { audio, chordEvents, progressionEvents, scaleEvents, TIMBRES, type Timbre } from '../audio';
 import { loopState } from '../audio/loop';
 import { SAX_KEYS, type SaxKey } from '../instruments';
 
@@ -11,7 +11,7 @@ export interface Position { root: number; mode: ModeIndex; degree: number }
 /** Eén akkoord in het schema: waar het staat, hoeveel tellen het duurt en of het een drie- of vierklank is. */
 export interface PathEntry extends Position { beats: number; size: ChordSize }
 export const chordOf = (p: PathEntry): Chord => chordsOf(scaleOf(p.root, p.mode), p.size)[p.degree];
-export type Timbre = 'piano' | 'rhodes' | 'synth';
+export type { Timbre };
 export interface State extends Position {
   /** Drie- of vierklanken in de akkoordenrij en voor nieuwe akkoorden in het schema. */
   size: ChordSize;
@@ -55,6 +55,8 @@ export type Action =
   | { type: 'undo' }
   | { type: 'removeAt'; index: number }
   | { type: 'clearPath' }
+  /** Een reeks akkoorden (bv. een sequentie) invoegen na het geselecteerde akkoord, of het schema ermee vervangen. */
+  | { type: 'insertPath'; entries: PathEntry[]; replace: boolean }
   | { type: 'setScale'; root: number; mode: ModeIndex }
   | { type: 'settings'; patch: SettingsPatch };
 
@@ -90,7 +92,7 @@ function initial(): State {
   const start: PathEntry = saved?.[saved.length - 1] ?? { root: 2, mode: 3, degree: 0, beats: 4, size }; // D Dorisch
   return {
     root: start.root, mode: start.mode, degree: start.degree,
-    timbre: p.timbre === 'synth' || p.timbre === 'rhodes' ? p.timbre : 'piano',
+    timbre: p.timbre && TIMBRES.includes(p.timbre) ? p.timbre : 'piano',
     meter: p.meter === 3 ? 3 : 4,
     bpm: clampBpm(p.bpm ?? legacyLoopBpm()),
     showBlue: p.showBlue !== false,
@@ -160,6 +162,16 @@ export function reducer(s: State, a: Action): State {
       return edit(s, path, Math.min(s.focus > a.index ? s.focus - 1 : s.focus, path.length - 1));
     }
     case 'clearPath': return edit(s, [entry(s)], 0);
+    case 'insertPath': {
+      // één stap voor ongedaan maken; het eerste nieuwe akkoord wordt geselecteerd
+      if (a.entries.length === 0) return s;
+      const at = a.replace ? 0 : Math.min(s.focus + 1, s.path.length);
+      const base = a.replace ? [] : s.path;
+      const entries = a.entries.slice(0, MAX_CHORDS - base.length);
+      if (entries.length === 0) return s;
+      const next = edit(s, [...base.slice(0, at), ...entries, ...base.slice(at)], at);
+      return atEntry(next, entries[0], at);
+    }
     case 'undo': {
       const prev = s.history[s.history.length - 1];
       if (!prev) return s;
@@ -180,6 +192,8 @@ interface Ctx {
   scaleLabel: (s: Scale) => string;
   playScale: () => void;
   playPath: () => void;
+  /** Speel een reeks akkoorden in het huidige tempo (bv. een sequentie, zonder ze in het schema te zetten). */
+  playChords: (items: { chord: Chord; beats: number }[]) => void;
 }
 const AppContext = createContext<Ctx | null>(null);
 
@@ -214,14 +228,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const next = reducer(latest.current, a);
       latest.current = next;
       rawDispatch(a);
-      const plays = a.type === 'select' || a.type === 'go' || a.type === 'focusPath' || a.type === 'setSize' || (a.type === 'settings' && (a.patch.sound === true || a.patch.timbre !== undefined));
-      if (plays && next.sound && !loopState.running) audio.play(chordEvents(chordsOf(scaleOf(next.root, next.mode), next.size)[next.degree]));
+      const plays = a.type === 'select' || a.type === 'go' || a.type === 'focusPath' || a.type === 'setSize' || (a.type === 'settings' && a.patch.sound === true);
+      const preview = () => audio.play(chordEvents(chordsOf(scaleOf(next.root, next.mode), next.size)[next.degree]));
+      if (next.sound && !loopState.running) {
+        if (plays) preview();
+        // een nieuwe klank meteen laten horen, maar pas als de opnames ervan geladen zijn
+        else if (a.type === 'settings' && a.patch.timbre) { audio.now(); void audio.setTimbre(a.patch.timbre).then(preview); }
+      }
     };
     return {
       state, dispatch, t, names, scale, chords,
       scaleLabel: (s: Scale) => `${names.note(s.notes[0])} ${t.modes[s.mode]}`,
       playScale: () => play(scaleEvents(scale, state.showPenta ? pentatonic(scale).notes : scale.notes)),
       playPath: () => play(progressionEvents(state.path.map((p) => ({ chord: chordOf(p), beats: p.beats })), 60 / state.bpm)),
+      playChords: (items) => play(progressionEvents(items, 60 / state.bpm)),
     };
   }, [state, t, names, scale, chords]);
 

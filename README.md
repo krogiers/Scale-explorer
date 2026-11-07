@@ -23,7 +23,7 @@ De app bestaat uit een theoriekern en verwisselbare onderdelen die elk een vaste
 | `src/core/` | Theoriekern: toonladders, modi, spelling, akkoorden, trapnummers (`theory.ts`) en navigatiestappen (`navigation.ts`). Rekent alleen met toonklassen 0 tot 11, zonder namen of taal. | Nieuwe toonladderfamilies (harmonisch en melodisch mineur) |
 | `src/naming/` | Interface `NoteNamer`: Engels, do re mi, Nederlands | Eén object aan `NOTE_NAMERS` toevoegen |
 | `src/i18n/` | Interfacetaal: één woordenboek per taal (`nl.ts`, `en.ts`). TypeScript controleert dat elke taal alle sleutels heeft. | Een bestand `fr.ts` maken en in `index.ts` registreren |
-| `src/instruments/` | Interface `Instrument`: een React-component die `InstrumentView` krijgt (noten, akkoord, grondtoon). Nu: klavier, saxofoon (greepschema per noot) en gitaar (hals in standaardstemming). | Een component zoals `Bass.tsx` schrijven en in `INSTRUMENTS` zetten |
+| `src/instruments/` | Interface `Instrument`: een React-component die `InstrumentView` krijgt (noten, akkoord, grondtoon). Nu: klavier, saxofoon, trompet, klarinet en dwarsfluit (greepschema per noot) en gitaar (hals in standaardstemming). | Een component zoals `Bass.tsx` schrijven en in `INSTRUMENTS` zetten |
 | `src/audio/` | Interface `AudioEngine`: speelt en plant MIDI-noten en metronoomtikken. Nu een kleine synthesizer op de Web Audio API. De meespeelloop (`loop.ts`) plant tellen vooruit op de klok van de geluidskaart. | Een sampler of MIDI-uitgang met dezelfde `play()`-methode |
 | `src/state/` | Toestand van de app (reducer) en de context die alle onderdelen samenbrengt | |
 | `src/views/` | De weergaven: kwintencirkel, modusladder, akkoordenrij, volgende stappen, akkoordennetwerk, progressie, modale kaart | |
@@ -212,6 +212,10 @@ Voorbeeld: Am staat in C Ionisch (vi) en in G Ionisch (ii). Via Am kun je naar D
 - **Klavier**: twee octaven; een toets met toonklasse pc licht op als pc in de toonladder zit.
 - **Gitaar**: snaar s in standaardstemming heeft losse toonklasse [4, 11, 7, 2, 9, 4] (hoge E tot lage E). Op fret f klinkt (los + f) mod 12.
 - **Saxofoon**: de grondtoon wordt in het register D4 tot C♯5 gelegd (MIDI 62 tot 73) en de ladder loopt van daar omhoog. Voor elke noot zoekt de app de greep van (midi mod 12) in een tabel; noten vanaf D5 (MIDI 74) krijgen daarbij de octaafklep.
+- **Trompet, klarinet en dwarsfluit**: zelfde idee, met gedeelde greepkaarten (`src/instruments/wind.tsx`). Trompet en klarinet staan in B♭: de app toont de geschreven noten, een grote secunde (2 halve tonen) boven de klinkende. De grondtoon ligt bij beide tussen B♭3 en A4 (MIDI 58 tot 69), de fluit tussen D4 en C♯5. De tabellen gaan per geschreven MIDI-noot en niet per toonklasse, omdat de grepen per register verschillen:
+  - trompet: de gewone ventielcombinatie per noot;
+  - klarinet: de registerklep geeft een duodecime (19 halve tonen) hoger, dus de greep van B4 is die van E3 met de registerklep erbij. De basisgrepen komen uit de Woodwind Fingering Guide;
+  - dwarsfluit: het tweede octaaf gebruikt dezelfde grepen als het eerste (overblazen), behalve D5 en E♭5, waar de linkerwijsvinger open is.
 - **Geluid**: een MIDI-noot m heeft frequentie
 
 ```
@@ -228,17 +232,47 @@ De blue note is de verlaagde kwint van de grondtoon: `blue = (r + 6) mod 12`. Hi
 
 De pentatonische ladder houdt vijf trappen van de modus over. De heldere modi (Lydisch, Ionisch, Mixolydisch) geven majeur-pentatonisch, trappen `{1, 2, 3, 5, 6}`. De donkere modi geven mineur-pentatonisch, trappen `{1, ♭3, 4, 5, ♭7}`; in Locrisch wordt dat `1 ♭3 4 ♭5 ♭7`. Op Locrisch na valt telkens de kenmerkende noot weg: daarom past één pentatonische ladder over meerdere buurmodi. Zet je hem aan in de instellingen, dan worden de twee overige noten gedimd (niet verborgen) in de toonladder en op het instrument, en speelt "Speel toonladder" alleen de vijf noten. Mineur-pentatonisch met de blue note erbij is de bluesladder.
 
+### 7d. Jazzsequenties
+
+Een sequentie (`src/core/sequences.ts`) is een lijst van akkoorden, elk gegeven als (iv, modus, maten). Hier is iv het aantal halve tonen boven de tonica. Het akkoord is de eerste trap (vierklank) van die modus op grondtoon tonica + iv:
+
+```
+ii7   = I van Dorisch     op tonica + 2
+V7    = I van Mixolydisch op tonica + 7
+Imaj7 = I van Ionisch     op tonica + 0
+♭II7  = I van Mixolydisch op tonica + 1     (tritonussubstitutie)
+```
+
+Zo hoort bij elk akkoord meteen de ladder die je erover speelt, en past elke sequentie zonder uitbreiding in het schema (`PathEntry` met trap 0). De tonica is de grondtoon van de huidige ladder. De duur is maten × maatsoort, minstens één tel. `numeralAt` geeft het trapnummer ten opzichte van de tonica (♭II, ♭III, ♭V, ♭VI, ♭VII voor de tussenliggende halve tonen).
+
+Sommige akkoorden vragen een ladder die buiten de zeven modi valt: een V7 naar mineur (harmonisch mineur, alteratie) en een ♭II7 (lydisch dominant). Die zijn gemarkeerd als benadering (`approx`), en de app toont dan Mixolydisch.
+
+Invoegen (`insertPath`) zet de hele reeks in één stap na het geselecteerde akkoord, of vervangt het schema. Eén keer ongedaan maken haalt de hele reeks weer weg.
+
 ### 8. Uitbreiden
 
 Omdat alles volgt uit "een verzameling toonklassen plus een spelling", passen nieuwe toonladders in hetzelfde model. Harmonisch mineur is bijvoorbeeld het patroon [0, 2, 3, 5, 7, 8, 11], met zijn eigen zeven rotaties. Het enige verschil: die noten liggen niet meer naast elkaar op de kwintencirkel, dus voor die families wordt de afstand tussen toonladders geteld als het aantal verschillende toonklassen in plaats van als stappen op de boog.
 
 ## Akkoordenschema en meespelen
 
-Het schema (`src/views/Chart.tsx`) bewaart per akkoord zijn duur in tellen. `layoutBars` in `src/views/chartLayout.ts` verdeelt die tellen over maten van de gekozen maatsoort (4/4 of 3/4); een akkoord dat over een maatstreep loopt, wordt in de volgende maat voortgezet (getoond als % bij een volle maat). De meespeelloop (`src/audio/loop.ts`) zoekt bij elke tel met `locate` welk akkoord klinkt, en `planBeat` bepaalt wat de bas en het akkoord op die tel spelen. Het schema wordt in de browser bewaard (localStorage).
+Het schema (`src/views/Chart.tsx`) bewaart per akkoord zijn duur in tellen. `layoutBars` in `src/views/chartLayout.ts` verdeelt die tellen over maten van de gekozen maatsoort (4/4 of 3/4); een akkoord dat over een maatstreep loopt, wordt in de volgende maat voortgezet (getoond als % bij een volle maat). De meespeelloop (`src/audio/loop.ts`) zoekt bij elke tel met `locate` welk akkoord klinkt, en `planBeat` bepaalt wat de bas en het akkoord op die tel spelen.
+
+**Ritmestijlen.** Naast *Recht* en *Aangehouden* zijn er vier grooves: *Swing*, *Shuffle*, *Bossa nova* en *Funk* (`GROOVES` in `src/audio/loop.ts`). Elke groove is een patroon van één of twee maten. Het bevat posities in tellen, met per positie een bastoon, een akkoordstoot of een drumslag. De planner neemt per tel de gebeurtenissen die in die tel vallen.
+- **Swing**: in een geswingde stijl valt de "en" (positie x,5) niet halverwege de tel, maar op `swingRatio`. Dat is 2/3 van de tel (triolen) tot 140 BPM, en daarboven iets rechter, zoals echte spelers doen.
+- **Walking bass** (Swing): grondtoon, terts, kwint en septiem, en op de laatste tel van het akkoord een halve toon naast de grondtoon van het volgende akkoord. Die naderingsnoot komt van onder of van boven, afhankelijk van waar de dichtstbijzijnde grondtoon ligt.
+- **Boogie** (Shuffle): 1 3 5 6 ♭7 6 5 3 in geswingde achtsten. Bij een verminderde of overmatige kwint loopt hij de akkoordtonen.
+- **Bossa**: grondtoon en kwint, met een aanloop naar het volgende akkoord op de "en" van 4. De akkoorden volgen de bossa-clave van twee maten.
+- **Akkoordwissel midden in een patroon**: het nieuwe akkoord krijgt altijd meteen zijn grondtoon en een akkoordstoot.
+
+De drums (`planDrums`, klanken in `drumAt`) worden opgewekt met oscillatoren en ruis, dus zonder opnames. Er zijn een kick, een snare, een hihat, een hihat met de voet, een ride en een rimshot. Het schema wordt in de browser bewaard (localStorage).
 
 ## Klank
 
-De klank gebruikt echte opnames van piano, Rhodes en contrabas uit de FluidR3 GM-soundfont, via [midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts) (licentie: Creative Commons Naamsvermelding 3.0). Er is één opname per kleine terts; noten ertussen worden met een kleine toonhoogteverschuiving gemaakt. De opnames staan als base64 in `src/audio/samples.ts`, zodat de app ook als één bestand werkt. Daarbovenop komen een galm (convolutie met een gegenereerde zaalrespons) en kleine willekeurige verschillen in timing en aanslag.
+De klank gebruikt echte opnames van piano, Rhodes, contrabas, strijkers, cello, orgel, vibrafoon, klarinet, trompet en dwarsfluit uit de FluidR3 GM-soundfont, via [midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts) (licentie: Creative Commons Naamsvermelding 3.0). Er is één opname per kleine terts; noten ertussen worden met een kleine toonhoogteverschuiving gemaakt. De opnames staan als base64 in `src/audio/samples.ts`, zodat de app ook als één bestand werkt. Piano, Rhodes en contrabas zitten in de app zelf. De andere klanken staan elk in een eigen bestand in `src/audio/extra/` (mono, 48 kbps, ongeveer 340 KB). Vite bouwt die als aparte stukken, die pas geladen worden wanneer iemand die klank kiest. Tot ze geladen zijn, speelt de synthesizer.
+
+Elke klank heeft een eigen aanzet, uitklank en sterkte (`VOICES` in `src/audio/index.ts`). Strijkers zwellen aan in ongeveer 0,1 s, de vibrafoon klinkt lang na. De opnames duren maar 3 seconden. Voor de aangehouden klanken (strijkers, cello, orgel en de blazers) herhaalt een vast stuk van de opname zich daarom, met 0,1 s overvloeien, zolang het akkoord duurt.
+
+Daarbovenop komen een galm (convolutie met een gegenereerde zaalrespons) en kleine willekeurige verschillen in timing en aanslag.
 
 ## Techniek
 

@@ -11,7 +11,7 @@
 .c-note:hover circle{stroke:var(--brass);stroke-width:2}
 .arc{fill:var(--brass-soft)}
 .slot-chord{font-size:12px;fill:var(--ink);font-weight:500}
-.slot-chord.sel{fill:var(--brass);font-weight:700}
+.slot-chord.sel{fill:var(--brass-ink);font-weight:700}
 .slot-ring{fill:none;stroke:var(--brass);stroke-width:2}
 .c-mode{cursor:pointer}
 .c-mode rect{fill:transparent;stroke:transparent}

@@ -1,7 +1,7 @@
 /* chords */
 .chordrow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
 @media (max-width:640px){.chordrow{grid-template-columns:repeat(4,minmax(0,1fr))}}
-.ch{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;min-width:0}
+.ch{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border:1px solid var(--line-strong);border-radius:10px;background:var(--surface);cursor:pointer;min-width:0}
 .ch:hover{border-color:var(--dia)}
 .ch .rn{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
 .ch .cn{font-family:var(--f-display);font-weight:700;font-size:22px;line-height:1.1;overflow-wrap:anywhere}
@@ -18,7 +18,7 @@
 .grp h3 i{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none}
 .g-dia h3 i{background:var(--dia)} .g-bor h3 i{background:var(--bor)} .g-piv h3 i{background:var(--brass)}
 .tgts{display:flex;flex-direction:column;gap:6px}
-.tgt{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:4px 10px;align-items:baseline;text-align:left;padding:8px 10px;border-radius:8px;border:1px solid var(--line);border-left-width:4px;background:var(--surface);cursor:pointer}
+.tgt{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:4px 10px;align-items:baseline;text-align:left;padding:8px 10px;border-radius:8px;border:1px solid var(--line-strong);border-left-width:4px;background:var(--surface);cursor:pointer}
 .tgt .tn{font-family:var(--f-display);font-weight:700;font-size:18px;line-height:1.1}
 .tgt .tr{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
 .tgt .tw{font-size:12px;color:var(--muted);min-width:0}

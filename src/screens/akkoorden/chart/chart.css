@@ -31,3 +31,13 @@
 .cell.drop-before::before{left:-4px}
 .cell.drop-after::after{right:-4px}
 .chart.copying .cell.drop-before::before,.chart.copying .cell.drop-after::after{background:var(--dia)}
+
+/* grip: toont dat je een akkoord kunt verslepen (bij hover of focus; op touch altijd zwak zichtbaar) */
+.cell[data-start]{cursor:grab}
+.grip{position:absolute;top:2px;right:4px;font-size:13px;line-height:1;color:var(--muted);opacity:0}
+.cell:hover .grip,.cell:focus-visible .grip{opacity:.7}
+.cell.playing .grip{color:var(--surface)}
+@media (pointer:coarse){.grip{opacity:.45}.cell[data-start]{min-height:44px}}
+.chart-empty{font-size:14px;padding:10px 12px;border:1px dashed var(--line-strong);border-radius:8px;color:var(--muted)}
+.chart-empty a{color:var(--brass-ink);font-weight:600}
+#sequenties{scroll-margin-top:12px}

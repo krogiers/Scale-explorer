@@ -92,6 +92,7 @@ export function Chart({ player }: { player: (onBeat: (info: BeatInfo | null) => 
                   aria-label={`${names.chord(c)}, ${scaleLabel(s)}, ${fill(t.beatsN, { n: state.path[sg.index].beats })}`}>
                   <span className={`k${keyChange ? '' : ' same'}`}>{scaleLabel(s)}</span>
                   <b>{names.chord(c)}</b>
+                  <span className="grip" aria-hidden="true">⠿</span>
                 </button>
               ) : (
                 <span key={k} className={`${cls} cont`} style={{ flexGrow: sg.beats }} data-idx={sg.index} aria-hidden="true">
@@ -120,6 +121,7 @@ export function Chart({ player }: { player: (onBeat: (info: BeatInfo | null) => 
         </div>
         <button type="button" className="ghost" disabled={state.path.length <= 1} onClick={() => dispatch({ type: 'removeAt', index: focus })}>{t.remove}</button>
       </div>
+      {n === 1 && <p className="chart-empty">{t.chartEmpty} <a href="#sequenties">{t.chartEmptySeq}</a></p>}
       {state.path.length >= MAX_CHORDS && <p className="small" role="status">{fill(t.chartFull, { n: MAX_CHORDS })}</p>}
       <p className="muted small">{t.chartHelp}</p>
       {player(setBeat)}

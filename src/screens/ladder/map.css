@@ -4,7 +4,7 @@ table.map{border-collapse:separate;border-spacing:4px;width:100%;font-variant-nu
 table.map th{font-size:12px;font-weight:600;color:var(--muted);text-align:left;padding:2px 4px;white-space:nowrap}
 table.map thead th{text-align:center;font-size:14px;color:var(--ink)}
 table.map td{padding:0}
-.mc{width:100%;min-width:52px;padding:8px 4px;border-radius:6px;border:1px solid var(--line);background:var(--surface);font-family:var(--f-mono);font-size:12px;cursor:pointer}
+.mc{width:100%;min-width:52px;padding:8px 4px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);font-family:var(--f-mono);font-size:12px;cursor:pointer}
 .mc.d0{background:var(--brass-soft);border-color:var(--brass)}
 .mc.d1{background:var(--dia-soft)}
 .mc.cur{background:var(--brass);border-color:var(--brass);color:var(--surface);font-weight:600}

@@ -21,7 +21,7 @@ function Layout() {
         <section className="panel"><ScalePanel /></section>
         <section className="panel wide"><ChordsPanel /></section>
         <section className="panel wide net"><NetworkPanel /></section>
-        <section className="panel wide"><SequencesPanel /></section>
+        <section className="panel wide" id="sequenties"><SequencesPanel /></section>
         <section className="panel wide"><ChartPanel player={(onBeat) => <LoopControls onBeat={onBeat} />} /></section>
         <section className="panel wide kb"><InstrumentPanel /></section>
         <section className="panel wide mapsec"><MapPanel /></section>

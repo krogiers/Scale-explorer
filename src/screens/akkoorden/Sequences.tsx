@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { fifthsIndex, numeralAt, realize, SEQUENCES, type SeqStep } from '../../core';
 import { fill } from '../../i18n';
 import { useApp } from '../../state';
@@ -32,9 +33,13 @@ function RootPath({ id, steps, tonic }: { id: string; steps: SeqStep[]; tonic: n
   );
 }
 
-/** Typische jazzsequenties in de huidige toonsoort: invoegen in het schema of het schema ermee vervangen. */
+/**
+ * Typische jazzsequenties in de huidige toonsoort, compact: één rij per sequentie met de trapnummers,
+ * ▶ en ＋. Uitklappen toont de uitleg, de akkoorden met hun modus en "Vervang schema".
+ */
 export function Sequences() {
   const { state, dispatch, t, names, scale, playChords } = useApp();
+  const [open, setOpen] = useState<string | null>(null);
   const tonic = state.root;
   return (
     <>
@@ -42,37 +47,47 @@ export function Sequences() {
         <h2>{t.seqTitle}</h2>
         <p className="muted small">{fill(t.seqHelp, { tonic: names.note(scale.notes[0]) })}</p>
       </div>
-      <div className="seqs">
+      <ul className="seqs">
         {SEQUENCES.map((seq) => {
           const steps = realize(seq, tonic, state.meter);
           const entries = steps.map(({ root, mode, beats }) => ({ root, mode, degree: 0, beats, size: 4 as const }));
           const txt = t.seqs[seq.id];
+          const isOpen = open === seq.id;
+          const numerals = steps.map((s) => numeralAt(s.iv, s.chord.quality)).join(' – ');
           return (
-            <article key={seq.id} className="seq">
-              <div className="seq-top">
+            <li key={seq.id} className={`seq${isOpen ? ' open' : ''}`}>
+              <div className="seq-row">
                 <RootPath id={seq.id} steps={steps} tonic={tonic} />
-                <div className="stack" style={{ gap: 2 }}>
-                  <h3>{txt.name}</h3>
+                <button type="button" className="seq-name" aria-expanded={isOpen} aria-controls={`seq-${seq.id}`} onClick={() => setOpen(isOpen ? null : seq.id)}>
+                  <b>{txt.name}</b>
+                  <span className="seq-num">{numerals}</span>
+                </button>
+                <button type="button" className="ghost seq-btn" aria-label={`${t.seqPlay}: ${txt.name}`} title={t.seqPlay}
+                  onClick={() => playChords(steps.map((s) => ({ chord: s.chord, beats: s.beats })))}>▶</button>
+                <button type="button" className="ghost seq-btn" aria-label={`${t.seqInsert}: ${txt.name}`} title={t.seqInsert}
+                  onClick={() => dispatch({ type: 'insertPath', entries, replace: false })}>＋</button>
+              </div>
+              {isOpen && (
+                <div className="seq-more" id={`seq-${seq.id}`}>
                   <p className="muted small">{txt.desc}</p>
+                  <div className="seq-chords">
+                    {steps.map((s, i) => (
+                      <span key={i} className="seq-ch" title={`${names.note(s.chord.root)} ${t.modes[s.mode]}`}>
+                        <b>{names.chord(s.chord)}{s.approx && <sup>*</sup>}</b>
+                        <small>{numeralAt(s.iv, s.chord.quality)} · {t.modes[s.mode]}</small>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="row seq-actions">
+                    <button type="button" className="ghost" onClick={() => dispatch({ type: 'insertPath', entries, replace: false })}>＋ {t.seqInsert}</button>
+                    <button type="button" className="ghost" onClick={() => dispatch({ type: 'insertPath', entries, replace: true })}>{t.seqReplace}</button>
+                  </div>
                 </div>
-              </div>
-              <div className="seq-chords">
-                {steps.map((s, i) => (
-                  <span key={i} className="seq-ch" title={`${names.note(s.chord.root)} ${t.modes[s.mode]}`}>
-                    <b>{names.chord(s.chord)}{s.approx && <sup>*</sup>}</b>
-                    <small>{numeralAt(s.iv, s.chord.quality)} · {t.modes[s.mode]}</small>
-                  </span>
-                ))}
-              </div>
-              <div className="row seq-actions">
-                <button type="button" onClick={() => playChords(steps.map((s) => ({ chord: s.chord, beats: s.beats })))}>▶ {t.seqPlay}</button>
-                <button type="button" onClick={() => dispatch({ type: 'insertPath', entries, replace: false })}>＋ {t.seqInsert}</button>
-                <button type="button" onClick={() => dispatch({ type: 'insertPath', entries, replace: true })}>{t.seqReplace}</button>
-              </div>
-            </article>
+              )}
+            </li>
           );
         })}
-      </div>
+      </ul>
       <p className="muted small">* {t.seqApprox}</p>
     </>
   );

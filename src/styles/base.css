@@ -4,6 +4,8 @@
 /* Layout: werkblad met panelen; links de kwintencirkel, rechts de modus; daaronder akkoorden, route, kaart en instrument */
 :root{
   --bg:#F2F4F7; --surface:#FFFFFF; --ink:#172033; --muted:#5B6577; --line:#D8DDE5;
+  /* line-strong: randen van wat klikbaar is (≥ 3:1, WCAG 1.4.11); brass-ink: gouden tekst op brass-soft (≥ 4,5:1) */
+  --line-strong:#8A93A3; --brass-ink:#7A520E;
   --brass:#9E6A12; --brass-soft:#F4E7CD; --dia:#1C716B; --dia-soft:#DCEEEB; --bor:#76468A; --bor-soft:#EFE4F3;
   --key-white:#FFFFFF; --key-black:#1E2533; --key-line:#B9C0CC;
   --m0:#F6E7A6; --m1:#E9D58A; --m2:#C9C79A; --m3:#8FA9A6; --m4:#5E7F95; --m5:#3F5577; --m6:#2A2F55;
@@ -12,11 +14,11 @@
   --f-mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0E131B; --surface:#161D28; --ink:#E6EAF0; --muted:#9AA4B4; --line:#2A3443;
+  --bg:#0E131B; --surface:#161D28; --ink:#E6EAF0; --muted:#9AA4B4; --line:#2A3443; --line-strong:#64708A; --brass-ink:#E0AE52;
   --brass:#E0AE52; --brass-soft:#3A2D15; --dia:#55C3B6; --dia-soft:#142F2C; --bor:#C69CDA; --bor-soft:#2D2137;
   --key-white:#E9ECF1; --key-black:#0B0F15; --key-line:#4A5566; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0E131B; --surface:#161D28; --ink:#E6EAF0; --muted:#9AA4B4; --line:#2A3443;
+  --bg:#0E131B; --surface:#161D28; --ink:#E6EAF0; --muted:#9AA4B4; --line:#2A3443; --line-strong:#64708A; --brass-ink:#E0AE52;
   --brass:#E0AE52; --brass-soft:#3A2D15; --dia:#55C3B6; --dia-soft:#142F2C; --bor:#C69CDA; --bor-soft:#2D2137;
   --key-white:#E9ECF1; --key-black:#0B0F15; --key-line:#4A5566; color-scheme:dark}
 
@@ -38,12 +40,20 @@ button,select{font:inherit;color:inherit}
 .settings{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end}
 .field{display:flex;flex-direction:column;gap:4px}
 .field label,.field .lbl{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:8px;overflow:hidden;background:var(--surface)}
 .seg button{border:0;background:none;padding:6px 12px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
-select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+select{background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:6px 10px}
 
 .grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:18px}
 .wide{grid-column:1 / -1}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
 @media (max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+
+/* touch: alles wat je aantikt is minstens 44 px hoog (en de segmentknoppen ook breed genoeg) */
+@media (pointer:coarse){
+  .seg button,.ghost,select,.tgt,.check,.loopbtn,.mc{min-height:44px}
+  .linkbtn{padding-block:12px}
+  .seg button{min-width:44px}
+  .check{display:inline-flex;align-items:center}
+}

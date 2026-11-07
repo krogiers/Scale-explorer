@@ -2,6 +2,16 @@
 
 _UX designer, 2026-11-08. Vervangt de versie van 2026-11-02. Screenshots: [docs/ux/](ux/), gemaakt op 1440, 768 en 390 px, in licht en donker, plus details (`desktop-playing`, `phone-*`, `desktop-dark-*`). Bouwt verder op [indeling-analyse.md](indeling-analyse.md), [schermen-analyse.md](schermen-analyse.md) en [modi-analyse.md](modi-analyse.md)._
 
+**Status 2026-11-08:**
+- **Gebouwd:**
+  - voorstel **I** (sequentieknoppen) en **B** (compacte sequenties: 1417 → 486 px op desktop, 3479 → 1030 px op een telefoon);
+  - **G** (`--line-strong`, `--brass-ink`);
+  - de grip, `cursor: grab` en de lege toestand uit **D**;
+  - de knoppen van 44 px op touch uit **F**, behalve de SVG-elementen van de cirkel en het netwerk;
+  - `theme-color`, een beschrijving en een SVG-favicon.
+- **Resultaat:** de pagina is 4426 px hoog op desktop (was 5300) en 6920 px op een telefoon (was 9043).
+- **Nog open:** A, C, E, H, de rest van D en F, en de PWA.
+
 ## Samenvatting
 De app is inhoudelijk sterk gegroeid. Er kwamen pentatonisch, tien klanken, vier blazers, vier ritmestijlen met drums, jazzsequenties en verslepen bij. Elke uitbreiding kreeg haar eigen plek op dezelfde lange pagina.
 

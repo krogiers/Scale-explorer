@@ -56,6 +56,7 @@ export const en = {
     rhythm: { name: 'Rhythm changes (A section)', desc: 'From I Got Rhythm: fast I–vi–ii–V\'s, two chords per bar.' },
     coltrane: { name: 'Coltrane changes', desc: 'Over a ii–V–I: three tonal centres a major third apart (I, ♭VI, III), as in Giant Steps.' },
   } as Record<string, { name: string; desc: string }>,
+  chartEmpty: 'Click chords above to build a progression, or', chartEmptySeq: 'start from a jazz sequence ↑',
   credits: 'Sound: recordings from the FluidR3 GM soundfont (CC BY 3.0), via midi-js-soundfonts.',
   clear: 'Clear', undo: 'Undo', chartFull: 'The chart is full ({n} chords). Remove a chord to add another.',
   mapTitle: 'Modal map',

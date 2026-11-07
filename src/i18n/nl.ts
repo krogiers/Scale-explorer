@@ -56,6 +56,7 @@ export const nl = {
     rhythm: { name: 'Rhythm changes (A-deel)', desc: 'Uit I Got Rhythm: snelle I–vi–ii–V\'s, twee akkoorden per maat.' },
     coltrane: { name: 'Coltrane changes', desc: 'Over een ii–V–I: drie tonale centra een grote terts uit elkaar (I, ♭VI, III), zoals in Giant Steps.' },
   } as Record<string, { name: string; desc: string }>,
+  chartEmpty: 'Klik hierboven akkoorden aan om een progressie te bouwen, of', chartEmptySeq: 'start met een jazzsequentie ↑',
   credits: 'Klank: opnames uit de FluidR3 GM-soundfont (CC BY 3.0), via midi-js-soundfonts.',
   clear: 'Wis', undo: 'Ongedaan maken', chartFull: 'Het schema is vol ({n} akkoorden). Verwijder een akkoord om er een toe te voegen.',
   mapTitle: 'Modale kaart',

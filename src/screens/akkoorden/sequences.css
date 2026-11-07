@@ -1,16 +1,25 @@
-/* jazzsequenties */
-.seqs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-.seq{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
-.seq h3{margin:0;font-size:15px}
-.seq-top{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:start}
-.seq-map{width:72px;height:72px}
+/* jazzsequenties: één rij per sequentie, uitklapbaar */
+.seqs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:8px 14px;align-items:start}
+.seq{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.seq.open{border-color:var(--line-strong)}
+.seq-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:6px 8px}
+.seq-map{width:44px;height:44px}
 .seq-ring{fill:none;stroke:var(--line)}
 .seq-dot{fill:var(--muted)}
 .seq-tonic{fill:var(--brass)}
 .seq-step{stroke:var(--dia);stroke-width:1.6}
 .seq-head{fill:var(--dia)}
+.seq-name{display:flex;flex-direction:column;align-items:flex-start;min-width:0;border:0;background:none;padding:4px 2px;text-align:left;cursor:pointer;border-radius:6px}
+.seq-name b{font-size:14px}
+.seq-name b::after{content:" ▸";color:var(--muted);font-weight:400}
+.seq.open .seq-name b::after{content:" ▾"}
+.seq-num{font-family:var(--f-mono);font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.seq-btn{min-width:36px;min-height:36px;padding:0 10px}
+.seq-more{display:flex;flex-direction:column;gap:8px;padding:0 12px 12px 60px}
 .seq-chords{display:flex;flex-wrap:wrap;gap:4px}
 .seq-ch{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:6px;padding:2px 6px;min-width:48px}
 .seq-ch b{font-size:14px}
 .seq-ch small{font-size:11px;color:var(--muted);white-space:nowrap}
-.seq-actions{gap:6px;flex-wrap:wrap;margin-top:auto}
+.seq-actions{gap:6px;flex-wrap:wrap}
+@media (max-width:640px){.seq-more{padding-left:12px}}
+@media (pointer:coarse){.seq-btn{min-width:44px;min-height:44px}}

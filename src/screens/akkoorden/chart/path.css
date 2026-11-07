@@ -1,10 +1,10 @@
 /* path */
 .path{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end}
-.pc{display:flex;flex-direction:column;align-items:flex-start;gap:0;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:4px 10px;cursor:pointer}
+.pc{display:flex;flex-direction:column;align-items:flex-start;gap:0;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);padding:4px 10px;cursor:pointer}
 .pc .k{font-size:10px;color:var(--brass);font-weight:600;letter-spacing:.04em;white-space:nowrap}
 .pc .k.same{visibility:hidden}
 .pc b{font-family:var(--f-display);font-size:18px}
 .pc.last{border-color:var(--ink)}
 .pathhead{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .play::before{content:"▶";font-size:.8em;margin-right:6px;color:var(--brass)}
-.ghost{border:1px solid var(--line);background:none;border-radius:8px;padding:4px 12px;cursor:pointer}
+.ghost{border:1px solid var(--line-strong);background:none;border-radius:8px;padding:4px 12px;cursor:pointer}

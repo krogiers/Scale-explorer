@@ -105,7 +105,9 @@ export function useChartDrag(chartRef: RefObject<HTMLElement>, onDrop: (from: nu
     if (touch) {
       const { clientX, clientY } = e;
       p.timer = window.setTimeout(() => {
-        if (press.current === p) setDrag({ from: index, gap: gapAt(clientX, clientY), copy: false });
+        if (press.current !== p) return;
+        navigator.vibrate?.(10); // voelbaar: het akkoord is opgetild
+        setDrag({ from: index, gap: gapAt(clientX, clientY), copy: false });
       }, LONG_PRESS_MS);
     }
     press.current = p;

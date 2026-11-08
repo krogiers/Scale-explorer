@@ -1,6 +1,6 @@
 /**
  * De meespeelloop als gedeelde toestand: één speler voor de hele app, zodat de loop blijft lopen als je van scherm
- * wisselt, en het dock, het scherm Spelen en het schema dezelfde loop tonen. Moet binnen AppProvider staan.
+ * wisselt, en het scherm Spelen, de bovenbalk en het schema dezelfde loop tonen. Moet binnen AppProvider staan.
  */
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { audio, progressionVoicings } from '../audio';

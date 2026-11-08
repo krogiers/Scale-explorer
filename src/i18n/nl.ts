@@ -62,7 +62,7 @@ export const nl = {
   timbreFollows: 'Klank volgt instrument', playChord: 'Speel akkoord',
   screens: { ladder: 'Ladder', akkoorden: 'Akkoorden', spelen: 'Spelen' } as Record<string, string>,
   nextView: { list: 'Lijst', network: 'Netwerk', sequences: 'Sequenties' } as Record<string, string>,
-  dockShow: 'Instrument tonen', dockHide: 'Instrument verbergen', nowShort: 'nu', nextShort: 'daarna', loopOff: 'loop staat stil',
+  nowShort: 'nu', nextShort: 'daarna', loopOff: 'loop staat stil',
   toastCleared: 'Schema gewist.', toastRemoved: '{chord} verwijderd.', toastInserted: '{name} ingevoegd.',
   credits: 'Klank: opnames uit de FluidR3 GM-soundfont (CC BY 3.0), via midi-js-soundfonts.',
   clear: 'Wis', undo: 'Ongedaan maken', chartFull: 'Het schema is vol ({n} akkoorden). Verwijder een akkoord om er een toe te voegen.',

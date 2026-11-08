@@ -1,3 +1,2 @@
-/** Scherm Spelen: meespeelloop, schema als strook en het instrument; plus het dock voor de andere schermen. */
-export { SpelenScreen } from './panels';
-export { Dock } from './Dock';
+/** Scherm Spelen: meespeelloop, schema als strook en het instrument (dat App ook op Ladder toont). */
+export { InstrumentPanel, SpelenScreen } from './panels';

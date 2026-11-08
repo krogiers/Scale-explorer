@@ -62,7 +62,7 @@ export const en = {
   timbreFollows: 'Sound follows instrument', playChord: 'Play chord',
   screens: { ladder: 'Scale', akkoorden: 'Chords', spelen: 'Play' } as Record<string, string>,
   nextView: { list: 'List', network: 'Network', sequences: 'Sequences' } as Record<string, string>,
-  dockShow: 'Show instrument', dockHide: 'Hide instrument', nowShort: 'now', nextShort: 'next', loopOff: 'loop stopped',
+  nowShort: 'now', nextShort: 'next', loopOff: 'loop stopped',
   toastCleared: 'Chart cleared.', toastRemoved: '{chord} removed.', toastInserted: '{name} inserted.',
   credits: 'Sound: recordings from the FluidR3 GM soundfont (CC BY 3.0), via midi-js-soundfonts.',
   clear: 'Clear', undo: 'Undo', chartFull: 'The chart is full ({n} chords). Remove a chord to add another.',

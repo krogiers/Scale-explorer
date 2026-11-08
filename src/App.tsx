@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { AppProvider, LoopProvider, useApp } from './state';
+import { AppProvider, chordOf, LoopProvider, useApp, useLoop } from './state';
 import { PlayButton, Toaster } from './ui';
 import { LadderScreen } from './screens/ladder';
 import { AkkoordenScreen } from './screens/akkoorden';
-import { Dock, SpelenScreen } from './screens/spelen';
+import { InstrumentPanel, SpelenScreen } from './screens/spelen';
 import { Settings } from './screens/settings';
 
 /** De drie schermen; de naam staat in de URL (#ladder, #akkoorden, #spelen) zodat terug en vooruit werken. */
@@ -11,7 +11,6 @@ const SCREENS = ['ladder', 'akkoorden', 'spelen'] as const;
 type Screen = (typeof SCREENS)[number];
 const isScreen = (s: string): s is Screen => (SCREENS as readonly string[]).includes(s);
 const SCREEN_KEY = 'tln-screen';
-const DOCK_KEY = 'tln-dock';
 
 function load<T>(key: string, fallback: T): T {
   try { const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); } catch { return fallback; }
@@ -41,15 +40,30 @@ function useScreen(): [Screen, (s: Screen) => void] {
   return [screen, go];
 }
 
-/** Bovenbalk met de schermen, de huidige ladder en het akkoord (overal zichtbaar), en ⚙; onderaan het dock. */
+/**
+ * Speelt de loop terwijl je op een ander scherm bent, dan toont de bovenbalk dat, met ■ om te stoppen.
+ * Een tik op de tekst brengt je naar Spelen.
+ */
+function LoopPill({ onOpen }: { onOpen: () => void }) {
+  const { state, t, names } = useApp();
+  const { running, info, toggle } = useLoop();
+  if (!running) return null;
+  const n = state.path.length;
+  const text = !info ? t.loopTitle : info.chord < 0 ? `${t.countingIn} ${info.beat + 1}`
+    : `${names.chord(chordOf(state.path[info.chord % n]))}${n > 1 ? ` → ${names.chord(chordOf(state.path[(info.chord + 1) % n]))}` : ''}`;
+  return (
+    <div className="loop-pill">
+      <button type="button" className="lp-stop" onClick={toggle} aria-label={t.loopStop} title={t.loopStop}>■</button>
+      <button type="button" className="lp-now" onClick={onOpen} aria-live="polite">{text}</button>
+    </div>
+  );
+}
+
+/** Bovenbalk met de schermen, de huidige ladder en het akkoord (overal zichtbaar), en ⚙. */
 function Layout() {
   const { state, t, names, scale, chords, scaleLabel, playChord } = useApp();
   const [screen, go] = useScreen();
   const [settings, setSettings] = useState(false);
-  // het dock: standaard open op Ladder (noten op je instrument), dicht op Akkoorden (ruimte voor het schema);
-  // op een telefoon staat het dock standaard dicht: het instrument zou het halve scherm innemen
-  const [dock, setDock] = useState<Record<string, boolean>>(() => load(DOCK_KEY, { ladder: !matchMedia('(max-width: 640px)').matches, akkoorden: false }));
-  useEffect(() => save(DOCK_KEY, dock), [dock]);
 
   // sneltoetsen 1, 2, 3 voor de schermen (niet tijdens typen, niet in een dialoog, niet met een modifier)
   useEffect(() => {
@@ -74,6 +88,7 @@ function Layout() {
               </button>
             ))}
           </nav>
+          {screen !== 'spelen' && <LoopPill onOpen={() => go('spelen')} />}
           <div className="ctx">
             <button type="button" className="ctx-scale" onClick={() => go('ladder')}>{scaleLabel(scale)}</button>
             <span aria-hidden="true">·</span>
@@ -84,12 +99,11 @@ function Layout() {
         </div>
       </header>
       <main className="wrap">
-        {screen === 'ladder' && <LadderScreen />}
+        {screen === 'ladder' && <LadderScreen instrument={<InstrumentPanel />} />}
         {screen === 'akkoorden' && <AkkoordenScreen />}
         {screen === 'spelen' && <SpelenScreen />}
         <footer className="muted small credits">{t.credits}</footer>
       </main>
-      {screen !== 'spelen' && <Dock open={!!dock[screen]} onToggle={() => setDock({ ...dock, [screen]: !dock[screen] })} />}
       <Settings open={settings} onClose={() => setSettings(false)} />
       <Toaster />
     </div>

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useApp } from '../../state';
 import { Heading, Legend } from '../../ui';
 import { CircleOfFifths } from './CircleOfFifths';
@@ -40,12 +41,16 @@ export function MapPanel() {
   );
 }
 
-/** Scherm Ladder: waar ben ik? Links de cirkel, rechts de modus, daaronder de modale kaart. */
-export function LadderScreen() {
+/**
+ * Scherm Ladder: waar ben ik? Links de cirkel, rechts de modus, daaronder de noten op je instrument
+ * (komt van het scherm Spelen; App geeft het mee) en de modale kaart.
+ */
+export function LadderScreen({ instrument }: { instrument: ReactNode }) {
   return (
     <div className="screen-grid">
       <section className="panel circle"><CirclePanel /></section>
       <section className="panel"><ScalePanel /></section>
+      <section className="panel wide kb">{instrument}</section>
       <section className="panel wide mapsec"><MapPanel /></section>
     </div>
   );

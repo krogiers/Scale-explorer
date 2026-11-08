@@ -7,6 +7,10 @@
 .tab:hover{border-color:var(--line-strong);color:var(--ink)}
 .tab[aria-current="page"]{background:var(--ink);color:var(--surface)}
 .tab-n{font-family:var(--f-mono);font-size:11px;opacity:.7}
+.loop-pill{margin-left:auto;display:flex;align-items:center;border:1px solid var(--brass);background:var(--brass-soft);border-radius:999px;overflow:hidden}
+.loop-pill button{border:0;background:none;padding:4px 10px;cursor:pointer;color:var(--brass-ink);font-weight:600;white-space:nowrap}
+.lp-stop{border-right:1px solid var(--brass) !important}
+.loop-pill + .ctx{margin-left:0}
 .ctx{margin-left:auto;display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
 .ctx-scale{border:0;background:none;padding:4px 2px;font-weight:600;cursor:pointer;color:var(--ink);text-decoration:underline dotted var(--line-strong);text-underline-offset:4px}
 .ctx b{font-family:var(--f-display);font-size:18px}
@@ -59,5 +63,5 @@ dialog.sheet::backdrop{background:rgba(10,14,20,.45)}
 .toast-x{border:0;background:none;color:inherit;opacity:.7;font-size:18px;cursor:pointer;padding:4px 6px}
 
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-@media (pointer:coarse){.chip,.tab,.ctx-scale,.gear,.ctx-play{min-height:44px}}
+@media (pointer:coarse){.chip,.tab,.ctx-scale,.gear,.ctx-play,.loop-pill button{min-height:44px}}
 @media (max-width:720px){.toast-wrap{top:124px}}

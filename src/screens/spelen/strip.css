@@ -1,0 +1,12 @@
+/* het schema als strook om mee te lezen (scherm Spelen) */
+.strip{display:flex;overflow-x:auto;border-left:2px solid var(--ink);padding-bottom:4px}
+.sbar{position:relative;flex:0 0 auto;display:flex;gap:4px;min-width:200px;padding:16px 6px 6px;border-right:2px solid var(--ink)}
+.scell{flex-basis:0;min-width:56px;border:1px solid transparent;border-radius:6px;background:none;padding:6px 8px;font-family:var(--f-display);font-size:24px;line-height:1.1;text-align:left;cursor:pointer;color:inherit}
+.scell.focus{border-color:var(--ink)}
+.scell.playing{background:var(--brass);border-color:var(--brass);color:var(--surface)}
+.scell.cont{cursor:default;text-align:center;color:var(--muted)}
+.scell.cont.playing{color:var(--surface)}
+.spelen .loop{border-top:0;padding-top:0}
+.spelen .loop-chord{font-size:56px}
+.spelen .loop-now{min-height:110px}
+.spelen .kb svg{max-height:40vh;width:auto;max-width:100%;display:block;margin:0 auto}

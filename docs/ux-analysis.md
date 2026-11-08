@@ -11,7 +11,9 @@ _UX designer, 2026-11-08. Vervangt de versie van 2026-11-02. Screenshots: [docs/
   - `theme-color`, een beschrijving en een SVG-favicon.
 - **Resultaat:** de pagina is 4426 px hoog op desktop (was 5300) en 6920 px op een telefoon (was 9043).
 - **Ook gebouwd (2026-11-08):**
-  - **A**: drie schermen, een bovenbalk met context en een dock. De loop staat in de store en blijft lopen bij een schermwissel.
+  - **A**: drie schermen en een bovenbalk met context. De loop staat in de store en blijft lopen bij een schermwissel.
+    - Het dock is later weer weggehaald. Het verdubbelde de loopbediening en het instrument, en kostte te veel ruimte.
+    - In de plaats kwam een loop-pilletje in de bovenbalk, en het instrument staat als paneel op Ladder.
   - **C**: `PlayButton` met ▶/■ voor de toonladder, de progressie, de sequenties en het akkoord in de bovenbalk.
   - **E**: instellingen achter ⚙ met een themaschakelaar. Blue note en pentatonisch zijn chips geworden, drie- of vierklanken staat bij de akkoorden.
   - **H**: klank volgt instrument, met de nieuwe klanken altsax en nylongitaar.

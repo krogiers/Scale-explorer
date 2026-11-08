@@ -20,12 +20,17 @@
   .tabs{order:3;width:100%}
   .tab{flex:1;justify-content:center}
   .brand{font-size:18px}
+  /* speelt de loop, dan krijgt het pilletje de plaats van de titel: de balk blijft twee rijen hoog */
+  .appbar-in:has(.loop-pill) .brand{display:none}
+  .loop-pill{margin-left:0}
 }
 
 /* schermen: dezelfde panelen als vroeger, per scherm geschikt */
 .screen-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:18px}
 .screen-grid.spelen{grid-template-columns:minmax(0,1fr)}
 @media (max-width:820px){.screen-grid{grid-template-columns:minmax(0,1fr)}}
+/* op Ladder is het instrument een hulp om de noten te zien, niet de hoofdzaak: niet hoger dan nodig */
+.screen-grid:not(.spelen) .kb svg{max-height:260px;width:auto;max-width:100%;display:block;margin:0 auto}
 
 /* paneelkop: titel, ⓘ voor de uitleg, rechts bediening */
 .phead{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap}

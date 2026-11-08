@@ -1,6 +1,14 @@
 # Analyse: een weergave voor het verband tussen de modi
 
-_2026-11-07. Alleen analyse, er is nog niets in de app gebouwd. Schetsen: [docs/ux/modi/](ux/modi/)._
+_2026-11-07. Schetsen: [docs/ux/modi/](ux/modi/)._
+
+**Status 2026-11-08:** paneel D is gebouwd, op het scherm Ladder in de plaats van de modale kaart. De beslissingen over de open punten:
+- de akkoordgrootte volgt `state.size`;
+- een klik kiest eerst "naar", en pas **Ga naar** verplaatst je;
+- de matrix toont standaard alleen de rijen van "van" en "naar", met een knop voor alle akkoorden;
+- **+ in schema** werkt.
+
+De theorie staat in `src/core/modes.ts`, met tests.
 
 ## Vraag
 1. Een weergave die laat zien hoe de modi met elkaar samenhangen.

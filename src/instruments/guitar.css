@@ -10,6 +10,5 @@
 .gt-lbl{font-family:var(--f-body);font-size:8.5px;font-weight:600;text-anchor:middle;fill:var(--surface)}
 .gt-num{font-family:var(--f-mono);font-size:10px;fill:var(--muted);text-anchor:middle}
 .kb svg{max-height:340px}
-.mapsec .mapwrap{max-width:620px}
 .hscroll{overflow-x:auto}
 .hscroll svg{min-width:620px}

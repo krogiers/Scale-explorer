@@ -1,0 +1,48 @@
+/* modi en bruggen: rooster (links), sprongkaart en brugmatrix (rechts) */
+.modi{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:980px){.modi{grid-template-columns:minmax(0,5fr) minmax(0,6fr)}}
+.modi svg{display:block;width:100%;height:auto}
+.modi svg text{fill:var(--ink);font-family:var(--f-body)}
+.modi .hd{font-size:12px;font-weight:600;text-anchor:middle}
+.modi .rl{font-size:12px;text-anchor:end}
+.modi .rl.sig{fill:var(--muted);font-family:var(--f-mono);font-size:11px}
+.mcell{cursor:pointer;outline:none}
+.mcell rect{fill:var(--surface);stroke:var(--line-strong)}
+.mcell text{font-size:13px;font-weight:600;text-anchor:middle;pointer-events:none}
+.mcell .d{font-size:9px;fill:var(--muted);text-anchor:end;font-family:var(--f-mono)}
+.mcell.row rect{fill:var(--brass-soft);stroke:var(--brass)}
+.mcell.one rect{fill:var(--dia-soft)}
+.mcell.par rect{stroke:var(--bor);stroke-width:2;stroke-dasharray:4 3}
+.mcell.far text{opacity:.5}
+.mcell.cur rect{fill:var(--brass);stroke:var(--brass);stroke-dasharray:none}
+.mcell.cur text{fill:var(--surface)}
+.mcell.naar rect{stroke:var(--ink);stroke-width:2.5;stroke-dasharray:none}
+.mcell:hover rect,.mcell:focus-visible rect{stroke:var(--ink)}
+.mcol{cursor:pointer;outline:none}
+.mcol > rect:first-child{fill:transparent}
+.mcol:hover > rect:first-child,.mcol:focus-visible > rect:first-child{fill:var(--line);fill-opacity:.35}
+.mcol.cur > rect:first-child{fill:var(--line);fill-opacity:.55;stroke:var(--brass);stroke-width:1.5}
+.mcol.naar > rect:first-child{fill:var(--line);fill-opacity:.55;stroke:var(--ink);stroke-width:1.5;stroke-dasharray:4 3}
+.mx .bar,.mx .dot,.mx .star{pointer-events:none}
+.bar1{fill:var(--bor-soft);stroke:var(--bor)} .bar2{fill:var(--dia-soft);stroke:var(--dia)} .bar3{fill:var(--brass-soft);stroke:var(--brass)}
+.mrow.dim{opacity:.3}
+.mrow.bridge .bar{stroke-width:2.5}
+.mrow .nm{font-size:13px;font-weight:600;cursor:pointer}
+.mrow .rn{font-size:11px;fill:var(--muted)}
+.mx .dot{fill:var(--ink)} .mx .star{fill:var(--bor);font-size:12px;text-anchor:middle}
+.mx .tag{font-size:11px;font-weight:600} .mx .tag.br{fill:var(--dia)} .mx .tag.nw{fill:var(--bor)} .mx .tag.gn{fill:var(--muted)}
+.jump{border:1px solid var(--line-strong);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.jump h3{font-size:16px;margin:0}
+.jkind{font-weight:400}
+.bchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.bchips .lbl{font-size:12px;font-weight:600;color:var(--muted);min-width:64px}
+.bchip{display:inline-flex;align-items:baseline;gap:5px;border:1px solid var(--line-strong);border-left-width:4px;background:var(--surface);border-radius:8px;padding:4px 10px;font-weight:600;cursor:pointer}
+.bchip small{font-weight:400;font-size:11px;color:var(--muted)}
+.bchip.sh{border-left-color:var(--dia)} .bchip.sh:hover{background:var(--dia-soft)}
+.bchip.nw{border-left-color:var(--bor)} .bchip.nw:hover{background:var(--bor-soft)}
+.bchip.gn{opacity:.6;text-decoration:line-through;border-left-color:var(--line-strong)}
+.bchip.ton{border-left-color:var(--brass)} .bchip.ton:hover{background:var(--brass-soft)}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.acts .pri{background:var(--brass);border-color:var(--brass);color:var(--surface);font-weight:600}
+.jplay span:last-child{white-space:normal;text-align:left}
+@media (pointer:coarse){.bchip{min-height:44px}}

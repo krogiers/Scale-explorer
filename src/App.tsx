@@ -99,7 +99,7 @@ function Layout() {
         </div>
       </header>
       <main className="wrap">
-        {screen === 'ladder' && <LadderScreen instrument={<InstrumentPanel />} />}
+        {screen === 'ladder' && <LadderScreen instrument={<InstrumentPanel foldable />} />}
         {screen === 'akkoorden' && <AkkoordenScreen />}
         {screen === 'spelen' && <SpelenScreen />}
         <footer className="muted small credits">{t.credits}</footer>

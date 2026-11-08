@@ -262,6 +262,29 @@ Sommige akkoorden vragen een ladder die buiten de zeven modi valt: een V7 naar m
 
 Invoegen (`insertPath`) zet de hele reeks in één stap na het geselecteerde akkoord, of vervangt het schema. Eén keer ongedaan maken haalt de hele reeks weer weg.
 
+### 7e. Modi en bruggen
+
+De 84 modi (12 moederladders × 7 modi) vormen een rooster (`src/core/modes.ts`). De rijen zijn de moederladders in kwintvolgorde, de kolommen de modi van helder naar donker.
+
+```
+moederladder van (r, m):   k = kwintpositie(r − majeur[OFFSET[m]])
+grondtoon van (k, m):      r = toon(k) + majeur[OFFSET[m]]
+```
+
+- **Een rij** heeft dezelfde noten (relatief).
+- **Een diagonaal** heeft dezelfde grondtoon (parallel): elke stap donkerder is één mol meer, dus één rij lager.
+- **Eén rij verder** is precies één noot anders. Het aantal verschillende noten groeit met de kwintafstand tot hoogstens 6.
+
+**Brug** (`bridge(a, b)`): twee buurmodi delen 4 drieklanken of 3 vierklanken. De andere akkoorden van b bevatten de nieuwe noot. Dat is de **sprong**: die akkoorden maken de overgang hoorbaar. Bij een relatieve stap zijn alle akkoorden gedeeld, en alleen het thuis (de tonica) verschuift.
+
+**Route** (`route(a, b)`): één noot per stap, dus zo veel stappen als de kwintafstand tussen de moederladders, plus eventueel een relatieve stap. Per stap kiest de app een brug- en een sprongakkoord:
+- de sprong is bij voorkeur het **kenmerkende akkoord** van de nieuwe modus: Lyd II, Ion V, Mix ♭VII, Dor IV, Aeo ♭VI, Fry ♭II, Loc ♭V;
+- de brug is het gedeelde akkoord dat er de meeste noten mee gemeen heeft.
+
+**Brugmatrix** (`chordsOnRoot(r)`): op één grondtoon komen 25 drieklanken (31 vierklanken) voor. Elk zit in hoogstens 3 parallelle modi naast elkaar. Een balk over 2 of 3 modi is een brug, een balk over 1 modus is de eigen kleur van die modus.
+
+In de app staat dit op het scherm Ladder, in het paneel "Modi en bruggen". Een klik kiest "naar" en toont de overgang. Pas "Ga naar" verplaatst je echt. "+ in schema" zet de overgang als akkoorden in het schema.
+
 ### 8. Uitbreiden
 
 Omdat alles volgt uit "een verzameling toonklassen plus een spelling", passen nieuwe toonladders in hetzelfde model. Harmonisch mineur is bijvoorbeeld het patroon [0, 2, 3, 5, 7, 8, 11], met zijn eigen zeven rotaties. Het enige verschil: die noten liggen niet meer naast elkaar op de kwintencirkel, dus voor die families wordt de afstand tussen toonladders geteld als het aantal verschillende toonklassen in plaats van als stappen op de boog.

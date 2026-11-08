@@ -19,3 +19,4 @@
 .sx-card.out{opacity:.35}
 .pentahint{font-size:13px;color:var(--dia)}
 .legend i.ring{background:none;border:1.5px dashed var(--muted)}
+.legend i.dash{background:none;border:2px dashed var(--bor)}

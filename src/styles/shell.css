@@ -37,6 +37,10 @@
 .info{position:relative;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1px solid var(--line-strong);background:none;color:var(--muted);font-size:12px;line-height:1;cursor:pointer;padding:0}
 .info::after{content:"";position:absolute;inset:-11px}
 .info[aria-expanded="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.fold{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.fold::before{content:"▸";font-size:.8em;color:var(--muted);transition:transform .15s}
+.fold[aria-expanded="true"]::before{transform:rotate(90deg)}
+.fold:focus-visible{outline:2px solid var(--brass);outline-offset:3px;border-radius:4px}
 .phead-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:100%}
 .phead-right > .row{flex-wrap:wrap}
 .phead-right .ghost{white-space:nowrap}

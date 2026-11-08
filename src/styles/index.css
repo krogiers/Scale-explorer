@@ -8,7 +8,7 @@
 @import '../screens/ladder/scale.css';
 @import '../screens/akkoorden/chords.css';
 @import '../screens/akkoorden/chart/path.css';
-@import '../screens/ladder/map.css';
+@import '../ui/legend.css';
 @import '../instruments/piano.css';
 @import '../screens/akkoorden/network.css';
 @import '../instruments/wind/wind.css';
@@ -19,3 +19,4 @@
 @import '../screens/akkoorden/sequences.css';
 @import '../screens/akkoorden/screen.css';
 @import '../screens/spelen/strip.css';
+@import '../screens/ladder/modes.css';

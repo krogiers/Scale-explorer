@@ -22,7 +22,7 @@ De app bestaat uit kleine pakketjes. Elk pakket is een map met een voordeur (`in
 core  ←  i18n, naming, audio, instruments  ←  state  ←  ui  ←  screens/*  ←  App
 ```
 
-De app heeft drie schermen: **Ladder** (waar ben ik? met de noten op je instrument), **Akkoorden** (welke akkoorden en waarheen, met het schema) en **Spelen** (de loop, het schema als strook en een groot instrument). De schermen importeren elkaar niet. `App.tsx` zet ze samen met:
+De app heeft drie schermen: **Ladder** (waar ben ik? met de modi en hun bruggen), **Akkoorden** (welke akkoorden en waarheen, met het schema) en **Spelen** (de loop, het schema als strook en een groot instrument). De schermen importeren elkaar niet. `App.tsx` zet ze samen met:
 - een bovenbalk met de tabs, de huidige ladder en het huidige akkoord, en ⚙ voor de instellingen;
 - de navigatie via `#ladder`, `#akkoorden` en `#spelen`, zodat terug en vooruit in de browser werken, met de sneltoetsen 1, 2 en 3;
 - een pilletje in de bovenbalk (■ en het akkoord dat speelt) als de loop speelt terwijl je op een ander scherm bent.
@@ -38,7 +38,7 @@ De loop zit in de gedeelde toestand (`state/loop.tsx`) en blijft lopen als je va
 | `src/instruments/` | Interface `InstrumentView` (`types.ts`) en het register (`index.ts`). Klavier, gitaar, en in `wind/` de blazers (sax, trompet, klarinet, dwarsfluit) met gedeelde greepkaarten. | Een component schrijven en in `INSTRUMENTS` zetten |
 | `src/state/` | `model` (toestand en acties), `reducer` (pure overgangen, ongedaan maken, klank volgt instrument), `persist` (bewaren in de browser), `store` (provider, speelt het geluid bij een klik, `usePlaying`) en `loop` (de gedeelde meespeelloop) | Een actie in `model.ts` en een geval in `reducer.ts` |
 | `src/ui/` | Gedeelde onderdelen voor de schermen: `Legend`, `Heading` (paneelkop met de uitleg achter ⓘ), `PlayButton` (▶ of ■ per naam), `Toast` (melding met Ongedaan maken), `chartLayout` (maten) en opmaak van teksten | |
-| `src/screens/` | Eén map per scherm, elk met zijn eigen componenten en CSS. `ladder/` (kwintencirkel, modus met de chips blue note en pentatonisch, modusladder, modale kaart), `akkoorden/` (akkoordenrij, volgende stap als Lijst, Netwerk of Sequenties, `chart/` het schema), `spelen/` (meespeelloop, schema als strook en het instrument, dat App ook op Ladder toont), `settings/` (dialoog met taal, nootnamen, geluid en thema) | Een paneel in de map van zijn scherm, en exporteren via `index.ts` |
+| `src/screens/` | Eén map per scherm, elk met zijn eigen componenten en CSS. `ladder/` (kwintencirkel, modus met de chips blue note en pentatonisch, modusladder, modi en bruggen), `akkoorden/` (akkoordenrij, volgende stap als Lijst, Netwerk of Sequenties, `chart/` het schema), `spelen/` (meespeelloop, schema als strook en het in- en uitklapbare instrument), `settings/` (dialoog met taal, nootnamen, geluid en thema) | Een paneel in de map van zijn scherm, en exporteren via `index.ts` |
 | `src/styles/` | `base.css` (kleuren, layout, knoppen), `overlays.css` (blue note, pentatonisch) en `index.css`, dat alle CSS in een vaste volgorde laadt | |
 
 Taal en nootnamen staan los van elkaar: de interface kan in het Nederlands staan met do re mi, of in het Engels met Nederlandse nootnamen.

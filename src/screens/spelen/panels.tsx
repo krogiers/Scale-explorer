@@ -11,23 +11,22 @@ const FOLD_KEY = 'tln-instr';
 
 /**
  * Het instrument met zijn legenda (blue note en pentatonisch alleen als ze aan staan).
- * foldable: inklapbaar, standaard dicht en onthouden (op Ladder is het een hulp, geen must).
+ * In- en uitklapbaar, standaard open; de keuze wordt onthouden.
  */
-export function InstrumentPanel({ foldable = false }: { foldable?: boolean }) {
+function InstrumentPanel() {
   const { state, t } = useApp();
-  const [open, setOpen] = useState(() => { try { return localStorage.getItem(FOLD_KEY) === 'open'; } catch { return false; } });
+  const [open, setOpen] = useState(() => { try { return localStorage.getItem(FOLD_KEY) !== 'dicht'; } catch { return true; } });
   const toggle = () => {
     setOpen(!open);
     try { localStorage.setItem(FOLD_KEY, open ? 'dicht' : 'open'); } catch { /* geen opslag: dan maar niet onthouden */ }
   };
-  const fold = foldable ? { open, toggle } : undefined;
   const items: Item[] = [['var(--dia)', t.lgScale, true], ['var(--brass)', t.lgChord], ['var(--bor)', t.lgChar, true]];
   if (state.showBlue) items.push(['var(--blue)', t.blue, true]);
   if (state.showPenta) items.push(['ring', t.lgPenta, true]);
   return (
     <>
-      <Instrument fold={fold} />
-      {(!fold || open) && <Legend items={items} />}
+      <Instrument fold={{ open, toggle }} />
+      {open && <Legend items={items} />}
     </>
   );
 }

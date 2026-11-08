@@ -3,7 +3,7 @@ import { AppProvider, chordOf, LoopProvider, useApp, useLoop } from './state';
 import { PlayButton, Toaster } from './ui';
 import { LadderScreen } from './screens/ladder';
 import { AkkoordenScreen } from './screens/akkoorden';
-import { InstrumentPanel, SpelenScreen } from './screens/spelen';
+import { SpelenScreen } from './screens/spelen';
 import { Settings } from './screens/settings';
 
 /** De drie schermen; de naam staat in de URL (#ladder, #akkoorden, #spelen) zodat terug en vooruit werken. */
@@ -99,7 +99,7 @@ function Layout() {
         </div>
       </header>
       <main className="wrap">
-        {screen === 'ladder' && <LadderScreen instrument={<InstrumentPanel foldable />} />}
+        {screen === 'ladder' && <LadderScreen />}
         {screen === 'akkoorden' && <AkkoordenScreen />}
         {screen === 'spelen' && <SpelenScreen />}
         <footer className="muted small credits">{t.credits}</footer>

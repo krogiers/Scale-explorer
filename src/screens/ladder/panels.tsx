@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { chordsOnRoot, sameSpot, scaleOf, type Spot } from '../../core';
 import { fill } from '../../i18n';
 import { useApp } from '../../state';
@@ -74,15 +74,14 @@ export function ModesPanel() {
 }
 
 /**
- * Scherm Ladder: waar ben ik? Links de cirkel, rechts de modus, daaronder de noten op je instrument
- * (komt van het scherm Spelen; App geeft het mee) en de modi met hun bruggen.
+ * Scherm Ladder: waar ben ik? Links de cirkel, rechts de modus, daaronder de modi met hun bruggen.
+ * Het instrument staat alleen op Spelen.
  */
-export function LadderScreen({ instrument }: { instrument: ReactNode }) {
+export function LadderScreen() {
   return (
     <div className="screen-grid">
       <section className="panel circle"><CirclePanel /></section>
       <section className="panel"><ScalePanel /></section>
-      <section className="panel wide kb">{instrument}</section>
       <section className="panel wide modes"><ModesPanel /></section>
     </div>
   );

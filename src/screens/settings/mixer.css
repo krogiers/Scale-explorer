@@ -1,0 +1,32 @@
+/* Mengpaneel in Instellingen: één rij per kanaal (naam, volume, dB, links/rechts, M, S) */
+.mixer{width:100%;border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px}
+.mixer-head{display:flex;align-items:center;gap:8px}
+.mixer-head .lbl{margin-right:auto;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mixer-head .ghost.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.mix-rows{display:flex;flex-direction:column;gap:6px}
+.mix-row{display:grid;grid-template-columns:92px minmax(90px,1fr) 52px 130px 32px 32px;align-items:center;gap:6px 10px;padding:4px 0}
+.mix-row.bus{border-top:1px dashed var(--line);padding-top:8px}
+.mix-row.bus:nth-child(n+6){border-top:0;padding-top:4px}
+.mix-name{font-weight:600;display:flex;flex-direction:column;line-height:1.15}
+.mix-name small{font-weight:400;color:var(--muted);font-size:11px}
+.mix-row input[type=range]{width:100%;accent-color:var(--brass);margin:0}
+.mix-db{font-variant-numeric:tabular-nums;font-size:12px;color:var(--muted);text-align:right}
+.mix-pan{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)}
+.mix-pan input[type=range]{accent-color:var(--muted)}
+.mix-btn{width:32px;height:28px;border:1px solid var(--line-strong);border-radius:6px;background:none;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer;padding:0}
+.mix-btn.m[aria-pressed="true"]{background:var(--bor);border-color:var(--bor);color:#fff}
+.mix-btn.s[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:#1a1300}
+.mix-row.silent .mix-name,.mix-row.silent .mix-vol,.mix-row.silent .mix-db{opacity:.4}
+/* telefoon: naam, dB, M en S boven; volume en links/rechts eronder */
+@media (max-width:560px){
+  .mix-row{grid-template-columns:1fr 52px 36px 36px;grid-template-areas:"name db m s" "vol vol pan pan"}
+  .mix-row.bus{grid-template-areas:"name db m s" "vol vol . ."}
+  .mix-name{grid-area:name;flex-direction:row;align-items:baseline;gap:6px}
+  .mix-vol{grid-area:vol}
+  .mix-db{grid-area:db}
+  .mix-pan{grid-area:pan}
+  .mix-btn.m{grid-area:m}
+  .mix-btn.s{grid-area:s}
+}
+@media (pointer:coarse){ .mix-btn{width:44px;height:44px} .mix-row{grid-template-columns:92px minmax(90px,1fr) 52px 130px 44px 44px} }
+@media (pointer:coarse) and (max-width:560px){ .mix-row{grid-template-columns:1fr 52px 44px 44px} }

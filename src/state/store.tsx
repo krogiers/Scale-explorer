@@ -40,7 +40,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     savePrefs(state);
     document.documentElement.lang = state.lang;
     document.title = t.title;
-  }, [state.lang, state.namer, state.size, state.sound, state.instrument, state.timbre, state.meter, state.showBlue, state.showPenta, state.bpm, state.saxKey, state.timbreFollows, state.theme, t.title]);
+  }, [state.lang, state.namer, state.size, state.sound, state.instrument, state.timbre, state.meter, state.showBlue, state.showPenta, state.bpm, state.saxKey, state.timbreFollows, state.theme, state.mix, t.title]);
 
   useEffect(() => {
     if (state.theme === 'auto') delete document.documentElement.dataset.theme;
@@ -50,6 +50,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => { saveChart(state.path); }, [state.path]);
 
   useEffect(() => { audio.setTimbre(state.timbre); }, [state.timbre]);
+
+  useEffect(() => { audio.setMix(state.mix); }, [state.mix]);
 
   const value = useMemo<Ctx>(() => {
     const play = (events: Parameters<typeof audio.play>[0], id: string) => { if (state.sound) playOnly(events, id); };

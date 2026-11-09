@@ -1,3 +1,5 @@
+import type { Mix } from './mix';
+
 /**
  * Interface: geluid. De rest van de app vraagt alleen "speel deze MIDI-noten op deze tijden".
  * De implementatie zit in engine/.
@@ -25,4 +27,6 @@ export interface AudioEngine {
   stopAll(): void;
   /** Kies de klank; de belofte is ingelost zodra de opnames ervan klaar zijn. */
   setTimbre(t: Timbre): Promise<void>;
+  /** Het mengpaneel: volume en links/rechts per kanaal, stil en solo. */
+  setMix(mix: Mix): void;
 }

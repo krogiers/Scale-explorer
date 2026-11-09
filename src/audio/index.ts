@@ -8,6 +8,7 @@ import type { AudioEngine, NoteEvent } from './types';
 
 export * from './types';
 export * from './events';
+export * from './mix';
 export { progressionVoicings, voiceLead, voicing } from './voicing';
 
 export { playing, release, stopCurrent, subscribe, takeOver } from './transport';

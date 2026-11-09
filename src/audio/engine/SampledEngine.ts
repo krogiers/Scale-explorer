@@ -4,10 +4,12 @@
  * - voor aangehouden klanken (strijkers, cello, orgel en de blazers) een stuk van de opname dat zich herhaalt met overvloeien, zodat lange akkoorden niet wegvallen;
  * - toonhoogteverschuiving van hooguit anderhalve halve toon naar de dichtstbijzijnde opname;
  * - een galm (convolutie met een kunstmatige zaalrespons) zodat het niet droog en digitaal klinkt;
- * - kleine willekeurige verschillen in timing en aanslag ("humanize"), zoals een echte speler.
+ * - kleine willekeurige verschillen in timing en aanslag ("humanize"), zoals een echte speler;
+ * - een mengpaneel: akkoorden, bas, drums en metronoom hebben elk een eigen kanaal (volume, links/rechts).
  * Zolang de opnames nog niet ingeladen zijn, valt hij terug op een eenvoudige synthesizer.
  */
 import { SAMPLES } from '../samples/base';
+import { channelGain, DEFAULT_MIX, PARTS, type Mix, type PartChannel } from '../mix';
 import type { AudioEngine, Drum, NoteEvent, Part, Timbre } from '../types';
 import { noiseBuffer, playClick, playDrum } from './drums';
 import { playSample } from './sampler';
@@ -16,13 +18,20 @@ import { base64ToArrayBuffer, impulse, jitter, type Out } from './util';
 import { EXTRA, VOICES } from './voices';
 
 type Bank = Map<number, AudioBuffer>;
+/** Een kanaal van het mengpaneel: schuiver voor droog en galm, en links/rechts op het droge signaal. */
+interface Strip { dry: GainNode; wet: GainNode; pan: StereoPannerNode | null }
+/** Basisniveau van galm en totaal; de schuivers vermenigvuldigen daarmee. */
+const WET = 0.22, MASTER = 0.8;
 
 export class SampledEngine implements AudioEngine {
   private ctx: AudioContext | null = null;
   /** Vaste uitgang naar de luidspreker (droog en galm). */
-  private out: Omit<Out, 'track'> | null = null;
-  /** Huidige bus: alle noten lopen hierlangs, zodat stopAll ze in één keer kan laten uitdoven. */
-  private bus: Out | null = null;
+  private out: { dry: GainNode; wet: GainNode; master: GainNode } | null = null;
+  /** Vaste kanalen van het mengpaneel, tussen de bus en de uitgang. */
+  private strips: Record<PartChannel, Strip> | null = null;
+  private mix: Mix = DEFAULT_MIX;
+  /** Huidige bus (één per kanaal): alle noten lopen hierlangs, zodat stopAll ze in één keer kan laten uitdoven. */
+  private bus: Record<PartChannel, Out> | null = null;
   private noise: AudioBuffer | null = null;
   private banks = new Map<string, Bank>();
   private loading = false;
@@ -32,6 +41,27 @@ export class SampledEngine implements AudioEngine {
   setTimbre(t: Timbre): Promise<void> {
     this.timbre = t;
     return this.ctx ? this.loadExtra(this.ctx, t) : Promise.resolve();
+  }
+
+  /** Het mengpaneel toepassen; een schuiver hoor je meteen, ook terwijl de loop speelt. */
+  setMix(mix: Mix) {
+    this.mix = mix;
+    this.applyMix();
+  }
+
+  private applyMix() {
+    const c = this.ctx, out = this.out, strips = this.strips;
+    if (!c || !out || !strips) return;
+    // kort glijden in plaats van springen: geen tikken tijdens het schuiven
+    const glide = (p: AudioParam, v: number) => p.setTargetAtTime(v, c.currentTime, 0.02);
+    for (const ch of PARTS) {
+      const g = channelGain(this.mix, ch), st = strips[ch];
+      glide(st.dry.gain, g);
+      glide(st.wet.gain, g);
+      if (st.pan) glide(st.pan.pan, this.mix[ch].pan);
+    }
+    glide(out.wet.gain, WET * channelGain(this.mix, 'reverb'));
+    glide(out.master.gain, MASTER * channelGain(this.mix, 'master'));
   }
 
   now(): number | null {
@@ -49,7 +79,7 @@ export class SampledEngine implements AudioEngine {
         comp.threshold.value = -14;
         comp.ratio.value = 3;
         const master = c.createGain();
-        master.gain.value = 0.8;
+        master.gain.value = MASTER;
         master.connect(comp);
         comp.connect(c.destination);
         const dry = c.createGain();
@@ -57,10 +87,19 @@ export class SampledEngine implements AudioEngine {
         const verb = c.createConvolver();
         verb.buffer = impulse(c, 2.4, 3);
         const wet = c.createGain();
-        wet.gain.value = 0.22;
+        wet.gain.value = WET;
         wet.connect(verb);
         verb.connect(master);
-        this.out = { dry, wet };
+        this.out = { dry, wet, master };
+        this.strips = Object.fromEntries(PARTS.map((ch) => {
+          const sd = c.createGain(), sw = c.createGain();
+          // StereoPanner bestaat in alle gangbare browsers; zonder valt alleen links/rechts weg
+          const pan = typeof c.createStereoPanner === 'function' ? c.createStereoPanner() : null;
+          if (pan) { sd.connect(pan); pan.connect(dry); } else sd.connect(dry);
+          sw.connect(wet);
+          return [ch, { dry: sd, wet: sw, pan }];
+        })) as Record<PartChannel, Strip>;
+        this.applyMix();
         this.bus = this.newBus(c);
         void this.load(c);
       }
@@ -74,18 +113,21 @@ export class SampledEngine implements AudioEngine {
   /** Bronnen die op de huidige bus spelen of gepland staan. */
   private sources = new Set<AudioScheduledSourceNode>();
 
-  private newBus(c: AudioContext): Out {
-    const dry = c.createGain();
-    const wet = c.createGain();
-    dry.connect(this.out!.dry);
-    wet.connect(this.out!.wet);
+  private newBus(c: AudioContext): Record<PartChannel, Out> {
     const sources = new Set<AudioScheduledSourceNode>();
     this.sources = sources;
     const track = (n: AudioScheduledSourceNode) => {
       sources.add(n);
       n.addEventListener('ended', () => sources.delete(n));
     };
-    return { dry, wet, track };
+    const bus = {} as Record<PartChannel, Out>;
+    for (const ch of PARTS) {
+      const dry = c.createGain(), wet = c.createGain();
+      dry.connect(this.strips![ch].dry);
+      wet.connect(this.strips![ch].wet);
+      bus[ch] = { dry, wet, track };
+    }
+    return bus;
   }
 
   stopAll() {
@@ -93,7 +135,8 @@ export class SampledEngine implements AudioEngine {
     const old = this.bus;
     if (!c || !old) return;
     // de oude bus kort laten uitdoven (geen tik) en loskoppelen; wat er nog gepland stond, valt in het niets
-    for (const g of [old.dry, old.wet] as GainNode[]) {
+    const gains = Object.values(old).flatMap((o) => [o.dry, o.wet]) as GainNode[];
+    for (const g of gains) {
       g.gain.setValueAtTime(g.gain.value, c.currentTime);
       g.gain.linearRampToValueAtTime(0, c.currentTime + 0.04);
     }
@@ -101,8 +144,7 @@ export class SampledEngine implements AudioEngine {
     const sources = this.sources;
     window.setTimeout(() => {
       sources.forEach((n) => { try { n.stop(); } catch { /* nog niet gestart of al gestopt */ } });
-      old.dry.disconnect();
-      old.wet.disconnect();
+      gains.forEach((g) => g.disconnect());
     }, 60);
     this.bus = this.newBus(c);
   }
@@ -143,7 +185,7 @@ export class SampledEngine implements AudioEngine {
   noteAt(midi: number, t: number, dur: number, vel = 1, part: Part = 'keys') {
     const c = this.ensure();
     if (!c) return;
-    const out = this.bus!;
+    const out = this.bus![part === 'bass' ? 'bass' : 'keys'];
     // een beetje menselijk: aanslag en timing variëren licht
     t = Math.max(c.currentTime, t + jitter(0.008));
     vel = Math.min(1, Math.max(0.1, vel * (1 + jitter(0.1))));
@@ -159,7 +201,7 @@ export class SampledEngine implements AudioEngine {
 
   clickAt(t: number, accent: boolean) {
     const c = this.ensure();
-    if (c) playClick(c, this.bus!, t, accent);
+    if (c) playClick(c, this.bus!.click, t, accent);
   }
 
   drumAt(time: number, kind: Drum, vel = 1) {
@@ -167,7 +209,7 @@ export class SampledEngine implements AudioEngine {
     if (!c) return;
     this.noise ??= noiseBuffer(c);
     const t = Math.max(c.currentTime, time + jitter(0.004));
-    playDrum(c, this.bus!, this.noise, t, kind, Math.min(1, Math.max(0.05, vel * (1 + jitter(0.08)))));
+    playDrum(c, this.bus!.drums, this.noise, t, kind, Math.min(1, Math.max(0.05, vel * (1 + jitter(0.08)))));
   }
 
   play(events: NoteEvent[]) {

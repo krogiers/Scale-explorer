@@ -80,7 +80,16 @@ function Layout() {
     <div className="app">
       <header className="appbar">
         <div className="appbar-in">
-          <span className="brand">{t.title}</span>
+          <span className="brand" title={t.title}>
+            {/* hetzelfde beeld als public/favicon.svg: kwintencirkel met de gouden boog van zeven noten */}
+            <svg className="logo" viewBox="0 0 64 64" aria-hidden="true">
+              <rect width="64" height="64" rx="14" fill="#172033" />
+              <circle cx="32" cy="32" r="21" fill="none" stroke="#5B6577" strokeWidth="3" />
+              <path d="M 13.8 21.5 A 21 21 0 0 1 45.1 48.4" fill="none" stroke="#E0AE52" strokeWidth="8" strokeLinecap="round" />
+              <circle cx="45.1" cy="15.6" r="5" fill="#E0AE52" />
+            </svg>
+            <span className="brand-name">{t.title}</span>
+          </span>
           <nav className="tabs" aria-label={t.title}>
             {SCREENS.map((s, i) => (
               <button key={s} type="button" className="tab" aria-current={screen === s ? 'page' : undefined} onClick={() => go(s)} title={`${t.screens[s]} (${i + 1})`}>

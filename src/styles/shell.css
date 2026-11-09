@@ -1,7 +1,8 @@
 /* app-schil: bovenbalk met schermen, context en ⚙; paneelkoppen met ⓘ; chips; afspeelknop; instellingen; meldingen */
 .appbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb, var(--bg) 90%, transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .appbar-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px))}
-.brand{font-family:var(--f-display);font-weight:700;font-size:22px;letter-spacing:-.01em;white-space:nowrap}
+.brand{font-family:var(--f-display);font-weight:700;font-size:22px;letter-spacing:-.01em;white-space:nowrap;display:inline-flex;align-items:center;gap:10px}
+.logo{width:1.4em;height:1.4em;flex:none;border-radius:22%;box-shadow:0 0 0 1px var(--line),0 1px 2px rgb(0 0 0 / .18)}
 .tabs{display:flex;gap:4px}
 .tab{display:inline-flex;align-items:center;gap:6px;border:1px solid transparent;background:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:600;color:var(--muted)}
 .tab:hover{border-color:var(--line-strong);color:var(--ink)}
@@ -19,10 +20,13 @@
 @media (max-width:720px){
   .tabs{order:3;width:100%}
   .tab{flex:1;justify-content:center}
-  .brand{font-size:18px}
+  .brand{font-size:18px;gap:6px}
+  .logo{width:1.4em;height:1.4em}
   /* speelt de loop, dan krijgt het pilletje de plaats van de titel: de balk blijft twee rijen hoog */
   .appbar-in:has(.loop-pill) .brand{display:none}
   .loop-pill{margin-left:0}
+  /* smalle telefoon: alleen het logo, zodat context en ⚙ op één rij blijven */
+  @media (max-width:430px){ .brand-name{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)} }
 }
 
 /* schermen: dezelfde panelen als vroeger, per scherm geschikt */
@@ -59,7 +63,7 @@
 .playbtn.on .pb-ico{color:var(--brass-ink)}
 
 /* instellingen als dialoogvenster */
-dialog.sheet{border:1px solid var(--line-strong);border-radius:14px;padding:18px 20px 22px;width:min(520px, calc(100vw - 32px));background:var(--surface);color:var(--ink)}
+dialog.sheet{border:1px solid var(--line-strong);border-radius:14px;padding:18px 20px 22px;width:min(620px, calc(100vw - 32px));background:var(--surface);color:var(--ink)}
 dialog.sheet::backdrop{background:rgba(10,14,20,.45)}
 .sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .sheet-head h2{font-family:var(--f-display);font-size:24px;letter-spacing:0;text-transform:none;color:var(--ink)}

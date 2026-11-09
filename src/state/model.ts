@@ -1,7 +1,7 @@
 /** Het model van de toestand: wat er in de app gekozen is, en de acties die het veranderen. */
 import { chordsOf, scaleOf, type Chord, type ChordSize, type Destination, type ModeIndex } from '../core';
 import type { Lang } from '../i18n';
-import type { Timbre } from '../audio';
+import type { Mix, Timbre } from '../audio';
 import type { SaxKey } from '../instruments';
 
 export interface Position { root: number; mode: ModeIndex; degree: number }
@@ -24,6 +24,8 @@ export interface State extends Position {
   timbreFollows: boolean;
   /** Kleurthema: volgt het systeem, of vast licht of donker. */
   theme: Theme;
+  /** Mengpaneel: volume, links/rechts, stil en solo per kanaal. */
+  mix: Mix;
   /** Blue note (♭5) tonen in de toonladder en op het instrument. */
   showBlue: boolean;
   /** Pentatonisch tonen: de twee noten buiten de pentatonische ladder worden gedimd. */
@@ -39,7 +41,7 @@ export interface State extends Position {
   history: { path: PathEntry[]; focus: number }[];
 }
 
-export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue' | 'showPenta' | 'bpm' | 'saxKey' | 'timbreFollows' | 'theme'>>;
+export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue' | 'showPenta' | 'bpm' | 'saxKey' | 'timbreFollows' | 'theme' | 'mix'>>;
 
 export const BPM_MIN = 40, BPM_MAX = 220;
 /** Tempo binnen het bereik van de schuif; onzin (NaN, tekst) wordt het standaardtempo. */

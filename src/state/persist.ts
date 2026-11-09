@@ -1,6 +1,6 @@
 /** Bewaren in de browser (localStorage) en de begintoestand daaruit opbouwen. Onleesbare gegevens worden genegeerd. */
 import type { ChordSize } from '../core';
-import { TIMBRES } from '../audio';
+import { TIMBRES, validMix } from '../audio';
 import { MESSAGES } from '../i18n';
 import { SAX_KEYS } from '../instruments';
 import { clampBpm, type PathEntry, type State } from './model';
@@ -52,6 +52,7 @@ export function initial(): State {
     sound: p.sound !== false,
     timbreFollows: p.timbreFollows !== false,
     theme: p.theme === 'light' || p.theme === 'dark' ? p.theme : 'auto',
+    mix: validMix(p.mix),
     path: saved ?? [start],
   };
 }
@@ -59,7 +60,7 @@ export function initial(): State {
 /** Voorkeuren bewaren (alles behalve het schema en de huidige positie). */
 export function savePrefs(s: State) {
   try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: s.lang, namer: s.namer, size: s.size, sound: s.sound, instrument: s.instrument, timbre: s.timbre, meter: s.meter, showBlue: s.showBlue, showPenta: s.showPenta, bpm: s.bpm, saxKey: s.saxKey, timbreFollows: s.timbreFollows, theme: s.theme }));
+    localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: s.lang, namer: s.namer, size: s.size, sound: s.sound, instrument: s.instrument, timbre: s.timbre, meter: s.meter, showBlue: s.showBlue, showPenta: s.showPenta, bpm: s.bpm, saxKey: s.saxKey, timbreFollows: s.timbreFollows, theme: s.theme, mix: s.mix }));
   } catch { /* opslag niet beschikbaar: geen probleem */ }
 }
 

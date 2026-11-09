@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { DEFAULT_MIX } from '../audio';
 import { clampBpm, MAX_CHORDS, reducer, validChart, type State } from '.';
 
-const base: State = { root: 0, mode: 1, degree: 0, size: 3, lang: 'nl', namer: 'en', instrument: 'piano', saxKey: 'Eb', sound: false, timbre: 'piano', timbreFollows: true, theme: 'auto', showBlue: true, showPenta: false, meter: 4, bpm: 90, focus: 0, history: [], path: [{ root: 0, mode: 1, degree: 0, beats: 4, size: 3 }] };
+const base: State = { root: 0, mode: 1, degree: 0, size: 3, lang: 'nl', namer: 'en', instrument: 'piano', saxKey: 'Eb', sound: false, timbre: 'piano', timbreFollows: true, theme: 'auto', mix: DEFAULT_MIX, showBlue: true, showPenta: false, meter: 4, bpm: 90, focus: 0, history: [], path: [{ root: 0, mode: 1, degree: 0, beats: 4, size: 3 }] };
 
 describe('opgeslagen gegevens', () => {
   it('neemt een geldig schema over', () => {

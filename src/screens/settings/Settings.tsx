@@ -2,11 +2,12 @@ import { useEffect, useRef } from 'react';
 import { LANGS } from '../../i18n';
 import { NOTE_NAMERS } from '../../naming';
 import { useApp, type SettingsPatch, type Theme } from '../../state';
+import { Mixer } from './Mixer';
 
 const THEMES: Theme[] = ['auto', 'light', 'dark'];
 
 /**
- * Instellingen achter ⚙, als dialoogvenster: wat je één keer instelt (taal, nootnamen, geluid, thema).
+ * Instellingen achter ⚙, als dialoogvenster: wat je één keer instelt (taal, nootnamen, geluid, thema) en het mengpaneel.
  * Blue note en pentatonisch staan als chips bij de notenrij, drie- of vierklanken bij de akkoorden.
  */
 export function Settings({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -48,6 +49,7 @@ export function Settings({ open, onClose }: { open: boolean; onClose: () => void
             {THEMES.map((th) => <button key={th} type="button" aria-pressed={state.theme === th} onClick={() => set({ theme: th })}>{t.themes[th]}</button>)}
           </div>
         </div>
+        {state.sound && <Mixer />}
       </div>
     </dialog>
   );

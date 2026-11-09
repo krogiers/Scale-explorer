@@ -38,7 +38,7 @@ De loop zit in de gedeelde toestand (`state/loop.tsx`) en blijft lopen als je va
 | `src/instruments/` | Interface `InstrumentView` (`types.ts`) en het register (`index.ts`). Klavier, gitaar, en in `wind/` de blazers (sax, trompet, klarinet, dwarsfluit) met gedeelde greepkaarten. | Een component schrijven en in `INSTRUMENTS` zetten |
 | `src/state/` | `model` (toestand en acties), `reducer` (pure overgangen, ongedaan maken, klank volgt instrument), `persist` (bewaren in de browser), `store` (provider, speelt het geluid bij een klik, `usePlaying`) en `loop` (de gedeelde meespeelloop) | Een actie in `model.ts` en een geval in `reducer.ts` |
 | `src/ui/` | Gedeelde onderdelen voor de schermen: `Legend`, `Heading` (paneelkop met de uitleg achter ⓘ), `PlayButton` (▶ of ■ per naam), `Toast` (melding met Ongedaan maken), `chartLayout` (maten) en opmaak van teksten | |
-| `src/screens/` | Eén map per scherm, elk met zijn eigen componenten en CSS. `ladder/` (kwintencirkel, modus met de chips blue note en pentatonisch, modusladder, modi en bruggen), `akkoorden/` (akkoordenrij, volgende stap als Lijst, Netwerk of Sequenties, `chart/` het schema), `spelen/` (meespeelloop, schema als strook en het in- en uitklapbare instrument), `settings/` (dialoog met taal, nootnamen, geluid en thema) | Een paneel in de map van zijn scherm, en exporteren via `index.ts` |
+| `src/screens/` | Eén map per scherm, elk met zijn eigen componenten en CSS. `ladder/` (kwintencirkel, modus met de chips blue note en pentatonisch, modusladder, modi en bruggen), `akkoorden/` (akkoordenrij, volgende stap als Lijst, Netwerk of Sequenties, `chart/` het schema), `spelen/` (meespeelloop, schema als strook en het in- en uitklapbare instrument), `settings/` (dialoog met taal, nootnamen, geluid, thema en het mengpaneel) | Een paneel in de map van zijn scherm, en exporteren via `index.ts` |
 | `src/styles/` | `base.css` (kleuren, layout, knoppen), `overlays.css` (blue note, pentatonisch) en `index.css`, dat alle CSS in een vaste volgorde laadt | |
 
 Taal en nootnamen staan los van elkaar: de interface kan in het Nederlands staan met do re mi, of in het Engels met Nederlandse nootnamen.
@@ -311,6 +311,8 @@ De klank gebruikt echte opnames van piano, Rhodes, contrabas, strijkers, cello, 
 Elke klank heeft een eigen aanzet, uitklank en sterkte (`VOICES` in `src/audio/engine/voices.ts`). Strijkers zwellen aan in ongeveer 0,1 s, de vibrafoon klinkt lang na. De opnames duren maar 3 seconden. Voor de aangehouden klanken (strijkers, cello, orgel en de blazers) herhaalt een vast stuk van de opname zich daarom, met 0,1 s overvloeien, zolang het akkoord duurt.
 
 Daarbovenop komen een galm (convolutie met een gegenereerde zaalrespons) en kleine willekeurige verschillen in timing en aanslag.
+
+**Mengpaneel** (in ⚙ Instellingen, `src/audio/mix.ts`). Akkoorden, bas, drums en metronoom hebben elk een eigen kanaal: bus → schuiver → links/rechts (`StereoPannerNode`) → uitgang, met de galmzending na de schuiver. Galm en Totaal hebben alleen een schuiver. De schuiver gaat van 0 tot 100. 75 laat het geluid ongewijzigd, zodat de standaardinstelling klinkt zoals vroeger. De versterking is `(stand / 75)^2,5`: 100 is ongeveer +6 dB, 50 ongeveer −9 dB (half zo luid voor het oor) en 0 is stil. M zet een kanaal stil. S laat alleen de solokanalen klinken; stil wint van solo. Een wijziging glijdt in 20 ms naar de nieuwe waarde, zodat je zonder tikken kunt schuiven terwijl de loop speelt. Het mengpaneel wordt bewaard in `tln-prefs`.
 
 ## Techniek
 

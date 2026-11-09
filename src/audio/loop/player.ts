@@ -53,14 +53,20 @@ export class LoopPlayer {
   get running() { return this.stopTicker !== null; }
 
   start() {
-    const now = this.engine.now();
-    if (now == null || this.stopTicker !== null) return;
-    const o = this.getOptions();
-    this.nextTime = now + 0.15;
-    this.beat = o.countIn ? -o.meter : 0;
+    if (this.engine.now() == null || this.stopTicker !== null) return;
     takeOver('loop', this.halt);
-    this.stopTicker = startTicker(25, () => this.tick());
     loopState.running = true;
+    // eerst de opnames laten laden, anders klinken de eerste maten als synthesizer; wie intussen stopt, annuleert
+    let cancelled = false;
+    this.stopTicker = () => { cancelled = true; };
+    void this.engine.ready().then(() => {
+      const now = this.engine.now();
+      if (cancelled || now == null) return;
+      const o = this.getOptions();
+      this.nextTime = now + 0.15;
+      this.beat = o.countIn ? -o.meter : 0;
+      this.stopTicker = startTicker(25, () => this.tick());
+    });
   }
 
   /** Stoppen, ook als iets anders begint te spelen (dan roept de transport dit aan). */

@@ -15,6 +15,8 @@ export type Timbre = (typeof TIMBRES)[number];
 export interface AudioEngine {
   /** Speel noten direct, relatief ten opzichte van nu. */
   play(events: NoteEvent[]): void;
+  /** Ingelost als de opnames van de gekozen klank geladen zijn (start zo nodig de geluidskaart). */
+  ready(): Promise<void>;
   /** Klok van de geluidskaart in seconden (null als er geen geluid beschikbaar is). Start de klok zo nodig. */
   now(): number | null;
   /** Plan één noot op een absoluut tijdstip van die klok; vel is de sterkte (0 tot 1). */

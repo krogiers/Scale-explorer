@@ -35,6 +35,10 @@ export class SampledEngine implements AudioEngine {
   private noise: AudioBuffer | null = null;
   private banks = new Map<string, Bank>();
   private loading = false;
+  /** Ingelost zodra piano, Rhodes en bas gedecodeerd zijn. */
+  private base: Promise<void> | null = null;
+  /** Telt elke stopAll: zo weet een uitgesteld "speel" dat er intussen iets anders begonnen is. */
+  private gen = 0;
   private extra = new Map<string, Promise<void>>();
   private timbre: Timbre = 'piano';
 
@@ -62,6 +66,17 @@ export class SampledEngine implements AudioEngine {
     }
     glide(out.wet.gain, WET * channelGain(this.mix, 'reverb'));
     glide(out.master.gain, MASTER * channelGain(this.mix, 'master'));
+  }
+
+  /**
+   * Klaar om te spelen: de basisopnames en de gekozen klank zijn geladen (hoogstens 4 s wachten; daarna speelt de terugval).
+   * Zonder dit klinkt de allereerste klik als synthesizer, omdat de opnames pas bij die klik beginnen te laden.
+   */
+  ready(): Promise<void> {
+    const c = this.ensure();
+    if (!c) return Promise.resolve();
+    const all = Promise.all([this.base, this.loadExtra(c, this.timbre)]).then(() => undefined);
+    return Promise.race([all, new Promise<void>((r) => window.setTimeout(r, 4000))]);
   }
 
   now(): number | null {
@@ -131,6 +146,7 @@ export class SampledEngine implements AudioEngine {
   }
 
   stopAll() {
+    this.gen++;
     const c = this.ctx;
     const old = this.bus;
     if (!c || !old) return;
@@ -161,7 +177,8 @@ export class SampledEngine implements AudioEngine {
     if (this.loading) return;
     this.loading = true;
     void this.loadExtra(c, this.timbre);
-    await Promise.all(Object.entries(SAMPLES).map(([name, notes]) => this.decode(c, name, notes)));
+    this.base = Promise.all(Object.entries(SAMPLES).map(([name, notes]) => this.decode(c, name, notes))).then(() => undefined);
+    await this.base;
   }
 
   /** Laadt een extra klank één keer; mislukt het (bv. offline), dan blijft de synthesizer als terugval. */
@@ -189,7 +206,9 @@ export class SampledEngine implements AudioEngine {
     // een beetje menselijk: aanslag en timing variëren licht
     t = Math.max(c.currentTime, t + jitter(0.008));
     vel = Math.min(1, Math.max(0.1, vel * (1 + jitter(0.1))));
-    const bankName = part === 'bass' ? 'bass' : this.timbre;
+    // is de gekozen klank nog aan het laden (net gewisseld), speel dan intussen piano in plaats van de synthesizer
+    let bankName: string = part === 'bass' ? 'bass' : this.timbre;
+    if (!this.banks.has(bankName) && part === 'keys' && this.timbre !== 'synth') bankName = 'piano';
     const bank = this.banks.get(bankName);
     const hit = bank ? this.nearest(bank, midi) : null;
     if (this.timbre === 'synth' && part === 'keys') return synthNote(c, out, midi, t, dur, vel);
@@ -215,7 +234,11 @@ export class SampledEngine implements AudioEngine {
   play(events: NoteEvent[]) {
     const c = this.ensure();
     if (!c) return;
-    const t0 = c.currentTime + 0.03;
-    events.forEach(([m, at, d, part]) => this.noteAt(m, t0 + at, d, 0.8, part));
+    const gen = this.gen;
+    void this.ready().then(() => {
+      if (gen !== this.gen) return; // intussen gestopt of iets anders begonnen
+      const t0 = c.currentTime + 0.03;
+      events.forEach(([m, at, d, part]) => this.noteAt(m, t0 + at, d, 0.8, part));
+    });
   }
 }

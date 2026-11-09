@@ -3,11 +3,13 @@ import { fill } from '../../i18n';
 import { useApp } from '../../state';
 import { sharedText } from '../../ui';
 
+/** Eén bestemming: links het akkoord met de trap eronder, rechts de uitleg; in een smal vak staat de uitleg eronder.
+ * De uitleg breekt alleen tussen de stukjes ("nieuwe noot C♯" blijft samen). */
 function Target({ kind, chord, roman, why, to, strong }: { kind: 'dia' | 'bor' | 'piv'; chord: Chord; roman: string; why: string; to: Destination; strong?: boolean }) {
   const { dispatch, names } = useApp();
   return (
     <button type="button" className={`tgt ${kind}${strong ? ' s0' : ''}`} onClick={() => dispatch({ type: 'go', to })}>
-      <span className="tn">{names.chord(chord)}</span><span className="tr">{roman}</span><span className="tw">{why}</span>
+      <span className="tl"><span className="tn">{names.chord(chord)}</span><span className="tr">{roman}</span></span><span className="tw">{why.split(' · ').map((part, i, all) => <span key={i}>{i > 0 && ' '}<span className="tp">{part}{i < all.length - 1 && '\u00a0·'}</span></span>)}</span>
     </button>
   );
 }

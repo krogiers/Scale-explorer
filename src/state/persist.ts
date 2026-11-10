@@ -2,7 +2,7 @@
 import type { ChordSize } from '../core';
 import { TIMBRES, validMix } from '../audio';
 import { MESSAGES } from '../i18n';
-import { SAX_KEYS } from '../instruments';
+import { INSTRUMENTS } from '../instruments';
 import { clampBpm, type PathEntry, type State } from './model';
 
 const PREFS_KEY = 'tln-prefs';
@@ -30,6 +30,12 @@ function legacyLoopBpm(): unknown {
   try { return JSON.parse(localStorage.getItem('tln-loop') ?? '{}').bpm; } catch { return undefined; }
 }
 
+/** Het bewaarde instrument; vroeger was er één sax met een aparte stemming (B♭ = tenor, anders alt). */
+export function instrumentFrom(p: { instrument?: unknown; saxKey?: unknown }): string {
+  if (p.instrument === 'sax') return p.saxKey === 'Bb' ? 'tenorsax' : 'altsax';
+  return INSTRUMENTS.some((i) => i.id === p.instrument) ? (p.instrument as string) : 'piano';
+}
+
 export function initial(): State {
   const p = loadPrefs();
   const size: ChordSize = p.size === 4 ? 4 : 3;
@@ -37,7 +43,7 @@ export function initial(): State {
   const start: PathEntry = saved?.[saved.length - 1] ?? { root: 2, mode: 3, degree: 0, beats: 4, size }; // D Dorisch
   return {
     root: start.root, mode: start.mode, degree: start.degree,
-    timbre: p.timbre && TIMBRES.includes(p.timbre) ? p.timbre : 'piano',
+    timbre: (p.timbre as string) === 'sax' ? 'tenorsax' : p.timbre && TIMBRES.includes(p.timbre) ? p.timbre : 'piano',
     meter: p.meter === 3 ? 3 : 4,
     bpm: clampBpm(p.bpm ?? legacyLoopBpm()),
     showBlue: p.showBlue !== false,
@@ -47,10 +53,8 @@ export function initial(): State {
     history: [],
     lang: p.lang && p.lang in MESSAGES ? p.lang : 'nl',
     namer: typeof p.namer === 'string' ? p.namer : 'en',
-    instrument: typeof p.instrument === 'string' ? p.instrument : 'piano',
-    saxKey: p.saxKey && SAX_KEYS.includes(p.saxKey) ? p.saxKey : 'Eb',
+    instrument: instrumentFrom(p),
     sound: p.sound !== false,
-    timbreFollows: p.timbreFollows !== false,
     theme: p.theme === 'light' || p.theme === 'dark' ? p.theme : 'auto',
     mix: validMix(p.mix),
     path: saved ?? [start],
@@ -60,7 +64,7 @@ export function initial(): State {
 /** Voorkeuren bewaren (alles behalve het schema en de huidige positie). */
 export function savePrefs(s: State) {
   try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: s.lang, namer: s.namer, size: s.size, sound: s.sound, instrument: s.instrument, timbre: s.timbre, meter: s.meter, showBlue: s.showBlue, showPenta: s.showPenta, bpm: s.bpm, saxKey: s.saxKey, timbreFollows: s.timbreFollows, theme: s.theme, mix: s.mix }));
+    localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: s.lang, namer: s.namer, size: s.size, sound: s.sound, instrument: s.instrument, timbre: s.timbre, meter: s.meter, showBlue: s.showBlue, showPenta: s.showPenta, bpm: s.bpm, theme: s.theme, mix: s.mix }));
   } catch { /* opslag niet beschikbaar: geen probleem */ }
 }
 

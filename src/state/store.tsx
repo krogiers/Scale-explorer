@@ -2,7 +2,8 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useSyncExternalStore, type ReactNode } from 'react';
 import { chordsOf, pentatonic, scaleOf, type Chord, type Scale } from '../core';
 import { MESSAGES, type Messages } from '../i18n';
-import { makeNames, namerById, type Names } from '../naming';
+import { makeNames, namerById, readingFor, type Names } from '../naming';
+import { writtenShift } from '../instruments';
 import { audio, chordEvents, compareEvents, playing, playOnly, progressionEvents, scaleEvents, stopCurrent, subscribe } from '../audio';
 import { loopState } from '../audio/loop';
 import { chordOf, type Action, type State } from './model';
@@ -13,10 +14,20 @@ interface Ctx {
   state: State;
   dispatch: (a: Action) => void;
   t: Messages;
+  /** Namen in de toonaard van je instrument (B♭, E♭ of concert). */
   names: Names;
+  /** Namen in concert: voor wat al getransponeerd is (het instrument) en om de klinkende toon te tonen. */
+  concertNames: Names;
+  /** Halve tonen dat je partij boven concert staat (0 = concert). */
+  shift: number;
+  /** Je instrument met zijn toonaard, bv. "Tenorsax · B♭" of "Piano · C". */
+  instrumentLabel: string;
   scale: Scale;
   chords: Chord[];
+  /** Naam van een ladder zoals je ze leest, bv. "D Lydisch" voor concert C Lydisch op een B♭-instrument. */
   scaleLabel: (s: Scale) => string;
+  /** Naam van een ladder in concert. */
+  concertLabel: (s: Scale) => string;
   playScale: () => void;
   playPath: () => void;
   /** Speel een reeks akkoorden in het huidige tempo (bv. een sequentie, zonder ze in het schema te zetten); id = naam voor de ▶/■-knop. */
@@ -34,7 +45,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const latest = useRef(state);
   latest.current = state;
   const t = MESSAGES[state.lang];
-  const names = useMemo(() => makeNames(namerById(state.namer)), [state.namer]);
+  const shift = writtenShift(state.instrument);
+  const names = useMemo(() => makeNames(namerById(state.namer), readingFor(shift)), [state.namer, shift]);
+  const concertNames = useMemo(() => makeNames(namerById(state.namer)), [state.namer]);
   const scale = scaleOf(state.root, state.mode);
   const chords = useMemo(() => chordsOf(scale, state.size), [scale, state.size]);
 
@@ -42,7 +55,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     savePrefs(state);
     document.documentElement.lang = state.lang;
     document.title = t.title;
-  }, [state.lang, state.namer, state.size, state.sound, state.instrument, state.timbre, state.meter, state.showBlue, state.showPenta, state.bpm, state.saxKey, state.timbreFollows, state.theme, state.mix, t.title]);
+  }, [state.lang, state.namer, state.size, state.sound, state.instrument, state.timbre, state.meter, state.showBlue, state.showPenta, state.bpm, state.theme, state.mix, t.title]);
 
   useEffect(() => {
     if (state.theme === 'auto') delete document.documentElement.dataset.theme;
@@ -72,15 +85,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     };
     return {
-      state, dispatch, t, names, scale, chords,
+      state, dispatch, t, names, concertNames, shift, scale, chords,
+      instrumentLabel: `${t.instruments[state.instrument] ?? state.instrument} · ${t.readingKeys[shift] ?? ''}`,
       scaleLabel: (s: Scale) => `${names.note(s.notes[0])} ${t.modes[s.mode]}`,
+      concertLabel: (s: Scale) => `${concertNames.note(s.notes[0])} ${t.modes[s.mode]}`,
       playScale: () => play(scaleEvents(scale, state.showPenta ? pentatonic(scale).notes : scale.notes), 'scale'),
       playPath: () => play(progressionEvents(state.path.map((p) => ({ chord: chordOf(p), beats: p.beats })), 60 / state.bpm), 'path'),
       playChords: (items, id) => play(progressionEvents(items, 60 / state.bpm), id),
       playCompare: (a, b, id) => play(compareEvents(a, b), id),
       playChord: () => play(chordEvents(chords[state.degree]), 'chord'),
     };
-  }, [state, t, names, scale, chords]);
+  }, [state, t, names, concertNames, shift, scale, chords]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

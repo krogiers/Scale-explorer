@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_MIX } from '../audio';
 import { clampBpm, MAX_CHORDS, reducer, validChart, type State } from '.';
 
-const base: State = { root: 0, mode: 1, degree: 0, size: 3, lang: 'nl', namer: 'en', instrument: 'piano', saxKey: 'Eb', sound: false, timbre: 'piano', timbreFollows: true, theme: 'auto', mix: DEFAULT_MIX, showBlue: true, showPenta: false, meter: 4, bpm: 90, focus: 0, history: [], path: [{ root: 0, mode: 1, degree: 0, beats: 4, size: 3 }] };
+const base: State = { root: 0, mode: 1, degree: 0, size: 3, lang: 'nl', namer: 'en', instrument: 'piano', sound: false, timbre: 'piano', theme: 'auto', mix: DEFAULT_MIX, showBlue: true, showPenta: false, meter: 4, bpm: 90, focus: 0, history: [], path: [{ root: 0, mode: 1, degree: 0, beats: 4, size: 3 }] };
 
 describe('opgeslagen gegevens', () => {
   it('neemt een geldig schema over', () => {
@@ -129,13 +129,23 @@ describe('akkoord verplaatsen', () => {
   });
 });
 
-describe('klank volgt instrument', () => {
-  it('kiest de klank van het instrument, tenzij dat uit staat', () => {
-    expect(reducer(base, { type: 'settings', patch: { instrument: 'trumpet' } }).timbre).toBe('trumpet');
-    expect(reducer({ ...base, timbreFollows: false }, { type: 'settings', patch: { instrument: 'trumpet' } }).timbre).toBe('piano');
-    expect(reducer({ ...base, instrument: 'sax', timbreFollows: false }, { type: 'settings', patch: { timbreFollows: true } }).timbre).toBe('sax');
+describe('je instrument en de klank staan los', () => {
+  it('een ander instrument verandert de klank niet', () => {
+    expect(reducer(base, { type: 'settings', patch: { instrument: 'tenorsax' } }).timbre).toBe('piano');
   });
-  it('een klank die je zelf kiest blijft staan', () => {
-    expect(reducer(base, { type: 'settings', patch: { timbre: 'strings' } }).timbre).toBe('strings');
+  it('een andere klank verandert het instrument niet', () => {
+    const s = reducer({ ...base, instrument: 'tenorsax' }, { type: 'settings', patch: { timbre: 'strings' } });
+    expect(s.timbre).toBe('strings');
+    expect(s.instrument).toBe('tenorsax');
+  });
+});
+
+describe('bewaarde voorkeuren van vroeger', () => {
+  it('de oude sax met stemming wordt tenor- of altsax', async () => {
+    const { instrumentFrom } = await import('./persist');
+    expect(instrumentFrom({ instrument: 'sax', saxKey: 'Bb' })).toBe('tenorsax');
+    expect(instrumentFrom({ instrument: 'sax', saxKey: 'Eb' })).toBe('altsax');
+    expect(instrumentFrom({ instrument: 'trumpet' })).toBe('trumpet');
+    expect(instrumentFrom({ instrument: 'onbekend' })).toBe('piano');
   });
 });

@@ -9,7 +9,10 @@ export const EXTRA: Partial<Record<Timbre, () => Promise<{ default: Record<numbe
   clarinet: () => import('../samples/clarinet'),
   trumpet: () => import('../samples/trumpet'),
   flute: () => import('../samples/flute'),
-  sax: () => import('../samples/sax'),
+  sopsax: () => import('../samples/sopsax'),
+  altsax: () => import('../samples/altsax'),
+  tenorsax: () => import('../samples/tenorsax'),
+  barisax: () => import('../samples/barisax'),
   guitar: () => import('../samples/guitar'),
 };
 
@@ -31,6 +34,10 @@ export const VOICES: Record<string, Voice> = {
   clarinet: { attack: 0.03, release: 0.2, level: 0.26, loop: [0.8, 2.9] },
   trumpet: { attack: 0.02, release: 0.15, level: 0.15, loop: [0.8, 2.9] },
   flute: { attack: 0.05, release: 0.25, level: 0.22, loop: [0.8, 2.9] },
-  sax: { attack: 0.03, release: 0.2, level: 0.27, loop: [0.8, 2.9], vibrato: [14, 5.2, 0.35] },
+  sopsax: { attack: 0.03, release: 0.2, level: 0.27, loop: [0.8, 2.9], vibrato: [14, 5.2, 0.35] },
+  altsax: { attack: 0.03, release: 0.2, level: 0.27, loop: [0.8, 2.9], vibrato: [14, 5.2, 0.35] },
+  tenorsax: { attack: 0.03, release: 0.2, level: 0.27, loop: [0.8, 2.9], vibrato: [14, 5.2, 0.35] },
+  // de baritonopnames duren maar 2 à 2,5 s: korter stuk om te herhalen
+  barisax: { attack: 0.03, release: 0.2, level: 0.27, loop: [0.5, 1.6], vibrato: [14, 5.2, 0.35] },
   guitar: { attack: 0, release: 0.3, level: 0.11 },
 };

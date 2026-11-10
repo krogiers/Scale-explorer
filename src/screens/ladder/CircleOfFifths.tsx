@@ -12,13 +12,17 @@ function sector(r1: number, r2: number, a1: number, a2: number) {
   return `M${x1} ${y1} A${r2} ${r2} 0 ${large} 1 ${x2} ${y2} L${x3} ${y3} A${r1} ${r1} 0 ${large} 0 ${x4} ${y4}Z`;
 }
 
-/** Kwintencirkel met de zeven gebruikte noten als boog. Langs de boog liggen de modi in volgorde van helder naar donker. */
+/**
+ * Kwintencirkel met de zeven gebruikte noten als boog. Langs de boog liggen de modi in volgorde van helder naar donker.
+ * Lees je in B♭ of E♭, dan draait de cirkel mee: jouw geschreven C staat bovenaan (de posities blijven concert).
+ */
 export function CircleOfFifths() {
-  const { state, dispatch, t, names, scale, chords } = useApp();
+  const { state, dispatch, t, names, concertNames, shift, scale, chords } = useApp();
   const start = fifthsIndex(scale.root) - scale.mode;
+  const rot = fifthsIndex(shift);
 
   const slots = Array.from({ length: 7 }, (_, j) => {
-    const f = start + j, pc = pcFromFifths(f), ang = f * 30;
+    const f = start + j, pc = pcFromFifths(f), ang = (f + rot) * 30;
     const chord = chords.find((c) => c.root.pc === pc);
     const selected = chord?.degree === state.degree;
     const [x, y] = polar(125, ang), [mx, my] = polar(80, ang);
@@ -39,12 +43,13 @@ export function CircleOfFifths() {
   });
 
   const outer = Array.from({ length: 12 }, (_, k) => {
-    const pc = pcFromFifths(k), [x, y] = polar(170, k * 30);
+    const pc = pcFromFifths(k), [x, y] = polar(170, (k + rot) * 30);
     const inScale = scale.pcs.has(pc), isRoot = pc === scale.root;
+    // F♯/G♭ is het vakje tegenover C zoals je leest: de geschreven toonklasse 6 (in concert namen, het is al geschreven)
     const label = inScale
       ? names.note(scale.notes.find((n) => n.pc === pc)!)
-      : pc === 6
-        ? `${names.note({ pc: 6, letter: 3, acc: 1 })}/${names.note({ pc: 6, letter: 4, acc: -1 })}`
+      : (pc + shift) % 12 === 6
+        ? `${concertNames.note({ pc: 6, letter: 3, acc: 1 })}/${concertNames.note({ pc: 6, letter: 4, acc: -1 })}`
         : names.note(scaleOf(pc, 1).notes[0]);
     const long = label.length > 4;
     return (
@@ -62,12 +67,12 @@ export function CircleOfFifths() {
     <svg viewBox="-200 -200 400 400" role="img" aria-label={t.circleTitle}>
       <circle r={185} fill="none" stroke="var(--line)" />
       <circle r={100} fill="none" stroke="var(--line)" strokeDasharray="2 4" />
-      <path className="arc" d={sector(100, 150, (start - 0.5) * 30, (start + 6.5) * 30)} />
+      <path className="arc" d={sector(100, 150, (start + rot - 0.5) * 30, (start + rot + 6.5) * 30)} />
       {slots}
       {outer}
       <text className="c-center-root" x={0} y={6} textAnchor="middle">{names.note(scale.notes[0])}</text>
       <text className="c-center-mode" x={0} y={28} textAnchor="middle">{t.modes[scale.mode]}</text>
-      <text className="c-center-sig" x={0} y={46} textAnchor="middle">{signatureLabel(scale, t)}</text>
+      <text className="c-center-sig" x={0} y={46} textAnchor="middle">{signatureLabel(names.signature(scale), t)}</text>
     </svg>
   );
 }

@@ -27,7 +27,7 @@ export function ModeGrid({ cur, naar, onPick }: { cur: Spot; naar: Spot | null; 
         return (
           <g key={k}>
             <text className="rl" x={LX - 30} y={y + 20}>{names.note(parent.notes[0])}</text>
-            <text className="rl sig" x={LX - 6} y={y + 20}>{signatureShort(parent)}</text>
+            <text className="rl sig" x={LX - 6} y={y + 20}>{signatureShort(names.signature(parent))}</text>
             {Array.from({ length: 7 }, (_, m) => {
               const s: Spot = { root: rootAt(k, m as ModeIndex), mode: m as ModeIndex };
               const d = diffCount(cur, s);

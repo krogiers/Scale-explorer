@@ -80,11 +80,10 @@ export function LoopControls() {
           </div>
         )}
         <div className="field"><label htmlFor="timbre">{t.timbre}</label>
-          <select id="timbre" value={state.timbre} onChange={(e) => dispatch({ type: 'settings', patch: { timbre: e.target.value as Timbre, timbreFollows: false } })}>
+          <select id="timbre" value={state.timbre} onChange={(e) => dispatch({ type: 'settings', patch: { timbre: e.target.value as Timbre } })}>
             {TIMBRES.map((k) => <option key={k} value={k}>{t.timbres[k]}</option>)}
           </select>
         </div>
-        <label className="check"><input id="follow" type="checkbox" checked={state.timbreFollows} onChange={(e) => dispatch({ type: 'settings', patch: { timbreFollows: e.target.checked } })} /> {t.timbreFollows}</label>
         {!drill && <label className="check"><input id="drums" type="checkbox" checked={opts.drums} onChange={(e) => set({ drums: e.target.checked })} /> {t.drums}</label>}
         <label className="check"><input id="metro" type="checkbox" checked={opts.metronome} onChange={(e) => set({ metronome: e.target.checked })} /> {t.metronome}</label>
         <label className="check"><input id="countin" type="checkbox" checked={opts.countIn} onChange={(e) => set({ countIn: e.target.checked })} /> {t.countIn}</label>

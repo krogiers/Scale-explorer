@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { LANGS } from '../../i18n';
+import { INSTRUMENTS } from '../../instruments';
 import { NOTE_NAMERS } from '../../naming';
 import { useApp, type SettingsPatch, type Theme } from '../../state';
 import { Mixer } from './Mixer';
@@ -7,7 +8,8 @@ import { Mixer } from './Mixer';
 const THEMES: Theme[] = ['auto', 'light', 'dark'];
 
 /**
- * Instellingen achter ⚙, als dialoogvenster: wat je één keer instelt (taal, nootnamen, geluid, thema) en het mengpaneel.
+ * Instellingen achter ⚙, als dialoogvenster: wat je één keer instelt (je instrument, taal, nootnamen, geluid, thema)
+ * en het mengpaneel. Je instrument staat bovenaan: het bepaalt in welke toonaard de hele app leest.
  * Blue note en pentatonisch staan als chips bij de notenrij, drie- of vierklanken bij de akkoorden.
  */
 export function Settings({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -28,6 +30,12 @@ export function Settings({ open, onClose }: { open: boolean; onClose: () => void
         <button type="button" className="ghost" onClick={onClose} aria-label={t.close}>✕</button>
       </div>
       <div className="settings">
+        <div className="field"><label htmlFor="myinstr">{t.myInstrument}</label>
+          <select id="myinstr" value={state.instrument} aria-describedby="myinstr-help" onChange={(e) => set({ instrument: e.target.value })}>
+            {INSTRUMENTS.map((i) => <option key={i.id} value={i.id}>{t.instruments[i.id]} ({t.readingKeys[i.transpose ?? 0]})</option>)}
+          </select>
+          <p id="myinstr-help" className="muted small">{t.myInstrumentHelp}</p>
+        </div>
         <div className="field"><span className="lbl">{t.lang}</span>
           <div className="seg" role="group">
             {LANGS.map((l) => <button key={l} type="button" aria-pressed={state.lang === l} onClick={() => set({ lang: l })}>{l.toUpperCase()}</button>)}

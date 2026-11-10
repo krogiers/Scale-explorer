@@ -2,7 +2,6 @@
 import { chordsOf, scaleOf, type Chord, type ChordSize, type Destination, type ModeIndex } from '../core';
 import type { Lang } from '../i18n';
 import type { Mix, Timbre } from '../audio';
-import type { SaxKey } from '../instruments';
 
 export interface Position { root: number; mode: ModeIndex; degree: number }
 /** Eén akkoord in het schema: waar het staat, hoeveel tellen het duurt en of het een drie- of vierklank is. */
@@ -15,13 +14,10 @@ export interface State extends Position {
   size: ChordSize;
   lang: Lang;
   namer: string;
+  /** Het instrument dat jij speelt: bepaalt in welke toonaard je alles leest en welke grepen je ziet (niet de klank). */
   instrument: string;
-  /** Stemming van de sax: concert, E♭ (alt, bariton) of B♭ (sopraan, tenor). */
-  saxKey: SaxKey;
   sound: boolean;
   timbre: Timbre;
-  /** Klank volgt instrument: kies je Trompet, dan speelt ook de trompetklank. */
-  timbreFollows: boolean;
   /** Kleurthema: volgt het systeem, of vast licht of donker. */
   theme: Theme;
   /** Mengpaneel: volume, links/rechts, stil en solo per kanaal. */
@@ -41,7 +37,7 @@ export interface State extends Position {
   history: { path: PathEntry[]; focus: number }[];
 }
 
-export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue' | 'showPenta' | 'bpm' | 'saxKey' | 'timbreFollows' | 'theme' | 'mix'>>;
+export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue' | 'showPenta' | 'bpm' | 'theme' | 'mix'>>;
 
 export const BPM_MIN = 40, BPM_MAX = 220;
 /** Tempo binnen het bereik van de schuif; onzin (NaN, tekst) wordt het standaardtempo. */

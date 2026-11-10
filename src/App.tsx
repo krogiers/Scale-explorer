@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { scaleOf } from './core';
 import { AppProvider, chordOf, LoopProvider, practiceAt, useApp, useLoop } from './state';
+import { fill } from './i18n';
 import { PlayButton, Toaster } from './ui';
 import { LadderScreen } from './screens/ladder';
 import { AkkoordenScreen } from './screens/akkoorden';
@@ -64,7 +65,9 @@ function LoopPill({ onOpen }: { onOpen: () => void }) {
 
 /** Bovenbalk met de schermen, de huidige ladder en het akkoord (overal zichtbaar), en ⚙. */
 function Layout() {
-  const { state, t, names, scale, chords, scaleLabel, playChord } = useApp();
+  const { state, t, names, concertNames, shift, scale, chords, scaleLabel, playChord, instrumentLabel } = useApp();
+  // concert C en hoe jij die leest, voor de uitleg bij het label
+  const C = { pc: 0, letter: 0, acc: 0 };
   const [screen, go] = useScreen();
   const [settings, setSettings] = useState(false);
 
@@ -102,6 +105,9 @@ function Layout() {
           </nav>
           {screen !== 'spelen' && <LoopPill onOpen={() => go('spelen')} />}
           <div className="ctx">
+            {/* je instrument en de toonaard waarin je leest; een klik opent de instellingen om het te wijzigen */}
+            <button type="button" className="reading" onClick={() => setSettings(true)}
+              title={shift ? fill(t.readingTip, { key: t.readingKeys[shift] ?? '', w: names.note(C), c: concertNames.note(C) }) : t.myInstrumentHelp}>{instrumentLabel}</button>
             <button type="button" className="ctx-scale" onClick={() => go('ladder')}>{scaleLabel(scale)}</button>
             <span aria-hidden="true">·</span>
             <b>{names.chord(chords[state.degree])}</b>

@@ -13,6 +13,9 @@
 .lp-stop{border-right:1px solid var(--brass) !important}
 .loop-pill + .ctx{margin-left:0}
 .ctx{margin-left:auto;display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
+/* je instrument en de toonaard waarin je leest (bovenbalk); klik = instellingen */
+.reading{font:inherit;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--brass);color:var(--brass-ink);background:var(--brass-soft);cursor:pointer;white-space:nowrap}
+.reading:hover{border-color:var(--ink)}
 .ctx-scale{border:0;background:none;padding:4px 2px;font-weight:600;cursor:pointer;color:var(--ink);text-decoration:underline dotted var(--line-strong);text-underline-offset:4px}
 .ctx b{font-family:var(--f-display);font-size:18px}
 .ctx-play{min-width:34px;padding:4px 8px}

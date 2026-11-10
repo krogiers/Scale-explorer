@@ -9,7 +9,7 @@ export type Part = 'bass' | 'keys';
 export type Drum = 'kick' | 'snare' | 'hat' | 'pedal' | 'ride' | 'rim';
 /** [MIDI-noot, start in seconden vanaf nu, duur in seconden, partij] */
 export type NoteEvent = [midi: number, at: number, duration: number, part?: Part];
-export const TIMBRES = ['piano', 'rhodes', 'synth', 'strings', 'cello', 'organ', 'vibes', 'clarinet', 'trumpet', 'flute', 'sax', 'guitar'] as const;
+export const TIMBRES = ['piano', 'rhodes', 'synth', 'strings', 'cello', 'organ', 'vibes', 'clarinet', 'trumpet', 'flute', 'sopsax', 'altsax', 'tenorsax', 'barisax', 'guitar'] as const;
 export type Timbre = (typeof TIMBRES)[number];
 
 export interface AudioEngine {

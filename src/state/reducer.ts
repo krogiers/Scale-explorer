@@ -1,8 +1,6 @@
 /** De reducer: pure overgangen van de toestand, met ongedaan maken voor het schema. */
 import { scaleOf } from '../core';
-import { TIMBRES } from '../audio';
-import { instrumentById } from '../instruments';
-import { clampBpm, type Action, type PathEntry, type State, type Timbre } from './model';
+import { clampBpm, type Action, type PathEntry, type State } from './model';
 
 const entry = (s: State): PathEntry => ({ root: s.root, mode: s.mode, degree: s.degree, beats: s.meter, size: s.size });
 export const MAX_CHORDS = 64;
@@ -87,11 +85,8 @@ export function reducer(s: State, a: Action): State {
       return { ...atEntry(s, prev.path[focus], focus), path: prev.path, history: s.history.slice(0, -1) };
     }
     case 'settings': {
-      const next = { ...s, ...a.patch, ...(a.patch.bpm !== undefined && { bpm: clampBpm(a.patch.bpm) }) };
-      // klank volgt instrument: bij een ander instrument (of als je het aanzet) de klank die erbij hoort
-      const follow = (a.patch.instrument !== undefined || a.patch.timbreFollows === true) && next.timbreFollows && a.patch.timbre === undefined;
-      const own = instrumentById(next.instrument).timbre;
-      return follow && own && (TIMBRES as readonly string[]).includes(own) ? { ...next, timbre: own as Timbre } : next;
+      // je instrument en de klank staan los van elkaar: het een verandert het ander niet
+      return { ...s, ...a.patch, ...(a.patch.bpm !== undefined && { bpm: clampBpm(a.patch.bpm) }) };
     }
   }
 }

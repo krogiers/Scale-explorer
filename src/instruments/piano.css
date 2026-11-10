@@ -9,3 +9,7 @@
 .k-lbl.on-b{fill:var(--key-white)}
 .k-lbl.on-ch{fill:#FFFFFF}
 .instrhead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+/* oefenmodus: brugnoot rood met een rand, de weggevallen noot hol en gestreept */
+.k-dot.br{fill:var(--hot);stroke:var(--surface);stroke-width:1.5}
+.k-dot.gone{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:2 1.5}
+.k-lbl.gone{fill:var(--muted);text-decoration:line-through;font-weight:400}

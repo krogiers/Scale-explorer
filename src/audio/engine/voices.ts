@@ -13,19 +13,24 @@ export const EXTRA: Partial<Record<Timbre, () => Promise<{ default: Record<numbe
   guitar: () => import('../samples/guitar'),
 };
 
-/** Hoe een klank aanzet en uitklinkt: aanzet en uitklank in seconden, sterkte, en het stuk [van, tot] dat zich herhaalt. */
-export interface Voice { attack: number; release: number; level: number; loop?: [number, number] }
+/**
+ * Hoe een klank aanzet en uitklinkt: aanzet en uitklank in seconden, sterkte, en het stuk [van, tot] dat zich herhaalt.
+ * vibrato = [diepte in cent, snelheid in Hz, na hoeveel seconden het begint]: zoals een blazer, pas op een aangehouden noot.
+ */
+export interface Voice { attack: number; release: number; level: number; loop?: [number, number]; vibrato?: [number, number, number] }
 export const VOICES: Record<string, Voice> = {
-  piano: { attack: 0, release: 0.35, level: 0.55 },
+  // sterktes van de nieuwe opnames (Salamander, VSCO 2, Shinyguitar, MTG) zo gekozen dat de mix klinkt zoals met FluidR3:
+  // de vorige sterkte × het gemeten luidheidsverschil (mediaan over de noten)
+  piano: { attack: 0, release: 0.35, level: 0.062 },
   rhodes: { attack: 0, release: 0.35, level: 0.55 },
-  bass: { attack: 0, release: 0.12, level: 1.1 },
+  bass: { attack: 0, release: 0.12, level: 0.31 },
   strings: { attack: 0.12, release: 0.6, level: 0.5, loop: [0.8, 2.9] },
   cello: { attack: 0.08, release: 0.45, level: 0.6, loop: [0.8, 2.9] },
   organ: { attack: 0.015, release: 0.12, level: 0.4, loop: [0.2, 0.9] },
   vibes: { attack: 0, release: 0.8, level: 0.6 },
-  clarinet: { attack: 0.03, release: 0.2, level: 0.45, loop: [0.8, 2.9] },
-  trumpet: { attack: 0.02, release: 0.15, level: 0.55, loop: [0.8, 2.9] },
-  flute: { attack: 0.05, release: 0.25, level: 0.5, loop: [0.8, 2.9] },
-  sax: { attack: 0.03, release: 0.2, level: 0.5, loop: [0.8, 2.9] },
-  guitar: { attack: 0, release: 0.3, level: 0.7 },
+  clarinet: { attack: 0.03, release: 0.2, level: 0.26, loop: [0.8, 2.9] },
+  trumpet: { attack: 0.02, release: 0.15, level: 0.15, loop: [0.8, 2.9] },
+  flute: { attack: 0.05, release: 0.25, level: 0.22, loop: [0.8, 2.9] },
+  sax: { attack: 0.03, release: 0.2, level: 0.27, loop: [0.8, 2.9], vibrato: [14, 5.2, 0.35] },
+  guitar: { attack: 0, release: 0.3, level: 0.11 },
 };

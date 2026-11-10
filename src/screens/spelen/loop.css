@@ -18,3 +18,5 @@
 .beats i.on{background:var(--brass)}
 .pc.playing{background:var(--brass);border-color:var(--brass);color:var(--surface)}
 .pc.playing .k{color:var(--surface)}
+/* oefenmodus: de brugnoot in de notenrij */
+.loop-now .hot{color:var(--hot);font-weight:700}

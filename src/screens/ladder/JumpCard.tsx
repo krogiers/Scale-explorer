@@ -1,6 +1,6 @@
-import { bridge, CHAR_CHORD_DEGREE, chordsOf, pickPair, romanNumeral, route, scaleOf, type Chord, type ModeIndex, type Spot } from '../../core';
+import { bridge, CHAR_CHORD_DEGREE, CHAR_DEGREE, chordsOf, pickPair, romanNumeral, route, scaleOf, type Chord, type ModeIndex, type Spot } from '../../core';
 import { fill } from '../../i18n';
-import { useApp } from '../../state';
+import { useApp, useLoop } from '../../state';
 import { PlayButton, showToast } from '../../ui';
 
 /** Een akkoord met de ladder waar het bij hoort (voor het schema: elk akkoord is een trap van een modus). */
@@ -10,9 +10,16 @@ interface Step { chord: Chord; at: Spot }
  * Sprongkaart: hoe kom je van "cur" naar "naar"? Eén noot verschil: brug, sprong en wat wegvalt.
  * Zelfde noten: alleen een nieuw thuis. Verder weg: de kortste route, stap voor stap.
  * Zonder "naar": het thuis en de kleur van waar je bent, en de bruggen naar de twee buurmodi.
+ * Bij een brugakkoord staat zijn rol in beide modi (vi→ii): dezelfde noten, een andere functie.
+ * "Hoor het verschil" speelt beide ladders boven een orgelpunt, en wisselt daarna de veranderde noot af.
+ * "Oefen deze brug" start de oefenmodus (drone, de modus wisselt om de paar maten) en gaat naar Spelen.
  */
 export function JumpCard({ cur, naar, onGo }: { cur: Spot; naar: Spot | null; onGo: () => void }) {
-  const { state, dispatch, t, names, scaleLabel, playChords } = useApp();
+  const { state, dispatch, t, names, scaleLabel, playChords, playCompare } = useApp();
+  const { startPractice } = useLoop();
+  // App luistert naar de hash: zo komen we op Spelen zonder dat schermen elkaar kennen
+  const practise = (b: Spot) => { startPractice(cur, b); location.hash = 'spelen'; };
+  const practiseBtn = (b: Spot) => <button type="button" className="ghost" title={t.jPracticeTip} onClick={() => practise(b)}>{t.jPractice}</button>;
   const size = state.size;
   const label = (s: Spot) => scaleLabel(scaleOf(s.root, s.mode));
   const here = chordsOf(scaleOf(cur.root, cur.mode), size);
@@ -22,21 +29,25 @@ export function JumpCard({ cur, naar, onGo }: { cur: Spot; naar: Spot | null; on
     </button>
   );
   const roman = (s: Spot, c: Chord) => romanNumeral(scaleOf(s.root, s.mode), c);
+  /** Rol van een akkoord in a en in b: "V→I" als die verandert, anders gewoon "V". */
+  const role = (a: Spot, b: Spot, c: Chord) => { const x = roman(a, c), y = roman(b, c); return x === y ? y : `${x}→${y}`; };
 
   if (!naar) {
     const neighbours = [cur.mode - 1, cur.mode + 1].filter((m) => m >= 0 && m < 7).map((m) => ({ root: cur.root, mode: m as ModeIndex }));
     const ch = here[CHAR_CHORD_DEGREE[cur.mode]];
+    const charNote = scaleOf(cur.root, cur.mode).notes[CHAR_DEGREE[cur.mode]];
     return (
       <div className="jump">
         <h3>{label(cur)}</h3>
-        <div className="bchips"><span className="lbl">{t.jHome}</span>{chip(here[0], 'ton', roman(cur, here[0]))}<span className="lbl">{t.jColour}</span>{chip(ch, 'nw', `${roman(cur, ch)} ★`)}</div>
+        <div className="bchips"><span className="lbl">{t.jHome}</span>{chip(here[0], 'ton', roman(cur, here[0]))}<span className="lbl">{t.jColour}</span><span className="cnote" title={t.jCharNote}>{names.note(charNote)}</span>{chip(ch, 'nw', `${roman(cur, ch)} ★`)}</div>
         {neighbours.map((n) => {
           const br = bridge(cur, n, size);
           return (
             <div key={n.mode} className="bchips">
               <span className="lbl">{t.abbr[n.mode]}</span>
               <span className="small muted">{br.newNotes.map(names.note).join(' ')} · {t.jBridge}</span>
-              {br.shared.map((c) => chip(c, 'sh'))}
+              {br.shared.map((c) => chip(c, 'sh', role(cur, n, c)))}
+              {practiseBtn(n)}
             </div>
           );
         })}
@@ -47,6 +58,8 @@ export function JumpCard({ cur, naar, onGo }: { cur: Spot; naar: Spot | null; on
 
   const br = bridge(cur, naar, size);
   const n = br.newNotes.length;
+  const A = scaleOf(cur.root, cur.mode), B = scaleOf(naar.root, naar.mode);
+  const oldNotes = A.notes.filter((x) => !B.pcs.has(x.pc));
   const diff = n === 0 ? t.jSameNotes : fill(n === 1 ? t.jDiff1 : t.jDiffN, { n, notes: br.newNotes.map(names.note).join(', ') });
   let body;
   let seq: Step[];
@@ -55,13 +68,15 @@ export function JumpCard({ cur, naar, onGo }: { cur: Spot; naar: Spot | null; on
       <>
         <div className="bchips"><span className="lbl">{t.jNewHome}</span>{chip(br.tonic, 'ton', t.jTonic)}{chip(br.char, 'nw', `${t.jChar} ★`)}</div>
         <p className="muted small">{t.jSameChords}</p>
+        <div className="bchips"><span className="lbl">{t.jRoles}</span>{here.map((c) => chip(c, 'sh', role(cur, naar, c)))}</div>
       </>
     );
     seq = [{ chord: here[0], at: cur }, { chord: br.char, at: naar }, { chord: br.tonic, at: naar }];
   } else if (n === 1) {
     body = (
       <>
-        <div className="bchips"><span className="lbl">{t.jBridge}</span>{br.shared.map((c) => chip(c, 'sh', roman(naar, c)))}</div>
+        <p className="small jrule">{fill(t.jRule, { old: names.note(oldNotes[0]), new: names.note(br.newNotes[0]) })}</p>
+        <div className="bchips"><span className="lbl">{t.jBridge}</span>{br.shared.map((c) => chip(c, 'sh', role(cur, naar, c)))}</div>
         <div className="bchips"><span className="lbl">{t.jJump}</span>{br.fresh.map((c) => chip(c, 'nw', roman(naar, c) + (c.key === br.char.key ? ' ★' : '')))}</div>
         <div className="bchips"><span className="lbl">{t.jGone}</span>{br.gone.map((c) => chip(c, 'gn'))}</div>
       </>
@@ -74,7 +89,7 @@ export function JumpCard({ cur, naar, onGo }: { cur: Spot; naar: Spot | null; on
       <div key={i} className="bchips">
         <span className="lbl">{fill(t.jStep, { n: i + 1 })}</span>
         {s.pivot && s.signal
-          ? <>{chip(s.pivot, 'sh', t.jBridge)}<span className="muted">→</span>{chip(s.signal, 'nw', t.jJump)}<span className="small muted">{label(s.to)}</span></>
+          ? <>{chip(s.pivot, 'sh', `${t.jBridge} ${role(s.from, s.to, s.pivot)}`)}<span className="muted">→</span>{chip(s.signal, 'nw', t.jJump)}<span className="small muted">{label(s.to)}</span></>
           : <>{chip(s.bridge.tonic, 'ton', t.jHome)}<span className="small muted">{label(s.to)}, {t.jSameNotes}</span></>}
       </div>
     ));
@@ -93,6 +108,8 @@ export function JumpCard({ cur, naar, onGo }: { cur: Spot; naar: Spot | null; on
       <div className="acts">
         <PlayButton id="jump" label={seq.map((s) => names.chord(s.chord)).join(' → ')} className="ghost jplay"
           onPlay={() => playChords(seq.map((s) => ({ chord: s.chord, beats: 2 })), 'jump')} />
+        <PlayButton id="compare" label={t.jHear} className="ghost" onPlay={() => playCompare(A, B, 'compare')} />
+        {practiseBtn(naar)}
         <button type="button" className="ghost pri" onClick={onGo}>{fill(t.jGo, { scale: label(naar) })}</button>
         <button type="button" className="ghost" onClick={addToChart}>{t.jAdd}</button>
       </div>

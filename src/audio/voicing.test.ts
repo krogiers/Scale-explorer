@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { chordsOf, scaleOf } from '../core';
+import { compareEvents } from './events';
 import { progressionVoicings, voiceLead, voicing } from './voicing';
 
 const c7 = chordsOf(scaleOf(0, 1), 4); // C Ionisch, vierklanken
@@ -30,5 +31,20 @@ describe('liggingen', () => {
       expect(v[1]).toBeGreaterThanOrEqual(47);
       expect(v[1]).toBeLessThanOrEqual(59);
     }
+  });
+});
+
+describe('hoor het verschil', () => {
+  it('C Ionisch → C Lydisch: beide ladders, F en F♯ langer, en daarna F, F♯, F, F♯', () => {
+    const ev = compareEvents(scaleOf(0, 1), scaleOf(0, 0));
+    const long = ev.filter((e) => e[3] !== 'bass' && e[2] > 0.6 && e[0] >= 60 && e[0] < 72).map((e) => e[0] % 12);
+    expect(long.slice(0, 2)).toEqual([5, 6]);
+    const tail = ev.slice(-4).map((e) => e[0] % 12);
+    expect(tail).toEqual([5, 6, 5, 6]);
+    expect(ev.filter((e) => e[3] === 'bass').every((e) => e[0] === 36)).toBe(true);
+  });
+  it('relatief (zelfde noten): geen wisselnoten, de bas verschuift naar het nieuwe thuis', () => {
+    const ev = compareEvents(scaleOf(0, 1), scaleOf(9, 4)); // C Ionisch → A Aeolisch
+    expect(new Set(ev.filter((e) => e[3] === 'bass').map((e) => e[0]))).toEqual(new Set([36, 45]));
   });
 });

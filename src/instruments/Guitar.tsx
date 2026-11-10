@@ -8,8 +8,9 @@ const MARKERS = [3, 5, 7, 9];
 export function Guitar(v: InstrumentView) {
   const width = LEFT + FRETS * FW + 10, height = TOP + 5 * SH + 30;
   const blue = v.blue && !v.scale.has(v.blue.pc) ? v.blue : null;
+  const gone = (pc: number) => v.dropped?.find((x) => x.pc === pc && !v.scale.has(pc));
   const label = (pc: number) => {
-    const n = v.scaleNotes.find((x) => x.pc === pc) ?? (blue && blue.pc === pc ? blue : null);
+    const n = v.scaleNotes.find((x) => x.pc === pc) ?? (blue && blue.pc === pc ? blue : null) ?? gone(pc);
     return n ? v.names.note(n) : '';
   };
   const fretX = (f: number) => LEFT + f * FW;
@@ -28,14 +29,16 @@ export function Guitar(v: InstrumentView) {
         Array.from({ length: FRETS + 1 }, (_, f) => {
           const pc = (open + f) % 12;
           const isBlue = blue?.pc === pc;
-          if (!v.scale.has(pc) && !isBlue) return null;
+          const isGone = !!gone(pc);
+          if (!v.scale.has(pc) && !isBlue && !isGone) return null;
           const inChord = v.chord.has(pc), isRoot = pc === v.root, out = v.outside.has(pc) && !inChord;
-          const cls = isBlue ? 'gt-dot blue' : inChord ? 'gt-dot ch' : out ? 'gt-dot out' : pc === v.characteristic ? 'gt-dot char' : 'gt-dot';
+          const cls = isGone ? 'gt-dot gone' : isBlue ? 'gt-dot blue' : inChord ? 'gt-dot ch' : out ? 'gt-dot out' : pc === v.characteristic ? 'gt-dot char' : 'gt-dot';
           return (
             <g key={`${s}-${f}`}>
               <circle className={cls} cx={dotX(f)} cy={TOP + s * SH} r={isRoot ? 10 : 8.5} />
               {isRoot && <circle className="gt-root" cx={dotX(f)} cy={TOP + s * SH} r={10} />}
-              <text className={`gt-lbl${out ? ' out' : inChord || isBlue || pc === v.characteristic ? ' on' : ''}`} x={dotX(f)} y={TOP + s * SH + 3}>{label(pc)}</text>
+              {v.bridge?.has(pc) && <circle className="gt-br" cx={dotX(f)} cy={TOP + s * SH} r={isRoot ? 12.5 : 11} />}
+              <text className={`gt-lbl${isGone ? ' gone' : out ? ' out' : inChord || isBlue || pc === v.characteristic ? ' on' : ''}`} x={dotX(f)} y={TOP + s * SH + 3}>{label(pc)}</text>
             </g>
           );
         }),

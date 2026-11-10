@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useS
 import { chordsOf, pentatonic, scaleOf, type Chord, type Scale } from '../core';
 import { MESSAGES, type Messages } from '../i18n';
 import { makeNames, namerById, type Names } from '../naming';
-import { audio, chordEvents, playing, playOnly, progressionEvents, scaleEvents, stopCurrent, subscribe } from '../audio';
+import { audio, chordEvents, compareEvents, playing, playOnly, progressionEvents, scaleEvents, stopCurrent, subscribe } from '../audio';
 import { loopState } from '../audio/loop';
 import { chordOf, type Action, type State } from './model';
 import { initial, saveChart, savePrefs } from './persist';
@@ -21,6 +21,8 @@ interface Ctx {
   playPath: () => void;
   /** Speel een reeks akkoorden in het huidige tempo (bv. een sequentie, zonder ze in het schema te zetten); id = naam voor de ▶/■-knop. */
   playChords: (items: { chord: Chord; beats: number }[], id: string) => void;
+  /** Hoor het verschil tussen twee ladders (orgelpunt, beide ladders, de veranderde noot om beurten). */
+  playCompare: (a: Scale, b: Scale, id: string) => void;
   /** Speel het geselecteerde akkoord. */
   playChord: () => void;
 }
@@ -75,6 +77,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       playScale: () => play(scaleEvents(scale, state.showPenta ? pentatonic(scale).notes : scale.notes), 'scale'),
       playPath: () => play(progressionEvents(state.path.map((p) => ({ chord: chordOf(p), beats: p.beats })), 60 / state.bpm), 'path'),
       playChords: (items, id) => play(progressionEvents(items, 60 / state.bpm), id),
+      playCompare: (a, b, id) => play(compareEvents(a, b), id),
       playChord: () => play(chordEvents(chords[state.degree]), 'chord'),
     };
   }, [state, t, names, scale, chords]);

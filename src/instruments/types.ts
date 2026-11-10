@@ -16,6 +16,10 @@ export interface InstrumentView {
   blue: Note | null;
   /** Noten van de modus die buiten de pentatonische ladder vallen: gedimd tonen (leeg = alles normaal). */
   outside: Set<PitchClass>;
+  /** Oefenmodus: de brugnoten, nieuw ten opzichte van de andere modus (bv. F♯ als je van Ionisch naar Lydisch gaat). */
+  bridge?: Set<PitchClass>;
+  /** Oefenmodus: de noten van de andere modus die nu niet gelden (bv. F), gestreept erbij als geheugensteun. */
+  dropped?: Note[];
   names: Names;
   label: string;
 }

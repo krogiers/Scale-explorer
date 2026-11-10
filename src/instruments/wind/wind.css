@@ -9,3 +9,7 @@
 .sx-lbl{font-family:var(--f-body);font-size:12px;font-weight:600;fill:var(--ink);text-anchor:middle}
 .sx-lbl.root{fill:var(--brass)}
 .sx-tiny.on{fill:var(--ink);font-weight:600}
+/* oefenmodus: brugnoot met een rode rand, eronder de noot die ze vervangt, gestreept */
+.sx-card.br .sx-bg{stroke:var(--hot);stroke-width:2.5}
+.sx-card.br .sx-lbl{fill:var(--hot)}
+.sx-gone{font-family:var(--f-body);font-size:10px;fill:var(--muted);text-anchor:middle;text-decoration:line-through}

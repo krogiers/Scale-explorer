@@ -25,16 +25,21 @@ export const CW = 58;
 /** Rij greepkaarten van CW breed en h hoog; `draw` tekent de kleppen van één kaart vanaf x. */
 export function WindCards({ v, low, h, draw }: { v: InstrumentView; low: number; h: number; draw: (w: WindNote, x: number) => ReactNode }) {
   const notes = ascend(v, low);
+  // oefenmodus: onder een brugnoot staat gestreept de noot die ze vervangt (een halve toon ernaast, bv. F onder F♯)
+  const replaced = (pc: number) => v.bridge?.has(pc) ? v.dropped?.find((d) => Math.abs(((d.pc - pc + 18) % 12) - 6) === 1) : undefined;
+  const extra = v.dropped?.length ? 14 : 0;
   return (
-    <svg viewBox={`0 0 ${notes.length * CW} ${h + 22}`} role="img" aria-label={v.label}>
+    <svg viewBox={`0 0 ${notes.length * CW} ${h + 22 + extra}`} role="img" aria-label={v.label}>
       {notes.map((w, i) => {
         const x = i * CW;
         const pc = w.n.pc;
+        const old = replaced(pc);
         return (
-          <g key={i} className={`sx-card${v.chord.has(pc) ? ' ch' : ''}${pc === v.characteristic ? ' char' : ''}${v.outside.has(pc) ? ' out' : ''}`}>
+          <g key={i} className={`sx-card${v.chord.has(pc) ? ' ch' : ''}${pc === v.characteristic ? ' char' : ''}${v.outside.has(pc) ? ' out' : ''}${v.bridge?.has(pc) ? ' br' : ''}`}>
             <rect className="sx-bg" x={x + 2} y={2} width={CW - 4} height={h - 4} rx={8} />
             {draw(w, x)}
             <text className={`sx-lbl${pc === v.root ? ' root' : ''}`} x={x + CW / 2} y={h + 14}>{v.names.note(w.n)}</text>
+            {old && <text className="sx-gone" x={x + CW / 2} y={h + 28}>{v.names.note(old)}</text>}
           </g>
         );
       })}

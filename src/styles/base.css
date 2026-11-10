@@ -7,6 +7,8 @@
   /* line-strong: randen van wat klikbaar is (≥ 3:1, WCAG 1.4.11); brass-ink: gouden tekst op brass-soft (≥ 4,5:1) */
   --line-strong:#8A93A3; --brass-ink:#7A520E;
   --brass:#9E6A12; --brass-soft:#F4E7CD; --dia:#1C716B; --dia-soft:#DCEEEB; --bor:#76468A; --bor-soft:#EFE4F3;
+  /* hot: de brugnoot in de oefenmodus */
+  --hot:#C2452D;
   --key-white:#FFFFFF; --key-black:#1E2533; --key-line:#B9C0CC;
   --m0:#F6E7A6; --m1:#E9D58A; --m2:#C9C79A; --m3:#8FA9A6; --m4:#5E7F95; --m5:#3F5577; --m6:#2A2F55;
   --f-display:"Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
@@ -15,11 +17,11 @@
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0E131B; --surface:#161D28; --ink:#E6EAF0; --muted:#9AA4B4; --line:#2A3443; --line-strong:#64708A; --brass-ink:#E0AE52;
-  --brass:#E0AE52; --brass-soft:#3A2D15; --dia:#55C3B6; --dia-soft:#142F2C; --bor:#C69CDA; --bor-soft:#2D2137;
+  --brass:#E0AE52; --brass-soft:#3A2D15; --dia:#55C3B6; --dia-soft:#142F2C; --bor:#C69CDA; --bor-soft:#2D2137; --hot:#F0876A;
   --key-white:#E9ECF1; --key-black:#0B0F15; --key-line:#4A5566; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0E131B; --surface:#161D28; --ink:#E6EAF0; --muted:#9AA4B4; --line:#2A3443; --line-strong:#64708A; --brass-ink:#E0AE52;
-  --brass:#E0AE52; --brass-soft:#3A2D15; --dia:#55C3B6; --dia-soft:#142F2C; --bor:#C69CDA; --bor-soft:#2D2137;
+  --brass:#E0AE52; --brass-soft:#3A2D15; --dia:#55C3B6; --dia-soft:#142F2C; --bor:#C69CDA; --bor-soft:#2D2137; --hot:#F0876A;
   --key-white:#E9ECF1; --key-black:#0B0F15; --key-line:#4A5566; color-scheme:dark}
 
 *{box-sizing:border-box}

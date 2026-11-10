@@ -304,7 +304,25 @@ De drums (`planDrums` in `loop/grooves.ts`, klanken in `engine/drums.ts`) worden
 
 ## Klank
 
-De klank gebruikt echte opnames van piano, Rhodes, contrabas, strijkers, cello, orgel, vibrafoon, klarinet, trompet en dwarsfluit uit de FluidR3 GM-soundfont, via [midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts) (licentie: Creative Commons Naamsvermelding 3.0). Er is één opname per kleine terts; noten ertussen worden met een kleine toonhoogteverschuiving gemaakt. De opnames staan als base64 in `src/audio/samples/`, zodat de app ook als één bestand werkt. Piano, Rhodes en contrabas zitten in de app zelf. De andere klanken staan elk in een eigen bestand in `src/audio/samples/` (mono, 48 kbps, ongeveer 340 KB). Vite bouwt die als aparte stukken, die pas geladen worden wanneer iemand die klank kiest. De geluidskaart start pas bij de eerste klik. Daarom wacht het eerste geluid (een akkoord of de loop) tot de opnames van de gekozen klank geladen zijn, hoogstens 4 s (`ready()`). Wissel je van klank terwijl er iets speelt, dan speelt de piano mee tot de nieuwe klank geladen is. Alleen als het laden mislukt, speelt de synthesizer.
+De klank gebruikt echte opnames. Per klank de bron:
+
+| Klank | Bron | Licentie |
+|---|---|---|
+| Piano | [Salamander Grand Piano](https://github.com/sfzinstruments/SalamanderGrandPiano), Yamaha C5, Alexander Holm (aanslaglaag v8) | CC BY 3.0 |
+| Contrabas | [VSCO 2 Community Edition](https://github.com/sgossner/VSCO-2-CE), Versilian Studios: solo-contrabas pizzicato | CC0 |
+| Gitaar | [Karoryfer Shinyguitar](https://github.com/sfzinstruments/karoryfer.shinyguitar): elektrische archtop, aanslaglaag 3 van 4 | CC0 |
+| Trompet, dwarsfluit | VSCO 2: aangehouden noten met vibrato | CC0 |
+| Klarinet | VSCO 2: lange aangehouden noten, middelste laag | CC0 |
+| Sax | [MTG Solo Sax](https://github.com/sfzinstruments/MTG.SoloSax), Music Technology Group (UPF) via freesound, SFZ door kinwie: tenor, zachte laag | CC BY 4.0 |
+| Rhodes, strijkers, cello, orgel, vibrafoon | FluidR3 GM-soundfont via [midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts) | CC BY 3.0 |
+
+Gekozen na luistertests tegen FluidR3, met elke kandidaat even luid en met de aanzet, lus en galm van de app. Voor Rhodes bestaat geen goede vrije opname: de bekende sets (jRhodes) zijn niet-commercieel.
+
+**Hoe de opnames gemaakt zijn.** Er is één opname per kleine terts (FluidR3, Salamander, Shinyguitar), per hele toon (sax) of wat de bron heeft (VSCO 2, ongeveer per kleine of grote terts). Noten ertussen worden met een kleine toonhoogteverschuiving gemaakt. Elke nieuwe opname is mono gemaakt, de stilte vooraan is weg, en ze zijn even luid gemaakt. Daarna ingekort en uitgefaded (piano 4 s, gitaar 3,5 s, bas 3 s, blazers 3,2 s) en gecodeerd als mp3 van 64 kbps. De toonhoogte van elke opname is gemeten: blazers en gitaar zijn bijgestemd tot op enkele cent (bij de sax met de `tune` uit de SFZ), de piano houdt de rekstemming van de vleugel. Eén klarinetopname (F♯5) klonk een halve toon te laag en is weggelaten. VSCO 2 en VCSL noemen de middelste C "C3", Salamander en Shinyguitar "C4", en Sneakybass-bestanden heten een octaaf hoger dan ze klinken: daarom is de octaaf van elke opname nagemeten. De sterkte per klank (`level` in `VOICES`) is zo gekozen dat de mix klinkt zoals met FluidR3. Lange sax-noten krijgen een lichte vibrato van de app zelf (`vibrato` in `VOICES`: 14 cent, 5,2 Hz, vanaf 0,35 s, opkomend in 0,5 s); trompet en dwarsfluit hebben echte vibrato.
+
+**Bereik.** De opnames volgen het echte bereik van het instrument. Speelt de app daaronder (bv. een akkoord met de dwarsfluit, die pas bij C4 begint), dan wordt de laagste opname omlaag verschoven.
+
+De opnames staan als base64 in `src/audio/samples/`, zodat de app ook als één bestand werkt. Piano, Rhodes en contrabas zitten in de app zelf. De andere klanken staan elk in een eigen bestand in `src/audio/samples/` (mono; FluidR3 48 kbps en ongeveer 340 KB, de nieuwe opnames 64 kbps en 350 tot 700 KB). Vite bouwt die als aparte stukken, die pas geladen worden wanneer iemand die klank kiest. De geluidskaart start pas bij de eerste klik. Daarom wacht het eerste geluid (een akkoord of de loop) tot de opnames van de gekozen klank geladen zijn, hoogstens 4 s (`ready()`). Wissel je van klank terwijl er iets speelt, dan speelt de piano mee tot de nieuwe klank geladen is. Alleen als het laden mislukt, speelt de synthesizer.
 
 **Er speelt altijd maar één ding.** De loop, een toonladder, een progressie, een sequentie of een akkoord: wie begint, neemt over (`audio/transport.ts`). Wat er speelde, stopt. Een lopende loop stopt dus, en de knop springt terug naar Start. Daarvoor lopen alle noten via een bus. `stopAll` laat die bus in 40 ms uitdoven en stopt daarna ook de bronnen die nog gepland stonden. Klik je op een akkoord terwijl de loop speelt, dan klinkt er geen los akkoord: het akkoord komt in het schema en de loop speelt het mee.
 

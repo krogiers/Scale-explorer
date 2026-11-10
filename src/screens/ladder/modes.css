@@ -42,6 +42,8 @@
 .bchip.nw{border-left-color:var(--bor)} .bchip.nw:hover{background:var(--bor-soft)}
 .bchip.gn{opacity:.6;text-decoration:line-through;border-left-color:var(--line-strong)}
 .bchip.ton{border-left-color:var(--brass)} .bchip.ton:hover{background:var(--brass-soft)}
+.cnote{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 6px;border-radius:50%;background:var(--bor-soft);border:2px solid var(--bor);font-weight:700}
+.jrule{margin:0;padding:6px 10px;border-radius:8px;background:var(--bg);color:var(--ink)}
 .acts{display:flex;flex-wrap:wrap;gap:8px}
 .acts .pri{background:var(--brass);border-color:var(--brass);color:var(--surface);font-weight:600}
 .jplay span:last-child{white-space:normal;text-align:left}

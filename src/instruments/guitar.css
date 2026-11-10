@@ -12,3 +12,7 @@
 .kb svg{max-height:340px}
 .hscroll{overflow-x:auto}
 .hscroll svg{min-width:620px}
+/* oefenmodus: ring rond de brugnoot, de weggevallen noot hol en gestreept */
+.gt-br{fill:none;stroke:var(--hot);stroke-width:2.5}
+.gt-dot.gone{fill:var(--surface);stroke:var(--muted);stroke-width:1.2;stroke-dasharray:2 1.5}
+.gt-lbl.gone{fill:var(--muted);text-decoration:line-through;font-weight:400}

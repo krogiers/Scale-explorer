@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useApp } from '../../state';
+import { useApp, useLoop } from '../../state';
 import { Heading, Legend } from '../../ui';
 import { ChartStrip } from './ChartStrip';
 import { InstrumentPanel as Instrument } from './InstrumentPanel';
@@ -15,14 +15,16 @@ const FOLD_KEY = 'tln-instr';
  */
 function InstrumentPanel() {
   const { state, t } = useApp();
+  const { running, practice } = useLoop();
   const [open, setOpen] = useState(() => { try { return localStorage.getItem(FOLD_KEY) !== 'dicht'; } catch { return true; } });
   const toggle = () => {
     setOpen(!open);
     try { localStorage.setItem(FOLD_KEY, open ? 'dicht' : 'open'); } catch { /* geen opslag: dan maar niet onthouden */ }
   };
-  const items: Item[] = [['var(--dia)', t.lgScale, true], ['var(--brass)', t.lgChord], ['var(--bor)', t.lgChar, true]];
+  const items: Item[] = [['var(--dia)', t.lgScale, true], ['var(--brass)', running && practice ? t.lgDrone : t.lgChord], ['var(--bor)', t.lgChar, true]];
   if (state.showBlue) items.push(['var(--blue)', t.blue, true]);
   if (state.showPenta) items.push(['ring', t.lgPenta, true]);
+  if (running && practice) items.push(['var(--hot)', t.lgBridgeNote, true], ['ring', t.lgDropped, true]);
   return (
     <>
       <Instrument fold={{ open, toggle }} />

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { AppProvider, chordOf, LoopProvider, useApp, useLoop } from './state';
+import { scaleOf } from './core';
+import { AppProvider, chordOf, LoopProvider, practiceAt, useApp, useLoop } from './state';
 import { PlayButton, Toaster } from './ui';
 import { LadderScreen } from './screens/ladder';
 import { AkkoordenScreen } from './screens/akkoorden';
@@ -45,11 +46,13 @@ function useScreen(): [Screen, (s: Screen) => void] {
  * Een tik op de tekst brengt je naar Spelen.
  */
 function LoopPill({ onOpen }: { onOpen: () => void }) {
-  const { state, t, names } = useApp();
-  const { running, info, toggle } = useLoop();
+  const { state, t, names, scaleLabel } = useApp();
+  const { running, info, toggle, practice } = useLoop();
   if (!running) return null;
   const n = state.path.length;
+  const drill = practice && info && info.chord >= 0 ? practiceAt(practice, info).now : null;
   const text = !info ? t.loopTitle : info.chord < 0 ? `${t.countingIn} ${info.beat + 1}`
+    : drill ? scaleLabel(scaleOf(drill.root, drill.mode))
     : `${names.chord(chordOf(state.path[info.chord % n]))}${n > 1 ? ` → ${names.chord(chordOf(state.path[(info.chord + 1) % n]))}` : ''}`;
   return (
     <div className="loop-pill">

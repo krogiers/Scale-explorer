@@ -31,14 +31,14 @@ De loop zit in de gedeelde toestand (`state/loop.tsx`) en blijft lopen als je va
 
 | Map | Wat erin zit | Iets toevoegen |
 | --- | --- | --- |
-| `src/core/` | Theoriekern, zonder React, namen of taal. Rekent alleen met toonklassen 0 tot 11. `pitch` (noten), `scale` (modi, spelling), `chords` (akkoorden, trapnummers, functies), `colour` (blue note, pentatonisch), `navigation` (volgende stappen) en `sequences` (jazzsequenties). | Nieuwe toonladderfamilies (harmonisch en melodisch mineur) |
+| `src/core/` | Theoriekern, zonder React, namen of taal. Rekent alleen met toonklassen 0 tot 11. `pitch` (noten), `scale` (modi, spelling), `chords` (akkoorden, trapnummers, functies), `colour` (blue note, pentatonisch), `navigation` (volgende stappen) en `sequences` (progressies per stijl). | Nieuwe toonladderfamilies (harmonisch en melodisch mineur) |
 | `src/naming/` | Interface `NoteNamer`: Engels, do re mi, Nederlands | Eén object aan `NOTE_NAMERS` toevoegen |
 | `src/i18n/` | Interfacetaal: één woordenboek per taal (`nl.ts`, `en.ts`). TypeScript controleert dat elke taal alle sleutels heeft. | Een bestand `fr.ts` maken en in `index.ts` registreren |
 | `src/audio/` | Interface `AudioEngine` (`types.ts`). `engine/` is de motor: opnames (`sampler`), klankinstellingen (`voices`), `synth` en `drums`. `loop/` is de meespeelloop: `plan` (wat er per tel klinkt), `grooves` (ritmepatronen), `tones` (bastonen) en `player` (de klok). `events` bepaalt wat een akkoord, ladder of progressie speelt, `voicing` de stemvoering. De opnames staan in `samples/`. | Een klank: een bestand in `samples/` en een regel in `voices.ts`. Een groove: een patroon in `grooves.ts` |
 | `src/instruments/` | Interface `InstrumentView` (`types.ts`) en het register (`index.ts`). Klavier, gitaar, en in `wind/` de blazers (sax, trompet, klarinet, dwarsfluit) met gedeelde greepkaarten. | Een component schrijven en in `INSTRUMENTS` zetten |
 | `src/state/` | `model` (toestand en acties), `reducer` (pure overgangen, ongedaan maken), `persist` (bewaren in de browser), `store` (provider, speelt het geluid bij een klik, `usePlaying`) en `loop` (de gedeelde meespeelloop) | Een actie in `model.ts` en een geval in `reducer.ts` |
 | `src/ui/` | Gedeelde onderdelen voor de schermen: `Legend`, `Heading` (paneelkop met de uitleg achter ⓘ), `PlayButton` (▶ of ■ per naam), `Toast` (melding met Ongedaan maken), `chartLayout` (maten) en opmaak van teksten | |
-| `src/screens/` | Eén map per scherm, elk met zijn eigen componenten en CSS. `ladder/` (kwintencirkel, modus met de chips blue note en pentatonisch, modusladder, modi en bruggen), `akkoorden/` (akkoordenrij, volgende stap als Lijst, Netwerk of Sequenties, `chart/` het schema), `spelen/` (meespeelloop, schema als strook en het in- en uitklapbare instrument), `settings/` (dialoog met taal, nootnamen, geluid, thema en het mengpaneel) | Een paneel in de map van zijn scherm, en exporteren via `index.ts` |
+| `src/screens/` | Eén map per scherm, elk met zijn eigen componenten en CSS. `ladder/` (kwintencirkel, modus met de chips blue note en pentatonisch, modusladder, modi en bruggen), `akkoorden/` (akkoordenrij, volgende stap als Lijst, Netwerk of Progressies, `chart/` het schema), `spelen/` (meespeelloop, schema als strook en het in- en uitklapbare instrument), `settings/` (dialoog met taal, nootnamen, geluid, thema en het mengpaneel) | Een paneel in de map van zijn scherm, en exporteren via `index.ts` |
 | `src/styles/` | `base.css` (kleuren, layout, knoppen), `overlays.css` (blue note, pentatonisch) en `index.css`, dat alle CSS in een vaste volgorde laadt | |
 
 Taal en nootnamen staan los van elkaar: de interface kan in het Nederlands staan met do re mi, of in het Engels met Nederlandse nootnamen.
@@ -245,9 +245,9 @@ De blue note is de verlaagde kwint van de grondtoon: `blue = (r + 6) mod 12`. Hi
 
 De pentatonische ladder houdt vijf trappen van de modus over. De heldere modi (Lydisch, Ionisch, Mixolydisch) geven majeur-pentatonisch, trappen `{1, 2, 3, 5, 6}`. De donkere modi geven mineur-pentatonisch, trappen `{1, ♭3, 4, 5, ♭7}`; in Locrisch wordt dat `1 ♭3 4 ♭5 ♭7`. Op Locrisch na valt telkens de kenmerkende noot weg: daarom past één pentatonische ladder over meerdere buurmodi. Zet je hem aan in de instellingen, dan worden de twee overige noten gedimd (niet verborgen) in de toonladder en op het instrument, en speelt "Speel toonladder" alleen de vijf noten. Mineur-pentatonisch met de blue note erbij is de bluesladder.
 
-### 7d. Jazzsequenties
+### 7d. Progressies
 
-Een sequentie (`src/core/sequences.ts`) is een lijst van akkoorden, elk gegeven als (iv, modus, maten). Hier is iv het aantal halve tonen boven de tonica. Het akkoord is de eerste trap (vierklank) van die modus op grondtoon tonica + iv:
+Een progressie (`src/core/sequences.ts`) is een lijst van akkoorden, elk gegeven als (iv, modus, maten). Hier is iv het aantal halve tonen boven de tonica. Het akkoord is de eerste trap van die modus op grondtoon tonica + iv, als drieklank of vierklank (`size` per progressie):
 
 ```
 ii7   = I van Dorisch     op tonica + 2
@@ -256,9 +256,21 @@ Imaj7 = I van Ionisch     op tonica + 0
 ♭II7  = I van Mixolydisch op tonica + 1     (tritonussubstitutie)
 ```
 
-Zo hoort bij elk akkoord meteen de ladder die je erover speelt, en past elke sequentie zonder uitbreiding in het schema (`PathEntry` met trap 0). De tonica is de grondtoon van de huidige ladder. De duur is maten × maatsoort, minstens één tel. `numeralAt` geeft het trapnummer ten opzichte van de tonica (♭II, ♭III, ♭V, ♭VI, ♭VII voor de tussenliggende halve tonen).
+Zo hoort bij elk akkoord meteen de ladder die je erover speelt, en past elke progressie zonder uitbreiding in het schema (`PathEntry` met trap 0). De tonica is de grondtoon van de huidige ladder. De duur is maten × maatsoort, minstens één tel. `numeralAt` geeft het trapnummer ten opzichte van de tonica (♭II, ♭III, ♭V, ♭VI, ♭VII voor de tussenliggende halve tonen).
 
-Sommige akkoorden vragen een ladder die buiten de zeven modi valt: een V7 naar mineur (harmonisch mineur, alteratie) en een ♭II7 (lydisch dominant). Die zijn gemarkeerd als benadering (`approx`), en de app toont dan Mixolydisch.
+Sommige akkoorden vragen een ladder die buiten de zeven modi valt: een V7 naar mineur (harmonisch mineur, alteratie) een ♭II7 (lydisch dominant) en de V van de Andalusische cadens (Frygisch dominant). Die zijn gemarkeerd als benadering (`approx`), en de app toont dan Mixolydisch.
+
+Elke progressie heeft een **stijl** en een **soort** (`style`, `kind`). Het scherm toont ze per stijl, met bovenaan een keuze voor één stijl of alle:
+
+| Stijl | Akkoorden | Wat erin zit |
+|---|---|---|
+| Klassiek | drieklanken | de cadenssoorten: authentiek (V – I), plagaal (IV – I), half (eindigt op V), bedrieglijk (V – vi), volledig (I – IV – V – I), Picardische terts |
+| Jazz | vierklanken | ii – V – I in majeur en mineur, backdoor, tritonussubstitutie, twee turnarounds, kwintvalketen, rhythm changes, Coltrane changes |
+| Pop en rock | drieklanken | I – V – vi – IV, I – vi – IV – V, mineur-plagaal (iv – I), ♭VII – IV – I |
+| Blues | dominanten | basisblues en jazzblues (12 maten), bluescadens V7 – IV7 – I7 |
+| Modaal en Spaans | drieklanken | per modus een slot (Dorisch i – IV, Frygisch ♭II – i, Lydisch I – II, Mixolydisch ♭VII – I, Aeolisch ♭VI – ♭VII – i) en de Andalusische cadens |
+
+De soort is een label: een **cadens** is een slot (de akkoorden waarmee een zin landt), een **turnaround** brengt je terug naar het begin, een **reeks** herhaal je, een **vorm** is een heel schema. In de modale cadensen komen alle akkoorden uit de moederladder van het slotakkoord, en het voorlaatste akkoord draagt de kenmerkende noot van die modus. Zo hoor je de modus in het slot zelf.
 
 Invoegen (`insertPath`) zet de hele reeks in één stap op de cursor, of vervangt het schema. Eén keer ongedaan maken haalt de hele reeks weer weg.
 
@@ -317,7 +329,7 @@ Een tenorsaxofonist leest een B♭-partij, een pianist dezelfde muziek in concer
 Je instrument en de klank staan los van elkaar. Het instrument bepaalt wat je leest en welke grepen het instrumentpaneel toont; niets verandert de klank stiekem. Elke klank speelt in concert, dus ze klopt altijd met wat jij speelt.
 
 Er zijn twee klanken (in Instellingen; de akkoordklank ook bij de loop):
-- **Akkoordklank** (`compTimbre`, partij `keys`): elk akkoord, bij een klik, in de sequenties, het schema en de loop. Alleen instrumenten die akkoorden kunnen spelen (`COMP_TIMBRES`: piano, Rhodes, gitaar, orgel, vibrafoon, strijkers, synthesizer). Een blazer speelt één noot tegelijk; vier saxen in nauwe ligging klinken niet als een sax maar als een vage orgelklank.
+- **Akkoordklank** (`compTimbre`, partij `keys`): elk akkoord, bij een klik, in de progressies, het schema en de loop. Alleen instrumenten die akkoorden kunnen spelen (`COMP_TIMBRES`: piano, Rhodes, gitaar, orgel, vibrafoon, strijkers, synthesizer). Een blazer speelt één noot tegelijk; vier saxen in nauwe ligging klinken niet als een sax maar als een vage orgelklank.
 - **Melodieklank** (`leadTimbre`, partij `lead`): losse noten, dus de toonladder en de ladders van "Hoor het verschil" (het orgelpunt eronder is begeleiding en speelt in de akkoordklank). Elke klank mag, bv. je eigen instrument.
 
 De grondtoon onder een akkoord speelt altijd de contrabas (partij `bass`). Elke partij heeft een eigen kanaal in het mengpaneel.

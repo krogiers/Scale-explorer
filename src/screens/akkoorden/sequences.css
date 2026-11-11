@@ -1,5 +1,11 @@
-/* jazzsequenties: één rij per sequentie, uitklapbaar */
-.seqs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:8px 14px;align-items:start}
+/* progressies: per stijl een kopje, één rij per progressie, uitklapbaar */
+.seq-filter{flex-wrap:wrap;width:fit-content;max-width:100%;margin-bottom:var(--sp-3)}
+.seq-group+.seq-group{margin-top:var(--sp-4)}
+.seq-style{margin:0 0 var(--sp-2);font-size:13px;font-weight:600}
+.seq-style .muted{font-weight:400}
+.seq-kind{display:inline-block;font-family:var(--f-body);font-size:11px;line-height:1;padding:2px var(--sp-1);border-radius:4px;border:1px solid var(--line);color:var(--muted);margin-right:var(--sp-1);vertical-align:1px}
+.seq-kind.cadence{border-color:color-mix(in srgb, var(--brass) 50%, var(--line));color:var(--brass-ink)}
+.seqs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:var(--sp-2) var(--sp-3);align-items:start}
 .seq{border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 .seq.open{border-color:var(--line-strong)}
 .seq-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:6px 8px}

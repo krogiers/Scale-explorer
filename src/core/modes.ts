@@ -3,7 +3,7 @@
  * Een rij in dat rooster heeft dezelfde noten (relatief), een diagonaal dezelfde grondtoon (parallel),
  * en één rij verder is precies één noot anders. Zie README, "Modi en bruggen".
  */
-import { chordsOf, sharedNotes, type Chord, type ChordSize } from './chords';
+import { chordsOf, sharedNotes, type Chord, type ChordSize, type Quality } from './chords';
 import { fifthsIndex, mod12, pcFromFifths, type PitchClass } from './pitch';
 import { MAJOR, MODE_OFFSET, scaleOf, type ModeIndex } from './scale';
 
@@ -118,4 +118,29 @@ export function chordsOnRoot(root: PitchClass, size: ChordSize): MatrixRow[] {
   }
   return [...map.values()].sort((a, b) => a.modes[0] - b.modes[0] || a.modes[a.modes.length - 1] - b.modes[b.modes.length - 1]
     || fifthsIndex(a.chord.root.pc) - fifthsIndex(b.chord.root.pc));
+}
+
+/** Eén moederladder waarin een akkoord voorkomt: de kwintpositie en per modus (helder → donker) het akkoord daar. */
+export interface ChordHome { parent: number; modes: { spot: Spot; chord: Chord }[] }
+const TRIADS = new Set<Quality>(['maj', 'min', 'dim', 'aug']);
+
+/**
+ * Waar komt dit akkoord voor? Alle moederladders (♯ naar ♭) met de modi waarin het zit, het akkoord telkens gespeld
+ * zoals in die modus. Kerkmodi hebben alleen maj, min en dim (drieklanken) en maj7, 7, m7 en m7♭5 (vierklanken):
+ * aug, dim7 en m(maj7) komen nergens voor (die zitten in harmonisch of melodisch mineur).
+ * Een majeur- of mineurdrieklank zit in 3 moederladders, een m7 ook, een maj7 in 2, een 7 en een m7♭5 in 1.
+ */
+export function chordHomes(root: PitchClass, quality: Quality): ChordHome[] {
+  const size: ChordSize = TRIADS.has(quality) ? 3 : 4;
+  const homes: ChordHome[] = [];
+  for (let k = 0; k < 12; k++) {
+    const modes: ChordHome['modes'] = [];
+    for (let m = 0; m < 7; m++) {
+      const spot: Spot = { root: rootAt(k, m as ModeIndex), mode: m as ModeIndex };
+      const chord = chordsOf(scaleOf(spot.root, spot.mode), size).find((c) => c.root.pc === mod12(root) && c.quality === quality);
+      if (chord) modes.push({ spot, chord });
+    }
+    if (modes.length) homes.push({ parent: k, modes });
+  }
+  return homes.sort((a, b) => signedK(b.parent) - signedK(a.parent));
 }

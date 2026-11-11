@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { scaleOf, type ModeIndex, type Note } from '../core';
-import { makeNames, namerById, readingFor, transposeNote, writtenScale } from '.';
+import { makeNames, namerById, parseChord, readingFor, transposeNote, writtenScale } from '.';
 
 const en = namerById('en');
 const n = (pc: number, letter: number, acc: number): Note => ({ pc, letter, acc });
@@ -46,5 +46,37 @@ describe('lezen in de toonaard van je instrument', () => {
     expect(names.note(c.notes[0])).toBe('D');
     expect(names.signature(c)).toBe(2);
     expect(makeNames(en).note(c.notes[0])).toBe('C');
+  });
+});
+
+describe('een getypt akkoord lezen', () => {
+  const p = (s: string) => { const r = parseChord(s); return r && `${'CDEFGAB'[r.letter]}${r.acc}${r.quality}`; };
+  it('Engels, met ♯/♭ of #/b', () => {
+    expect(p('Cm7')).toBe('C0m7');
+    expect(p('F#m7b5')).toBe('F1m7b5');
+    expect(p('Bbmaj7')).toBe('B-1maj7');
+    expect(p('B♭7')).toBe('B-17');
+    expect(p('G')).toBe('G0maj');
+    expect(p(' e  m ')).toBe('E0min');
+  });
+  it('Nederlands en do re mi', () => {
+    expect(p('Bes7')).toBe('B-17');
+    expect(p('Fism7')).toBe('F1m7');
+    expect(p('Es')).toBe('E-1maj');
+    expect(p('Do-7')).toBe('C0m7');
+    expect(p('Solmaj7')).toBe('G0maj7');
+  });
+  it('schrijfwijzen van de soort; hoofdletter M is majeur', () => {
+    expect(p('CM7')).toBe('C0maj7');
+    expect(p('CΔ')).toBe('C0maj7');
+    expect(p('Cø')).toBe('C0m7b5');
+    expect(p('C°7')).toBe('C0dim7');
+    expect(p('C+')).toBe('C0aug');
+    expect(p('Cm(maj7)')).toBe('C0mM7');
+  });
+  it('onzin wordt niet gelezen', () => {
+    expect(p('')).toBeNull();
+    expect(p('H7')).toBeNull();
+    expect(p('Cm9')).toBeNull();
   });
 });

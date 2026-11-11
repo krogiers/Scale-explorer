@@ -34,7 +34,7 @@ export function LoopControls() {
           </div>
         </div>
       );
-    } else {
+    } else if (state.path.length > 0) {
       const p = state.path[info.chord % state.path.length];
       const s = scaleOf(p.root, p.mode);
       const c = chordOf(p);
@@ -58,7 +58,7 @@ export function LoopControls() {
   return (
     <div className="loop">
       <Heading title={drill ? fill(t.prTitle, { a: scaleLabel(scaleOf(drill.a.root, drill.a.mode)), b: scaleLabel(scaleOf(drill.b.root, drill.b.mode)) }) : t.loopTitle} help={drill ? t.prHelp : t.loopHelp}>
-        <button type="button" className={`loopbtn${running ? ' on' : ''}`} aria-pressed={running} onClick={toggle}>
+        <button type="button" className={`loopbtn${running ? ' on' : ''}`} aria-pressed={running} onClick={toggle} disabled={!running && state.path.length === 0}>
           {running ? '■ ' + t.loopStop : '▶ ' + t.loopStart}
         </button>
       </Heading>

@@ -1,0 +1,17 @@
+/* afstand tussen modi: tabel, donker = dichtbij, licht = ver; tussenruimtes uit de tokens */
+.dist{display:flex;flex-direction:column;gap:var(--sp-3)}
+.dist-wrap{overflow-x:auto}
+.dist-t{border-collapse:separate;border-spacing:3px;margin:0 auto}
+.dist-t th{font-size:12px;font-weight:600;white-space:nowrap;padding:2px 6px;color:var(--ink)}
+.dist-t thead th{text-align:center}
+.dist-t tbody th{text-align:right}
+.dist-t th.cur{color:var(--brass-ink);text-decoration:underline;text-decoration-color:var(--brass);text-underline-offset:3px}
+.dist-t td{padding:0;border-radius:6px}
+.dist-t td button{width:40px;height:34px;border:0;border-radius:6px;background:transparent;font:inherit;font-weight:600;color:var(--ink);cursor:pointer}
+.dist-t td.near button{color:var(--surface)}
+.dist-t td.line{outline:1px solid var(--brass);outline-offset:-1px}
+.dist-t td button:hover,.dist-t td button:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+.dist-t.keys td button{width:34px;height:30px}
+.dist-scale{display:flex;align-items:center;justify-content:center;gap:var(--sp-1);font-size:12px;color:var(--muted)}
+.dist-scale i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:24px;height:18px;border-radius:4px;color:var(--ink);font-size:11px}
+.dist-scale i:nth-of-type(-n+3){color:var(--surface)}

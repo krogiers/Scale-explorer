@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_MIX } from '../audio';
 import { clampBpm, MAX_CHORDS, reducer, validChart, type State } from '.';
 
-const base: State = { root: 0, mode: 1, degree: 0, size: 3, lang: 'nl', namer: 'en', instrument: 'piano', sound: false, timbre: 'piano', theme: 'auto', mix: DEFAULT_MIX, showBlue: true, showPenta: false, meter: 4, bpm: 90, focus: 0, history: [], path: [{ root: 0, mode: 1, degree: 0, beats: 4, size: 3 }] };
+const base: State = { root: 0, mode: 1, degree: 0, size: 3, lang: 'nl', namer: 'en', instrument: 'piano', sound: false, timbre: 'piano', theme: 'auto', mix: DEFAULT_MIX, showBlue: true, showPenta: false, meter: 4, bpm: 90, focus: 0, cursor: 1, history: [], path: [{ root: 0, mode: 1, degree: 0, beats: 4, size: 3 }] };
 
 describe('opgeslagen gegevens', () => {
   it('neemt een geldig schema over', () => {
@@ -19,7 +19,7 @@ describe('opgeslagen gegevens', () => {
     expect(validChart([{ root: 0, mode: 1, degree: 0, beats: 0 }])).toBeNull();
     expect(validChart([null])).toBeNull();
     expect(validChart('rommel')).toBeNull();
-    expect(validChart([])).toBeNull();
+    expect(validChart([])).toBeNull(); // een geïmporteerd schema moet iets bevatten; een leeg bewaard schema laadt apart
   });
   it('houdt het tempo binnen het bereik', () => {
     expect(clampBpm(120)).toBe(120);
@@ -31,59 +31,86 @@ describe('opgeslagen gegevens', () => {
   });
 });
 
+/** Kiezen en daarna toevoegen (zoals een dubbelklik of de + in de bovenbalk). */
+const pick = (s: State, degree: number) => reducer(reducer(s, { type: 'select', degree }), { type: 'add' });
+const degrees = (s: State) => s.path.map((p) => p.degree);
+
 describe('navigatie in de toestand', () => {
-  it('voegt gekozen akkoorden toe aan de progressie', () => {
-    const s = reducer(reducer(base, { type: 'select', degree: 5 }), { type: 'select', degree: 1 });
-    expect(s.path.map((p) => p.degree)).toEqual([0, 5, 1]);
+  it('kiezen verandert het schema niet', () => {
+    const s = reducer(reducer(base, { type: 'select', degree: 5 }), { type: 'go', to: { root: 7, mode: 1, degree: 4 } });
+    expect(s.path).toBe(base.path);
+    expect([s.root, s.degree]).toEqual([7, 4]);
+  });
+  it('toevoegen zet het gekozen akkoord op de cursor en schuift de cursor erachter', () => {
+    const s = pick(pick(base, 5), 1);
+    expect(degrees(s)).toEqual([0, 5, 1]);
+    expect([s.cursor, s.focus]).toEqual([3, 2]);
   });
   it('houdt bij een relatieve modus hetzelfde akkoord vast', () => {
     const s = reducer({ ...base, degree: 1 }, { type: 'relative', root: 2, mode: 3 }); // Dm in C -> D Dorisch
     expect(s.degree).toBe(0);
   });
   it('springt naar een akkoord in het schema zonder de rest te wissen', () => {
-    let s = reducer(base, { type: 'go', to: { root: 7, mode: 1, degree: 4 } });
-    s = reducer(s, { type: 'select', degree: 0 });
+    let s = reducer(reducer(base, { type: 'go', to: { root: 7, mode: 1, degree: 4 } }), { type: 'add' });
+    s = pick(s, 0);
     s = reducer(s, { type: 'focusPath', index: 1 });
     expect(s.path.length).toBe(3);
     expect([s.root, s.degree, s.focus]).toEqual([7, 4, 1]);
   });
   it('geeft nieuwe akkoorden een volle maat en laat de duur aanpassen', () => {
-    let s = reducer({ ...base, meter: 3 }, { type: 'select', degree: 3 });
+    let s = pick({ ...base, meter: 3 }, 3);
     expect(s.path[1].beats).toBe(3);
     s = reducer(s, { type: 'setBeats', index: 1, beats: 8 });
     expect(s.path[1].beats).toBe(8);
   });
-  it('verwijdert een akkoord maar nooit het laatste', () => {
-    let s = reducer(base, { type: 'select', degree: 3 });
+  it('verwijdert akkoorden, ook het laatste', () => {
+    let s = pick(base, 3);
     s = reducer(s, { type: 'removeAt', index: 0 });
-    expect(s.path.map((p) => p.degree)).toEqual([3]);
-    expect(reducer(s, { type: 'removeAt', index: 0 }).path.length).toBe(1);
+    expect(degrees(s)).toEqual([3]);
+    s = reducer(s, { type: 'removeAt', index: 0 });
+    expect(s.path).toEqual([]);
+    expect([s.focus, s.cursor]).toEqual([-1, 0]);
   });
-  it('voegt een akkoord in na het geselecteerde, niet achteraan', () => {
-    let s = reducer(base, { type: 'select', degree: 3 }); // C, F
-    s = reducer(s, { type: 'select', degree: 4 }); // C, F, G
+  it('de cursor bepaalt waar een akkoord komt; selecteren verplaatst hem niet', () => {
+    let s = pick(pick(base, 3), 4); // C F G, cursor achteraan
     s = reducer(s, { type: 'focusPath', index: 0 });
-    s = reducer(s, { type: 'select', degree: 5 }); // C, Am, F, G
-    expect(s.path.map((p) => p.degree)).toEqual([0, 5, 3, 4]);
-    expect(s.focus).toBe(1);
+    s = pick(s, 5);
+    expect(degrees(s)).toEqual([0, 3, 4, 5]);
+    s = reducer(s, { type: 'setCursor', index: 1 });
+    s = pick(s, 1); // tussen C en F
+    expect(degrees(s)).toEqual([0, 1, 3, 4, 5]);
+    expect([s.focus, s.cursor]).toEqual([1, 2]);
+    s = reducer(s, { type: 'setCursor', index: 0 });
+    expect(degrees(pick(s, 6))[0]).toBe(6);
+    expect(reducer(s, { type: 'setCursor', index: 99 }).cursor).toBe(5);
+  });
+  it('verwijderen vóór de cursor houdt de cursor op dezelfde plek in de muziek', () => {
+    let s = pick(pick(base, 3), 4); // C F G
+    s = reducer(s, { type: 'setCursor', index: 2 }); // tussen F en G
+    s = reducer(s, { type: 'removeAt', index: 0 }); // F G
+    expect(s.cursor).toBe(1);
   });
   it('voegt niets toe als het schema vol is', () => {
-    const full = { ...base, path: Array.from({ length: MAX_CHORDS }, (_, i) => ({ ...base.path[0], degree: i % 7 })), focus: 0 };
-    expect(reducer(full, { type: 'select', degree: 3 }).path).toHaveLength(MAX_CHORDS);
+    const full = { ...base, path: Array.from({ length: MAX_CHORDS }, (_, i) => ({ ...base.path[0], degree: i % 7 })), focus: 0, cursor: MAX_CHORDS };
+    expect(pick(full, 3).path).toHaveLength(MAX_CHORDS);
   });
-  it('maakt wijzigingen aan het schema ongedaan', () => {
-    let s = reducer(base, { type: 'select', degree: 3 });
+  it('leegmaken laat een leeg schema achter, en ongedaan maken zet alles terug', () => {
+    let s = pick(base, 3);
     s = reducer(s, { type: 'setBeats', index: 1, beats: 8 });
     s = reducer(s, { type: 'clearPath' });
-    expect(s.path).toHaveLength(1);
-    s = reducer(s, { type: 'undo' });
+    expect(s.path).toEqual([]);
+    expect([s.focus, s.cursor]).toEqual([-1, 0]);
+    s = pick(s, 2);
+    expect(degrees(s)).toEqual([2]);
+    s = reducer(reducer(s, { type: 'undo' }), { type: 'undo' });
     expect(s.path.map((p) => p.beats)).toEqual([4, 8]);
+    expect(s.cursor).toBe(2);
     s = reducer(reducer(s, { type: 'undo' }), { type: 'undo' });
     expect(s.path).toEqual(base.path);
     expect(reducer(s, { type: 'undo' })).toBe(s);
   });
   it('bewaart drie- of vierklank per akkoord', () => {
-    let s = reducer({ ...base, size: 4 }, { type: 'select', degree: 4 });
+    let s = pick({ ...base, size: 4 }, 4);
     expect(s.path.map((p) => p.size)).toEqual([3, 4]);
     s = reducer(s, { type: 'setSize', index: 0, size: 4 });
     expect(s.path[0].size).toBe(4);
@@ -94,14 +121,15 @@ describe('navigatie in de toestand', () => {
 
 describe('sequentie invoegen', () => {
   const seq = [{ root: 2, mode: 3 as const, degree: 0, beats: 4, size: 4 as const }, { root: 7, mode: 2 as const, degree: 0, beats: 4, size: 4 as const }];
-  it('voegt in na het geselecteerde akkoord en selecteert het eerste nieuwe', () => {
-    const s = reducer(base, { type: 'insertPath', entries: seq, replace: false });
-    expect(s.path.map((p) => p.root)).toEqual([0, 2, 7]);
-    expect([s.focus, s.root, s.mode]).toEqual([1, 2, 3]);
+  it('voegt in op de cursor, selecteert het eerste nieuwe en zet de cursor erachter', () => {
+    const s = reducer({ ...base, cursor: 0 }, { type: 'insertPath', entries: seq, replace: false });
+    expect(s.path.map((p) => p.root)).toEqual([2, 7, 0]);
+    expect([s.focus, s.root, s.mode, s.cursor]).toEqual([0, 2, 3, 2]);
   });
   it('vervangt het schema, en één keer ongedaan maken zet alles terug', () => {
     const s = reducer(base, { type: 'insertPath', entries: seq, replace: true });
     expect(s.path.map((p) => p.root)).toEqual([2, 7]);
+    expect(s.cursor).toBe(2);
     expect(reducer(s, { type: 'undo' }).path).toEqual(base.path);
   });
 });

@@ -81,6 +81,50 @@ export function writtenScale(s: Scale, r: Reading): Scale {
 }
 
 /** Namen voor de interface; met een Reading in de toonaard van je instrument. */
+/** Het achtervoegsel van een akkoordsoort, zoals de app het toont (m7, maj7, °7, …). */
+export const chordSuffix = (q: Quality) => CHORD_SUFFIX[q];
+
+/** Gangbare schrijfwijzen per akkoordsoort (hoofdletters tellen: M7 is maj7, m7 is mineur). */
+const QUALITY_ALIASES: [Quality, string[]][] = [
+  ['maj', ['', 'M', 'maj', 'major']],
+  ['min', ['m', 'min', 'mi', '-']],
+  ['dim', ['dim', '°', 'o']],
+  ['aug', ['aug', '+']],
+  ['maj7', ['maj7', 'M7', 'Maj7', 'ma7', 'Δ', 'Δ7', 'j7']],
+  ['7', ['7', 'dom7']],
+  ['m7', ['m7', 'min7', 'mi7', '-7']],
+  ['m7b5', ['m7b5', 'm7♭5', 'ø', 'ø7', '-7b5', 'min7b5', 'mi7b5']],
+  ['dim7', ['dim7', '°7', 'o7']],
+  ['mM7', ['mM7', 'm(maj7)', 'mmaj7', 'mMaj7', 'm(M7)', 'mΔ7', '-Δ7', 'minmaj7']],
+];
+const QUALITY_BY_TEXT = new Map(QUALITY_ALIASES.flatMap(([q, all]) => all.map((a) => [a, q] as const)));
+
+/** Alle manieren om een noot te schrijven: elk naamsysteem, plus # en b voor wie geen ♯ en ♭ typt. Langste eerst. */
+const NOTE_SPELLINGS: { text: string; letter: number; acc: number }[] = (() => {
+  const out: { text: string; letter: number; acc: number }[] = [];
+  for (let letter = 0; letter < 7; letter++) for (const acc of [-1, 0, 1]) {
+    for (const n of [english, solfege, dutch]) out.push({ text: n.name(letter, acc).toLowerCase(), letter, acc });
+    const b = 'cdefgab'[letter];
+    if (acc) out.push({ text: b + (acc > 0 ? '#' : 'b'), letter, acc });
+  }
+  return out.sort((a, b) => b.text.length - a.text.length);
+})();
+
+/**
+ * Een getypt akkoord lezen, bv. "Cm7", "F#m7b5", "Bbmaj7", "Bes7", "Do-7". Geeft de geschreven noot (letter en
+ * voorteken, zoals je leest) en de soort, of null als het geen akkoord is dat de app kent.
+ */
+export function parseChord(text: string): { letter: number; acc: number; quality: Quality } | null {
+  const t = text.trim().replace(/\s+/g, '');
+  if (!t) return null;
+  for (const n of NOTE_SPELLINGS) {
+    if (!t.toLowerCase().startsWith(n.text)) continue;
+    const q = QUALITY_BY_TEXT.get(t.slice(n.text.length));
+    if (q) return { letter: n.letter, acc: n.acc, quality: q };
+  }
+  return null;
+}
+
 export function makeNames(namer: NoteNamer, reading: Reading = CONCERT) {
   const note = (n: Note) => { const w = transposeNote(n, reading); return namer.name(w.letter, w.acc); };
   return {

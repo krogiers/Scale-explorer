@@ -21,3 +21,8 @@
 .c-center-root{font-family:var(--f-display);font-size:42px;font-weight:700;fill:var(--ink)}
 .c-center-mode{font-size:14px;fill:var(--ink)}
 .c-center-sig{font-size:12px;fill:var(--muted);font-family:var(--f-mono)}
+/* akkoorden rond de boog: klik = kiezen, dubbelklik = in het schema */
+.slot{cursor:pointer;outline:none}
+.slot-hit{fill:transparent}
+.slot:hover .slot-hit{fill:var(--brass-soft)}
+.slot:focus-visible .slot-hit{stroke:var(--ink);stroke-width:2}

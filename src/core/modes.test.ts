@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bridge, CHAR_CHORD_DEGREE, CHAR_DEGREE, chordsOf, chordsOnRoot, diffCount, parentOf, rootAt, route, scaleOf, type ModeIndex, type Spot } from '.';
+import { bridge, CHAR_CHORD_DEGREE, CHAR_DEGREE, chordHomes, chordsOf, chordsOnRoot, diffCount, parentOf, rootAt, route, scaleOf, type ModeIndex, type Spot } from '.';
 
 const all: Spot[] = Array.from({ length: 84 }, (_, i) => ({ root: i % 12, mode: Math.floor(i / 12) as ModeIndex }));
 
@@ -71,5 +71,29 @@ describe('brugmatrix', () => {
         expect(row.modes[row.modes.length - 1] - row.modes[0]).toBe(row.modes.length - 1);
       }
     }
+  });
+});
+
+describe('waar komt een akkoord voor', () => {
+  const parents = (h: ReturnType<typeof chordHomes>) => h.map((x) => scaleOf(rootAt(x.parent, 1), 1).notes[0].pc);
+  it('Cm7 zit in B♭, E♭ en A♭ majeur (van ♯ naar ♭), telkens in alle 7 modi', () => {
+    const h = chordHomes(0, 'm7');
+    expect(parents(h)).toEqual([10, 3, 8]);
+    expect(h.every((x) => x.modes.length === 7)).toBe(true);
+    const dorian = h[0].modes.find((m) => m.spot.root === 0)!;
+    expect([dorian.spot.mode, dorian.chord.degree]).toEqual([3, 0]); // C Dorisch, trap i
+  });
+  it('op grondtoon C: Dorisch, Aeolisch en Frygisch', () => {
+    const onC = chordHomes(0, 'm7').flatMap((x) => x.modes).filter((m) => m.spot.root === 0).map((m) => m.spot.mode).sort();
+    expect(onC).toEqual([3, 4, 5]);
+  });
+  it('aantal moederladders per soort', () => {
+    expect(chordHomes(7, '7')).toHaveLength(1); // G7 alleen in C majeur
+    expect(chordHomes(0, 'maj7')).toHaveLength(2); // Cmaj7 in C en G
+    expect(chordHomes(11, 'm7b5')).toHaveLength(1); // Bm7♭5 alleen in C
+    expect(chordHomes(0, 'maj')).toHaveLength(3); // C in C, G en F
+    expect(chordHomes(0, 'aug')).toEqual([]);
+    expect(chordHomes(0, 'dim7')).toEqual([]);
+    expect(chordHomes(0, 'mM7')).toEqual([]);
   });
 });

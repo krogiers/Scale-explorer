@@ -1,7 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- kwintencirkel met de gouden boog van zeven noten -->
+  <!-- loep met de kwintencirkel als lens: de gouden boog zijn de zeven noten van een ladder -->
   <rect width="64" height="64" rx="14" fill="#172033"/>
-  <circle cx="32" cy="32" r="21" fill="none" stroke="#5B6577" stroke-width="3"/>
-  <path d="M 13.8 21.5 A 21 21 0 0 1 45.1 48.4" fill="none" stroke="#E0AE52" stroke-width="8" stroke-linecap="round"/>
-  <circle cx="45.1" cy="15.6" r="5" fill="#E0AE52"/>
+  <line x1="40.5" y1="40.5" x2="52" y2="52" stroke="#E0AE52" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="27" cy="27" r="17" fill="#172033" stroke="#5B6577" stroke-width="3"/>
+  <path d="M 12.3 18.5 A 17 17 0 0 1 39 39" fill="none" stroke="#E0AE52" stroke-width="6.5" stroke-linecap="round"/>
+  <circle cx="27" cy="27" r="3.2" fill="#E0AE52"/>
 </svg>

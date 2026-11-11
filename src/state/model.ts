@@ -31,10 +31,12 @@ export interface State extends Position {
   /** Tempo in tellen per minuut, voor de loop en voor "Speel progressie". */
   bpm: number;
   path: PathEntry[];
-  /** Het akkoord in het schema dat nu geselecteerd is. */
+  /** Het akkoord in het schema dat nu geselecteerd is (om duur of drie-/vierklank aan te passen); -1 als het schema leeg is. */
   focus: number;
+  /** De cursor: de opening waar een nieuw akkoord komt, van 0 (vooraan) tot path.length (achteraan, standaard). */
+  cursor: number;
   /** Vorige versies van het schema, voor ongedaan maken (niet bewaard in de browser). */
-  history: { path: PathEntry[]; focus: number }[];
+  history: { path: PathEntry[]; focus: number; cursor: number }[];
 }
 
 export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue' | 'showPenta' | 'bpm' | 'theme' | 'mix'>>;
@@ -47,15 +49,21 @@ export type Action =
   | { type: 'setRoot'; root: number }
   | { type: 'setMode'; mode: ModeIndex }
   | { type: 'relative'; root: number; mode: ModeIndex }
+  /** Een akkoord kiezen (en horen); het schema verandert niet. */
   | { type: 'select'; degree: number }
+  /** Naar een akkoord in een andere ladder gaan (kiezen); het schema verandert niet. */
   | { type: 'go'; to: Destination }
+  /** Het gekozen akkoord in het schema zetten, op de cursor. */
+  | { type: 'add' }
+  /** De cursor op een opening zetten: 0 = vooraan, path.length = achteraan. */
+  | { type: 'setCursor'; index: number }
   | { type: 'focusPath'; index: number }
   | { type: 'setBeats'; index: number; beats: number }
   | { type: 'setSize'; index: number; size: ChordSize }
   | { type: 'undo' }
   | { type: 'removeAt'; index: number }
   | { type: 'clearPath' }
-  /** Een reeks akkoorden (bv. een sequentie) invoegen na het geselecteerde akkoord, of het schema ermee vervangen. */
+  /** Een reeks akkoorden (bv. een sequentie) invoegen op de cursor, of het schema ermee vervangen. */
   | { type: 'insertPath'; entries: PathEntry[]; replace: boolean }
   /** Akkoord `from` verplaatsen (of kopiëren) naar de opening `to`: 0 = vooraan, path.length = achteraan. */
   | { type: 'movePath'; from: number; to: number; copy: boolean }

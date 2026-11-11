@@ -3,6 +3,7 @@ import { fill } from '../../i18n';
 import { useApp } from '../../state';
 import { Heading, Legend } from '../../ui';
 import { Chart } from './chart/Chart';
+import { ChordLookup } from './ChordLookup';
 import { ChordNetwork } from './ChordNetwork';
 import { ChordRow } from './ChordRow';
 import { NextSteps } from './NextSteps';
@@ -71,6 +72,7 @@ export function AkkoordenScreen() {
       <section className="panel chartpanel">
         <Chart onShowSequences={() => { setView('sequences'); document.getElementById('volgende-stap')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} />
       </section>
+      <section className="panel wide"><ChordLookup /></section>
     </div>
   );
 }

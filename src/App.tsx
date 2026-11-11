@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { scaleOf } from './core';
 import { AppProvider, chordOf, LoopProvider, practiceAt, useApp, useLoop } from './state';
 import { fill } from './i18n';
-import { PlayButton, Toaster } from './ui';
+import { PlayButton, Toaster, useChordPick } from './ui';
 import { LadderScreen } from './screens/ladder';
 import { AkkoordenScreen } from './screens/akkoorden';
 import { SpelenScreen } from './screens/spelen';
@@ -54,10 +54,11 @@ function LoopPill({ onOpen }: { onOpen: () => void }) {
   const drill = practice && info && info.chord >= 0 ? practiceAt(practice, info).now : null;
   const text = !info ? t.loopTitle : info.chord < 0 ? `${t.countingIn} ${info.beat + 1}`
     : drill ? scaleLabel(scaleOf(drill.root, drill.mode))
+    : n === 0 ? t.loopTitle
     : `${names.chord(chordOf(state.path[info.chord % n]))}${n > 1 ? ` → ${names.chord(chordOf(state.path[(info.chord + 1) % n]))}` : ''}`;
   return (
     <div className="loop-pill">
-      <button type="button" className="lp-stop" onClick={toggle} aria-label={t.loopStop} title={t.loopStop}>■</button>
+      <button type="button" className="lp-stop iconbtn" onClick={toggle} aria-label={t.loopStop} title={t.loopStop}>■</button>
       <button type="button" className="lp-now" onClick={onOpen} aria-live="polite">{text}</button>
     </div>
   );
@@ -66,6 +67,7 @@ function LoopPill({ onOpen }: { onOpen: () => void }) {
 /** Bovenbalk met de schermen, de huidige ladder en het akkoord (overal zichtbaar), en ⚙. */
 function Layout() {
   const { state, t, names, concertNames, shift, scale, chords, scaleLabel, playChord, instrumentLabel } = useApp();
+  const { add } = useChordPick();
   // concert C en hoe jij die leest, voor de uitleg bij het label
   const C = { pc: 0, letter: 0, acc: 0 };
   const [screen, go] = useScreen();
@@ -87,14 +89,15 @@ function Layout() {
       <header className="appbar">
         <div className="appbar-in">
           <span className="brand" title={t.title}>
-            {/* hetzelfde beeld als public/favicon.svg: kwintencirkel met de gouden boog van zeven noten */}
+            {/* hetzelfde beeld als public/favicon.svg: loep met de kwintencirkel als lens, de gouden boog = zeven noten */}
             <svg className="logo" viewBox="0 0 64 64" aria-hidden="true">
               <rect width="64" height="64" rx="14" fill="#172033" />
-              <circle cx="32" cy="32" r="21" fill="none" stroke="#5B6577" strokeWidth="3" />
-              <path d="M 13.8 21.5 A 21 21 0 0 1 45.1 48.4" fill="none" stroke="#E0AE52" strokeWidth="8" strokeLinecap="round" />
-              <circle cx="45.1" cy="15.6" r="5" fill="#E0AE52" />
+              <line x1="40.5" y1="40.5" x2="52" y2="52" stroke="#E0AE52" strokeWidth="7" strokeLinecap="round" />
+              <circle cx="27" cy="27" r="17" fill="#172033" stroke="#5B6577" strokeWidth="3" />
+              <path d="M 12.3 18.5 A 17 17 0 0 1 39 39" fill="none" stroke="#E0AE52" strokeWidth="6.5" strokeLinecap="round" />
+              <circle cx="27" cy="27" r="3.2" fill="#E0AE52" />
             </svg>
-            <span className="brand-name">{t.title}</span>
+            <span className="brand-name">{t.title.replace(/\s+\S+$/, '')} <i>{t.title.split(/\s+/).pop()}</i></span>
           </span>
           <nav className="tabs" aria-label={t.title}>
             {SCREENS.map((s, i) => (
@@ -111,9 +114,12 @@ function Layout() {
             <button type="button" className="ctx-scale" onClick={() => go('ladder')}>{scaleLabel(scale)}</button>
             <span aria-hidden="true">·</span>
             <b>{names.chord(chords[state.degree])}</b>
-            <PlayButton id="chord" label={t.playChord} onPlay={playChord} compact className="ghost ctx-play" />
+            <PlayButton id="chord" label={t.playChord} onPlay={playChord} compact className="ghost iconbtn" />
+            {/* het gekozen akkoord in het schema zetten, op de cursor (werkt op elk scherm, ook met touch en toetsenbord) */}
+            <button type="button" className="ghost iconbtn" onClick={add} title={fill(t.addTip, { chord: names.chord(chords[state.degree]) })}
+              aria-label={fill(t.addTip, { chord: names.chord(chords[state.degree]) })}>+</button>
+            <button type="button" className="ghost iconbtn" aria-label={t.settingsTitle} title={t.settingsTitle} onClick={() => setSettings(true)}>⚙</button>
           </div>
-          <button type="button" className="ghost gear" aria-label={t.settingsTitle} title={t.settingsTitle} onClick={() => setSettings(true)}>⚙</button>
         </div>
       </header>
       <main className="wrap">

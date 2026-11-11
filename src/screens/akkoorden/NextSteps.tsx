@@ -1,14 +1,15 @@
 import { harmonicFunction, romanNumeral, computeTargets, type Destination, type Chord } from '../../core';
 import { fill } from '../../i18n';
 import { useApp } from '../../state';
-import { sharedText } from '../../ui';
+import { sharedText, useChordPick } from '../../ui';
 
 /** Eén bestemming: links het akkoord met de trap eronder, rechts de uitleg; in een smal vak staat de uitleg eronder.
  * De uitleg breekt alleen tussen de stukjes ("nieuwe noot C♯" blijft samen). */
 function Target({ kind, chord, roman, why, to, strong }: { kind: 'dia' | 'bor' | 'piv'; chord: Chord; roman: string; why: string; to: Destination; strong?: boolean }) {
   const { dispatch, names } = useApp();
+  const { handlers } = useChordPick();
   return (
-    <button type="button" className={`tgt ${kind}${strong ? ' s0' : ''}`} onClick={() => dispatch({ type: 'go', to })}>
+    <button type="button" className={`tgt ${kind}${strong ? ' s0' : ''}`} {...handlers(() => dispatch({ type: 'go', to }))}>
       <span className="tl"><span className="tn">{names.chord(chord)}</span><span className="tr">{roman}</span></span><span className="tw">{why.split(' · ').map((part, i, all) => <span key={i}>{i > 0 && ' '}<span className="tp">{part}{i < all.length - 1 && '\u00a0·'}</span></span>)}</span>
     </button>
   );
@@ -16,6 +17,7 @@ function Target({ kind, chord, roman, why, to, strong }: { kind: 'dia' | 'bor' |
 
 export function NextSteps() {
   const { state, dispatch, t, names, scale, chords, scaleLabel } = useApp();
+  const { handlers } = useChordPick();
   const tg = computeTargets(scale, state.size, state.degree);
   const current = chords[state.degree];
   return (
@@ -56,7 +58,7 @@ export function NextSteps() {
               <p>
                 {fill(t.pivotNot, { chord: names.chord(current), scale: scaleLabel(p.scale) })}{' '}
                 {p.sharedChords.map((c, i) => (
-                  <span key={c.key}>{i > 0 && ', '}<button type="button" className="linkbtn" onClick={() => dispatch({ type: 'select', degree: c.degree })}>{names.chord(c)}</button></span>
+                  <span key={c.key}>{i > 0 && ', '}<button type="button" className="linkbtn" {...handlers(() => dispatch({ type: 'select', degree: c.degree }))}>{names.chord(c)}</button></span>
                 ))}
               </p>
             )}

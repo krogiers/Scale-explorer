@@ -7,4 +7,4 @@
 .pc.last{border-color:var(--ink)}
 .pathhead{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .play::before{content:"▶";font-size:.8em;margin-right:6px;color:var(--brass)}
-.ghost{border:1px solid var(--line-strong);background:none;border-radius:8px;padding:4px 12px;cursor:pointer}
+.ghost{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-1);border:1px solid var(--line-strong);background:none;border-radius:8px;padding:0 var(--sp-3);cursor:pointer}

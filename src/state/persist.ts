@@ -22,7 +22,11 @@ export function validChart(c: unknown, defaultSize: ChordSize = 3): PathEntry[] 
 }
 
 function loadChart(defaultSize: ChordSize): PathEntry[] | null {
-  try { return validChart(JSON.parse(localStorage.getItem(CHART_KEY) ?? 'null'), defaultSize); } catch { return null; }
+  try {
+    const c = JSON.parse(localStorage.getItem(CHART_KEY) ?? 'null');
+    // een bewust leeggemaakt schema blijft leeg
+    return Array.isArray(c) && c.length === 0 ? [] : validChart(c, defaultSize);
+  } catch { return null; }
 }
 
 /** Vroeger bewaarde de loop het tempo zelf; neem dat over zodat niemand zijn tempo kwijt is. */
@@ -49,6 +53,7 @@ export function initial(): State {
     showBlue: p.showBlue !== false,
     showPenta: p.showPenta === true,
     focus: (saved?.length ?? 1) - 1,
+    cursor: saved?.length ?? 1, // achteraan
     size,
     history: [],
     lang: p.lang && p.lang in MESSAGES ? p.lang : 'nl',

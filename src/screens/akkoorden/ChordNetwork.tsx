@@ -1,6 +1,6 @@
 import { fifthsIndex, mod12, romanNumeral, type Chord, computeTargets, type Destination } from '../../core';
 import { useApp } from '../../state';
-import { onKeyActivate } from '../../ui';
+import { onKeyActivate, useChordPick } from '../../ui';
 
 type Pt = [number, number];
 const polar = (r: number, deg: number): Pt => {
@@ -30,6 +30,7 @@ function Edge({ from, to, kind, width }: { from: Pt; to: Pt; kind: 'dia' | 'bor'
 
 export function ChordNetwork() {
   const { state, dispatch, t, names, scale, chords } = useApp();
+  const { handlers } = useChordPick();
   const tg = computeTargets(scale, state.size, state.degree, 6);
   const pivots = tg.pivots.flatMap((p) => p.targets.map((x) => ({ ...x, scale: p.scale }))).slice(0, 6);
 
@@ -44,7 +45,7 @@ export function ChordNetwork() {
 
   const node = (p: Pt, kind: string, c: Chord, sub: string, onActivate: () => void, key: string) => (
     <g key={key} className={`n-node ${kind}`} tabIndex={0} role="button" aria-label={`${names.chord(c)} ${sub}`}
-      onClick={onActivate} onKeyDown={onKeyActivate(onActivate)}>
+      {...handlers(onActivate)} onKeyDown={onKeyActivate(onActivate)}>
       <circle cx={p[0]} cy={p[1]} r={NR} />
       <text className="nn" x={p[0]} y={p[1] + 3} style={{ fontSize: fontFor(names.chord(c)) }}>{names.chord(c)}</text>
       <text className="ns" x={p[0]} y={p[1] + 14}>{sub}</text>

@@ -11,6 +11,9 @@
   --hot:#C2452D;
   --key-white:#FFFFFF; --key-black:#1E2533; --key-line:#B9C0CC;
   --m0:#F6E7A6; --m1:#E9D58A; --m2:#C9C79A; --m3:#8FA9A6; --m4:#5E7F95; --m5:#3F5577; --m6:#2A2F55;
+  /* maten, overal dezelfde (zie CLAUDE.md): afstanden in stappen van 4 px, en één hoogte voor alles wat je bedient */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px;
+  --ctl-h:36px;
   --f-display:"Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
   --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -44,7 +47,16 @@ button,select{font:inherit;color:inherit}
 .seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:8px;overflow:hidden;background:var(--surface)}
 .seg button{border:0;background:none;padding:6px 12px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
-select{background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:6px 10px}
+select{background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:0 10px}
+input[type="text"]{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:0 10px}
+/* één hoogte voor alles wat je bedient; een knoppenrij (.seg) heeft een rand van 1 px, dus de knoppen erin 2 px minder */
+.ghost,select,input[type="text"],.loopbtn{min-height:var(--ctl-h)}
+.seg button{min-height:calc(var(--ctl-h) - 2px)}
+/* keuzeraster: elk vakje even breed en even hoog, vaste tussenruimte; aria-pressed = gekozen */
+.choices{display:grid;grid-template-columns:repeat(var(--cols,6),minmax(0,1fr));gap:var(--sp-1);max-width:calc(var(--cols,6) * var(--cell-w,56px))}
+.choices button{min-height:var(--ctl-h);min-width:0;padding:0 var(--sp-1);border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);cursor:pointer;white-space:nowrap}
+.choices button:hover{border-color:var(--ink)}
+.choices button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
 
 .grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:18px}
 .wide{grid-column:1 / -1}
@@ -53,7 +65,8 @@ select{background:var(--surface);border:1px solid var(--line-strong);border-radi
 
 /* touch: alles wat je aantikt is minstens 44 px hoog (en de segmentknoppen ook breed genoeg) */
 @media (pointer:coarse){
-  .seg button,.ghost,select,.tgt,.check,.loopbtn,.mc{min-height:44px}
+  :root{--ctl-h:44px}
+  .tgt,.check,.mc{min-height:44px}
   .linkbtn{padding-block:12px}
   .seg button{min-width:44px}
   .check{display:inline-flex;align-items:center}

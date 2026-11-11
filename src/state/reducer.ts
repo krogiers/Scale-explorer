@@ -7,20 +7,22 @@ export const MAX_CHORDS = 64;
 const UNDO_STEPS = 50;
 
 /** Nieuwe versie van het schema, met de vorige bewaard voor ongedaan maken. */
-function edit(s: State, path: PathEntry[], focus: number): State {
-  return { ...s, path, focus, history: [...s.history, { path: s.path, focus: s.focus }].slice(-UNDO_STEPS) };
+function edit(s: State, path: PathEntry[], focus: number, cursor: number): State {
+  return { ...s, path, focus, cursor, history: [...s.history, { path: s.path, focus: s.focus, cursor: s.cursor }].slice(-UNDO_STEPS) };
 }
 
-/** Voeg het gekozen akkoord in na het geselecteerde akkoord van het schema. Is het schema vol, dan gebeurt er niets. */
-function withPush(s: State): State {
-  const cur = s.path[s.focus];
-  if (cur && cur.root === s.root && cur.mode === s.mode && cur.degree === s.degree && cur.size === s.size) return s;
+/** De cursor binnen het schema houden. */
+const clampCursor = (c: number, n: number) => Math.max(0, Math.min(c, n));
+
+/** Zet het gekozen akkoord op de cursor; daarna staat de cursor erachter, zodat je gewoon doorbouwt. Vol = niets. */
+function add(s: State): State {
   if (s.path.length >= MAX_CHORDS) return s;
-  const at = Math.min(s.focus + 1, s.path.length);
-  return edit(s, [...s.path.slice(0, at), entry(s), ...s.path.slice(at)], at);
+  const at = clampCursor(s.cursor, s.path.length);
+  return edit(s, [...s.path.slice(0, at), entry(s), ...s.path.slice(at)], at, at + 1);
 }
 
-const atEntry = (s: State, p: PathEntry, focus: number): State => ({ ...s, root: p.root, mode: p.mode, degree: p.degree, size: p.size, focus });
+const atEntry = (s: State, p: PathEntry | undefined, focus: number): State =>
+  p ? { ...s, root: p.root, mode: p.mode, degree: p.degree, size: p.size, focus } : { ...s, focus: -1 };
 
 export function reducer(s: State, a: Action): State {
   switch (a.type) {
@@ -33,56 +35,61 @@ export function reducer(s: State, a: Action): State {
       const degree = Math.max(0, scaleOf(a.root, a.mode).notes.findIndex((n) => n.pc === chordRoot));
       return { ...s, root: a.root, mode: a.mode, degree };
     }
-    case 'select': return withPush({ ...s, degree: a.degree });
-    case 'go': return withPush({ ...s, ...a.to });
+    case 'select': return { ...s, degree: a.degree };
+    case 'go': return { ...s, ...a.to };
+    case 'add': return add(s);
+    case 'setCursor': return { ...s, cursor: clampCursor(a.index, s.path.length) };
     case 'focusPath': {
       const p = s.path[a.index];
       return p ? atEntry(s, p, a.index) : s;
     }
     case 'setBeats': {
       const beats = Math.max(1, Math.min(16, a.beats));
-      if (s.path[a.index]?.beats === beats) return s;
-      return edit(s, s.path.map((e, i) => (i === a.index ? { ...e, beats } : e)), s.focus);
+      if (!s.path[a.index] || s.path[a.index].beats === beats) return s;
+      return edit(s, s.path.map((e, i) => (i === a.index ? { ...e, beats } : e)), s.focus, s.cursor);
     }
     case 'setSize': {
       if (!s.path[a.index] || s.path[a.index].size === a.size) return s;
-      const next = edit(s, s.path.map((e, i) => (i === a.index ? { ...e, size: a.size } : e)), s.focus);
+      const next = edit(s, s.path.map((e, i) => (i === a.index ? { ...e, size: a.size } : e)), s.focus, s.cursor);
       return a.index === s.focus ? { ...next, size: a.size } : next;
     }
     case 'removeAt': {
-      if (s.path.length <= 1) return s;
+      if (!s.path[a.index]) return s;
       const path = s.path.filter((_, i) => i !== a.index);
-      return edit(s, path, Math.min(s.focus > a.index ? s.focus - 1 : s.focus, path.length - 1));
+      // de cursor blijft op dezelfde plek in de muziek: stond hij erachter, dan schuift hij één op
+      const cursor = clampCursor(s.cursor > a.index ? s.cursor - 1 : s.cursor, path.length);
+      const focus = Math.min(s.focus > a.index ? s.focus - 1 : s.focus, path.length - 1);
+      return atEntry(edit(s, path, focus, cursor), path[focus], focus);
     }
-    case 'clearPath': return edit(s, [entry(s)], 0);
+    case 'clearPath': return s.path.length ? edit(s, [], -1, 0) : s;
     case 'movePath': {
       const moved = s.path[a.from];
       if (!moved || a.to < 0 || a.to > s.path.length) return s;
       if (a.copy) {
         if (s.path.length >= MAX_CHORDS) return s;
-        return atEntry(edit(s, [...s.path.slice(0, a.to), { ...moved }, ...s.path.slice(a.to)], a.to), moved, a.to);
+        return atEntry(edit(s, [...s.path.slice(0, a.to), { ...moved }, ...s.path.slice(a.to)], a.to, clampCursor(s.cursor > a.to || s.cursor === s.path.length ? s.cursor + 1 : s.cursor, s.path.length + 1)), moved, a.to);
       }
       // de opening vlak voor of na het akkoord zelf: het blijft waar het staat
       if (a.to === a.from || a.to === a.from + 1) return s;
       const rest = s.path.filter((_, i) => i !== a.from);
       const at = a.to > a.from ? a.to - 1 : a.to;
-      return atEntry(edit(s, [...rest.slice(0, at), moved, ...rest.slice(at)], at), moved, at);
+      return atEntry(edit(s, [...rest.slice(0, at), moved, ...rest.slice(at)], at, s.cursor), moved, at);
     }
     case 'insertPath': {
-      // één stap voor ongedaan maken; het eerste nieuwe akkoord wordt geselecteerd
+      // één stap voor ongedaan maken; het eerste nieuwe akkoord wordt geselecteerd, de cursor staat erachter
       if (a.entries.length === 0) return s;
-      const at = a.replace ? 0 : Math.min(s.focus + 1, s.path.length);
+      const at = a.replace ? 0 : clampCursor(s.cursor, s.path.length);
       const base = a.replace ? [] : s.path;
       const entries = a.entries.slice(0, MAX_CHORDS - base.length);
       if (entries.length === 0) return s;
-      const next = edit(s, [...base.slice(0, at), ...entries, ...base.slice(at)], at);
+      const next = edit(s, [...base.slice(0, at), ...entries, ...base.slice(at)], at, at + entries.length);
       return atEntry(next, entries[0], at);
     }
     case 'undo': {
       const prev = s.history[s.history.length - 1];
       if (!prev) return s;
       const focus = Math.min(prev.focus, prev.path.length - 1);
-      return { ...atEntry(s, prev.path[focus], focus), path: prev.path, history: s.history.slice(0, -1) };
+      return { ...atEntry(s, prev.path[focus], focus), path: prev.path, cursor: clampCursor(prev.cursor, prev.path.length), history: s.history.slice(0, -1) };
     }
     case 'settings': {
       // je instrument en de klank staan los van elkaar: het een verandert het ander niet

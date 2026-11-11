@@ -2,6 +2,8 @@
 .appbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb, var(--bg) 90%, transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .appbar-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px))}
 .brand{font-family:var(--f-display);font-weight:700;font-size:22px;letter-spacing:-.01em;white-space:nowrap;display:inline-flex;align-items:center;gap:10px}
+/* woordmerk: het tweede woord cursief in goud (Scale *Explorer*) */
+.brand-name i{font-style:italic;font-weight:500;color:var(--brass-ink)}
 .logo{width:1.4em;height:1.4em;flex:none;border-radius:22%;box-shadow:0 0 0 1px var(--line),0 1px 2px rgb(0 0 0 / .18)}
 .tabs{display:flex;gap:4px}
 .tab{display:inline-flex;align-items:center;gap:6px;border:1px solid transparent;background:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:600;color:var(--muted)}
@@ -11,15 +13,19 @@
 .loop-pill{margin-left:auto;display:flex;align-items:center;border:1px solid var(--brass);background:var(--brass-soft);border-radius:999px;overflow:hidden}
 .loop-pill button{border:0;background:none;padding:4px 10px;cursor:pointer;color:var(--brass-ink);font-weight:600;white-space:nowrap}
 .lp-stop{border-right:1px solid var(--brass) !important}
+.loop-pill .iconbtn{padding:0}
+.loop-pill .lp-now{min-height:var(--ctl-h)}
 .loop-pill + .ctx{margin-left:0}
-.ctx{margin-left:auto;display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
+.ctx{margin-left:auto;display:flex;align-items:center;gap:var(--sp-2);min-width:0;white-space:nowrap}
 /* je instrument en de toonaard waarin je leest (bovenbalk); klik = instellingen */
-.reading{font:inherit;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--brass);color:var(--brass-ink);background:var(--brass-soft);cursor:pointer;white-space:nowrap}
+.reading{font:inherit;font-size:12px;font-weight:700;display:inline-flex;align-items:center;min-height:var(--ctl-h);padding:0 var(--sp-3);border-radius:999px;border:1px solid var(--brass);color:var(--brass-ink);background:var(--brass-soft);cursor:pointer;white-space:nowrap}
 .reading:hover{border-color:var(--ink)}
 .ctx-scale{border:0;background:none;padding:4px 2px;font-weight:600;cursor:pointer;color:var(--ink);text-decoration:underline dotted var(--line-strong);text-underline-offset:4px}
 .ctx b{font-family:var(--f-display);font-size:18px}
-.ctx-play{min-width:34px;padding:4px 8px}
-.gear{font-size:18px;line-height:1;padding:6px 10px}
+/* Regel: knoppen met alleen een symbool (▶, +, ⚙ …) hebben allemaal .iconbtn: één vaste vierkante maat, het symbool
+   gecentreerd en even groot. Geen eigen breedte, hoogte of padding per knop. Even hoog als alle bediening (--ctl-h: 36, op touch 44, WCAG 2.5.5). */
+.iconbtn{--ib:var(--ctl-h);box-sizing:border-box;width:var(--ib);height:var(--ib);min-width:var(--ib);min-height:var(--ib);padding:0;display:inline-flex;align-items:center;justify-content:center;flex:none;font-size:16px;line-height:1}
+.iconbtn .pb-ico{font-size:inherit;line-height:1}
 @media (max-width:720px){
   .tabs{order:3;width:100%}
   .tab{flex:1;justify-content:center}
@@ -79,5 +85,5 @@ dialog.sheet::backdrop{background:rgba(10,14,20,.45)}
 .toast-x{border:0;background:none;color:inherit;opacity:.7;font-size:18px;cursor:pointer;padding:4px 6px}
 
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-@media (pointer:coarse){.chip,.tab,.ctx-scale,.gear,.ctx-play,.loop-pill button{min-height:44px}}
+@media (pointer:coarse){.chip,.tab,.ctx-scale,.loop-pill button{min-height:44px}}
 @media (max-width:720px){.toast-wrap{top:124px}}

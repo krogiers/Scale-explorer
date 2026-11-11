@@ -90,6 +90,8 @@ export function LoopProvider({ children }: { children: ReactNode }) {
     player.current = new LoopPlayer(audio, getTimeline, getOpts, (i) => { setInfo(i); if (!i) { setRunning(false); setPractice(null); } });
   }
   useEffect(() => () => player.current?.stop(), []);
+  // schema leeggemaakt terwijl de loop het speelt: er valt niets meer te spelen
+  useEffect(() => { if (state.path.length === 0 && !practiceRef.current && player.current?.running) { player.current.stop(); setRunning(false); } }, [state.path.length]);
   useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(opts)); } catch { /* niet erg */ } }, [opts]);
   useEffect(() => { try { localStorage.setItem(BARS_KEY, String(bars)); } catch { /* niet erg */ } }, [bars]);
 

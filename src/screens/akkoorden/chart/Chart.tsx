@@ -8,8 +8,10 @@ import { useChartDrag } from './useChartDrag';
 const DURATIONS = [1, 2, 3, 4, 6, 8, 12, 16];
 
 /**
- * Akkoordenschema: maten met akkoorden, elk met een eigen duur. Klik om te selecteren en te bewerken.
- * Het akkoord dat de loop speelt, licht op. onShowSequences: de lege toestand verwijst naar de sequenties.
+ * Akkoordenschema: maten met akkoorden, elk met een eigen duur. Klik op een akkoord om het te selecteren en te bewerken.
+ * De cursor (een streep tussen twee akkoorden, standaard achteraan) toont waar een nieuw akkoord komt; klik tussen
+ * twee akkoorden om hem te verplaatsen. Het schema mag leeg zijn. Het akkoord dat de loop speelt, licht op.
+ * onShowSequences: de lege toestand verwijst naar de sequenties.
  */
 export function Chart({ onShowSequences }: { onShowSequences: () => void }) {
   const { state, dispatch, t, names, scaleLabel, playPath } = useApp();
@@ -35,7 +37,18 @@ export function Chart({ onShowSequences }: { onShowSequences: () => void }) {
   }, [dispatch]);
   const bars = layoutBars(state.path.map((p) => p.beats), state.meter);
   const focus = Math.min(state.focus, state.path.length - 1);
-  const f = chordAt(focus);
+  const f = focus >= 0 ? chordAt(focus) : null;
+  const cursor = Math.min(state.cursor, state.path.length);
+  /** Een opening tussen twee akkoorden: klik = de cursor hier zetten. */
+  const gap = (i: number) => {
+    const where = i === 0 ? t.cursorStart : i === state.path.length ? t.cursorEnd : fill(t.cursorAfter, { chord: names.chord(chordOf(state.path[i - 1])) });
+    return (
+      <span key={`gap${i}`} className={`gap${cursor === i ? ' on' : ''}${i === state.path.length ? ' end' : ''}`}>
+        <button type="button" aria-pressed={cursor === i} aria-label={fill(t.cursorHere, { where })} title={fill(t.cursorHere, { where })}
+          onClick={() => dispatch({ type: 'setCursor', index: i })} />
+      </span>
+    );
+  };
 
   // verslepen: verplaatsen, of kopiëren met Alt/Option
   const chartRef = useRef<HTMLDivElement>(null);
@@ -71,7 +84,7 @@ export function Chart({ onShowSequences }: { onShowSequences: () => void }) {
           </div>
           <PlayButton id="path" label={t.playPath} onPlay={playPath} />
           <button type="button" className="ghost" disabled={!canUndo} onClick={() => dispatch({ type: 'undo' })} title="Ctrl/⌘+Z">↶ {t.undo}</button>
-          <button type="button" className="ghost" disabled={n <= 1} onClick={() => { dispatch({ type: 'clearPath' }); undoToast(t.toastCleared); }}>{t.clear}</button>
+          <button type="button" className="ghost" disabled={n === 0} onClick={() => { dispatch({ type: 'clearPath' }); undoToast(t.toastCleared); }}>{t.clearChart}</button>
         </div>
       </Heading>
       <div ref={chartRef} className={`chart${drag ? ' dragging' : ''}${drag?.copy ? ' copying' : ''}`}>
@@ -84,7 +97,8 @@ export function Chart({ onShowSequences }: { onShowSequences: () => void }) {
               const keyChange = !prev || prev.root !== state.path[sg.index].root || prev.mode !== state.path[sg.index].mode;
               const drop = sg.start && dropGap === sg.index ? ' drop-before' : dropGap === n && b === bars.length - 1 && k === lastSeg ? ' drop-after' : '';
               const cls = `cell${sg.index === focus ? ' focus' : ''}${sg.index === playing ? ' playing' : ''}${drag?.from === sg.index ? ' lifted' : ''}${drop}`;
-              return sg.start ? (
+              return sg.start ? [
+                gap(sg.index),
                 <button key={k} type="button" className={cls} style={{ flexGrow: sg.beats }} data-idx={sg.index} data-start=""
                   onPointerDown={onPointerDown(sg.index)} onKeyDown={onCellKey(sg.index)}
                   onClick={() => { if (!consumeClick()) dispatch({ type: 'focusPath', index: sg.index }); }}
@@ -92,17 +106,19 @@ export function Chart({ onShowSequences }: { onShowSequences: () => void }) {
                   <span className={`k${keyChange ? '' : ' same'}`}>{scaleLabel(s)}</span>
                   <b>{names.chord(c)}</b>
                   <span className="grip" aria-hidden="true">⠿</span>
-                </button>
-              ) : (
+                </button>,
+                ...(b === bars.length - 1 && k === lastSeg ? [gap(n)] : []),
+              ] : [
                 <span key={k} className={`${cls} cont`} style={{ flexGrow: sg.beats }} data-idx={sg.index} aria-hidden="true">
                   {sg.beats === state.meter && k === 0 ? '%' : '·'}
-                </span>
-              );
+                </span>,
+                ...(b === bars.length - 1 && k === lastSeg ? [gap(n)] : []),
+              ];
             })}
           </div>
         ))}
       </div>
-      <div className="editbar">
+      {f && <div className="editbar">
         <span><span className="muted small">{t.selected}</span> <b>{names.chord(f.c)}</b> <span className="muted small">{scaleLabel(f.s)}</span> <span className="tones-big">{f.c.notes.map(names.note).join(' ')}</span></span>
         <div className="field"><span className="lbl">{t.duration}</span>
           <div className="seg" role="group">
@@ -118,9 +134,10 @@ export function Chart({ onShowSequences }: { onShowSequences: () => void }) {
             ))}
           </div>
         </div>
-        <button type="button" className="ghost" disabled={state.path.length <= 1} onClick={() => { dispatch({ type: 'removeAt', index: focus }); undoToast(fill(t.toastRemoved, { chord: names.chord(f.c) })); }}>{t.remove}</button>
-      </div>
-      {n === 1 && <p className="chart-empty">{t.chartEmpty} <button type="button" className="linkbtn" onClick={onShowSequences}>{t.chartEmptySeq}</button></p>}
+        <button type="button" className="ghost" title={fill(t.removeChordTip, { chord: names.chord(f.c) })} onClick={() => { dispatch({ type: 'removeAt', index: focus }); undoToast(fill(t.toastRemoved, { chord: names.chord(f.c) })); }}>✕ {t.removeChord}</button>
+      </div>}
+      {n > 0 && <p className="muted small cursor-hint"><span className="caret" aria-hidden="true" /> {t.cursorHint}</p>}
+      {n === 0 && <p className="chart-empty">{t.chartEmpty} <button type="button" className="linkbtn" onClick={onShowSequences}>{t.chartEmptySeq}</button></p>}
       {state.path.length >= MAX_CHORDS && <p className="small" role="status">{fill(t.chartFull, { n: MAX_CHORDS })}</p>}
     </>
   );

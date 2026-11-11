@@ -260,7 +260,7 @@ Zo hoort bij elk akkoord meteen de ladder die je erover speelt, en past elke seq
 
 Sommige akkoorden vragen een ladder die buiten de zeven modi valt: een V7 naar mineur (harmonisch mineur, alteratie) en een ♭II7 (lydisch dominant). Die zijn gemarkeerd als benadering (`approx`), en de app toont dan Mixolydisch.
 
-Invoegen (`insertPath`) zet de hele reeks in één stap na het geselecteerde akkoord, of vervangt het schema. Eén keer ongedaan maken haalt de hele reeks weer weg.
+Invoegen (`insertPath`) zet de hele reeks in één stap op de cursor, of vervangt het schema. Eén keer ongedaan maken haalt de hele reeks weer weg.
 
 ### 7e. Modi en bruggen
 
@@ -289,7 +289,15 @@ In de app staat dit op het scherm Ladder, in het paneel "Modi en bruggen". Een k
 
 Omdat alles volgt uit "een verzameling toonklassen plus een spelling", passen nieuwe toonladders in hetzelfde model. Harmonisch mineur is bijvoorbeeld het patroon [0, 2, 3, 5, 7, 8, 11], met zijn eigen zeven rotaties. Het enige verschil: die noten liggen niet meer naast elkaar op de kwintencirkel, dus voor die families wordt de afstand tussen toonladders geteld als het aantal verschillende toonklassen in plaats van als stappen op de boog.
 
+## Akkoord opzoeken en afstand tussen modi
+
+**Akkoord opzoeken** (scherm Akkoorden): typ een akkoord (`parseChord` in `src/naming` leest Engelse, Nederlandse en do-re-mi-namen en gangbare schrijfwijzen zoals m7, -7, maj7, Δ, ø, °7) of kies grondtoon en soort. `chordHomes` in `src/core/modes.ts` geeft alle moederladders waarin het voorkomt, met per modus de rol. Een majeur- of mineurdrieklank en een m7 zitten in 3 moederladders, een maj7 in 2, een 7 en een m7♭5 in 1; aug, °7 en m(maj7) komen in geen kerkmodus voor. Je typt in de toonaard van je instrument; de app rekent terug naar concert.
+
+**Afstand tussen modi** (scherm Ladder): een tabel met het aantal noten verschil (`diffCount`) tussen elke twee modi, op één grondtoon (7 × 7) of tussen de twaalf moederladders (12 × 12). Het verschil is hoogstens 5: twee ladders een tritonus uit elkaar delen nog twee noten (C Lydisch en C Locrisch delen C en F♯/G♭).
+
 ## Akkoordenschema en meespelen
+
+**Kiezen en toevoegen.** Overal waar je een akkoord aanklikt (akkoordenrij, netwerk, volgende stappen, kwintencirkel) geldt één regel: **klik = kiezen en horen**, het schema verandert niet. **Dubbelklik** (of **+** in de bovenbalk, naast het gekozen akkoord) zet het akkoord in het schema, op de **cursor**, met een melding die je kunt terugdraaien (`useChordPick` in `src/ui`, actie `add`). De cursor (`cursor` in de toestand) is een opening tussen twee akkoorden, van 0 tot `path.length`; standaard staat hij achteraan, na toevoegen schuift hij erachter, en een klik tussen twee akkoorden verplaatst hem. Een akkoord in het schema selecteren (`focus`, om duur of drie-/vierklank aan te passen) verplaatst de cursor niet. **✕ Dit akkoord** haalt het geselecteerde akkoord weg, **Schema leegmaken** alles; het schema mag leeg zijn (de loop start dan niet).
 
 Het schema (`src/screens/akkoorden/chart/Chart.tsx`) bewaart per akkoord zijn duur in tellen. `layoutBars` in `src/screens/akkoorden/chart/chartLayout.ts` verdeelt die tellen over maten van de gekozen maatsoort (4/4 of 3/4); een akkoord dat over een maatstreep loopt, wordt in de volgende maat voortgezet (getoond als % bij een volle maat). De meespeelloop (`src/audio/loop/`) zoekt bij elke tel met `locate` welk akkoord klinkt, en `planBeat` bepaalt wat de bas en het akkoord op die tel spelen.
 

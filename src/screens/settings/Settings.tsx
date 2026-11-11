@@ -27,7 +27,7 @@ export function Settings({ open, onClose }: { open: boolean; onClose: () => void
     <dialog ref={ref} className="sheet" aria-labelledby="settings-title" onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}>
       <div className="sheet-head">
         <h2 id="settings-title">{t.settingsTitle}</h2>
-        <button type="button" className="ghost" onClick={onClose} aria-label={t.close}>✕</button>
+        <button type="button" className="ghost iconbtn" onClick={onClose} aria-label={t.close} title={t.close}>✕</button>
       </div>
       <div className="settings">
         <div className="field"><label htmlFor="myinstr">{t.myInstrument}</label>

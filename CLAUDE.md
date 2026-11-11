@@ -16,6 +16,8 @@ Static React 18 + TS + Vite app for exploring modes, scales and chords. No backe
 - `state/`: `model`, pure `reducer`, `persist` (`tln-prefs`, `tln-chart`), `store` (provider, plays audio on dispatch), `loop` (one shared LoopPlayer, survives screen switches).
 - Only one thing plays at a time: `audio/transport` (`takeOver(id, stop)`); `usePlaying()` + `ui/PlayButton` show ▶/■ per id.
 - CSS lives next to its screen/instrument; `styles/index.css` imports all in the original cascade order. Don't reorder.
+- Uniform sizes and spacing (user priority): use only the tokens in `styles/base.css`: `--sp-1..5` (4/8/12/16/24 px) for gaps and padding, `--ctl-h` (36 px, 44 on touch) as the height of every control (button, select, input, `.seg` row, pill). Icon-only buttons (▶ + ⚙ ✕ ■) use `.iconbtn` (square, `--ctl-h`); a set of choices uses `.choices` (equal cells). No hard-coded gaps or heights in new CSS. Check new UI on a screenshot before calling it done.
+- Chord clicks follow one rule (`ui/useChordPick`): click = choose + hear, double-click or app-bar + = add at the chart cursor. A control must not silently change another panel.
 - `ModeIndex` 0–6 runs bright→dark (Lyd, Ion, Mix, Dor, Aeo, Phr, Loc), not the classical order. Chords are compared by `key` (`"10:maj"`), independent of spelling.
 - README (Dutch) has the full math model. Read it before changing theory or navigation.
 

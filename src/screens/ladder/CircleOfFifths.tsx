@@ -1,6 +1,6 @@
 import { fifthsIndex, pcFromFifths, scaleOf, type ModeIndex } from '../../core';
 import { useApp } from '../../state';
-import { onKeyActivate, signatureLabel } from '../../ui';
+import { onKeyActivate, signatureLabel, useChordPick } from '../../ui';
 
 const polar = (r: number, deg: number): [number, number] => {
   const a = (deg * Math.PI) / 180;
@@ -20,6 +20,7 @@ export function CircleOfFifths() {
   const { state, dispatch, t, names, concertNames, shift, scale, chords } = useApp();
   const start = fifthsIndex(scale.root) - scale.mode;
   const rot = fifthsIndex(shift);
+  const { handlers } = useChordPick();
 
   const slots = Array.from({ length: 7 }, (_, j) => {
     const f = start + j, pc = pcFromFifths(f), ang = (f + rot) * 30;
@@ -29,8 +30,17 @@ export function CircleOfFifths() {
     const note = scale.notes.find((n) => n.pc === pc)!;
     return (
       <g key={j}>
-        {selected && <circle className="slot-ring" cx={x} cy={y} r={21} />}
-        <text className={`slot-chord${selected ? ' sel' : ''}`} x={x} y={y + 4} textAnchor="middle">{chord ? names.chord(chord) : ''}</text>
+        {chord && (
+          // klik = dit akkoord kiezen en horen; dubbelklik = ook in het schema zetten
+          <g className={`slot${selected ? ' sel' : ''}`} tabIndex={0} role="button" aria-pressed={selected} aria-label={names.chord(chord)}
+            {...handlers(() => dispatch({ type: 'select', degree: chord.degree }))}
+            onKeyDown={onKeyActivate(() => dispatch({ type: 'select', degree: chord.degree }))}>
+            <title>{t.pickTip}</title>
+            <circle className="slot-hit" cx={x} cy={y} r={21} />
+            {selected && <circle className="slot-ring" cx={x} cy={y} r={21} />}
+            <text className={`slot-chord${selected ? ' sel' : ''}`} x={x} y={y + 4} textAnchor="middle">{names.chord(chord)}</text>
+          </g>
+        )}
         <g className={`c-mode${j === scale.mode ? ' cur' : ''}`} tabIndex={0} role="button"
           aria-label={`${names.note(note)} ${t.modes[j]}`}
           onClick={() => dispatch({ type: 'relative', root: pc, mode: j as ModeIndex })}

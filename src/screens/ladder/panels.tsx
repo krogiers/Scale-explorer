@@ -6,6 +6,7 @@ import { Heading, Legend } from '../../ui';
 import { CircleOfFifths } from './CircleOfFifths';
 import { BridgeMatrix } from './BridgeMatrix';
 import { JumpCard } from './JumpCard';
+import { ModeDistance } from './ModeDistance';
 import { ModeGrid } from './ModeGrid';
 import { ModeLadder } from './ModeLadder';
 import { ScaleHeader } from './ScaleHeader';
@@ -83,6 +84,7 @@ export function LadderScreen() {
       <section className="panel circle"><CirclePanel /></section>
       <section className="panel"><ScalePanel /></section>
       <section className="panel wide modes"><ModesPanel /></section>
+      <section className="panel wide"><ModeDistance /></section>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { chordsOnRoot, sameSpot, scaleOf, type Spot } from '../../core';
 import { fill } from '../../i18n';
 import { useApp } from '../../state';
-import { Heading, Legend } from '../../ui';
+import { Heading, Legend, SizeToggle } from '../../ui';
 import { CircleOfFifths } from './CircleOfFifths';
 import { BridgeMatrix } from './BridgeMatrix';
 import { JumpCard } from './JumpCard';
@@ -16,7 +16,7 @@ export function CirclePanel() {
   const { t } = useApp();
   return (
     <>
-      <Heading title={t.circleTitle} help={t.circleHelp} />
+      <Heading title={t.circleTitle} help={t.circleHelp}><SizeToggle /></Heading>
       <CircleOfFifths />
     </>
   );
@@ -54,7 +54,7 @@ export function ModesPanel() {
   const total = chordsOnRoot(R, state.size).length;
   return (
     <>
-      <Heading title={t.modesTitle} help={t.modesHelp} />
+      <Heading title={t.modesTitle} help={t.modesHelp}><SizeToggle /></Heading>
       <div className="modi">
         <div className="stack" style={{ gap: 10 }}>
           <ModeGrid cur={cur} naar={naar} onPick={pick} />

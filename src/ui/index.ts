@@ -6,3 +6,4 @@ export { showToast, Toaster, type ToastMsg } from './Toast';
 export { layoutBars, type Bar, type Segment } from './chartLayout';
 export * from './format';
 export { useChordPick } from './useChordPick';
+export { SizeToggle } from './SizeToggle';

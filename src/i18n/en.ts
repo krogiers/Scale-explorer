@@ -1,7 +1,7 @@
 export const en = {
   title: 'Scale Explorer',
   tagline: 'Pick a root and a mode, click a chord, and see where you can go next. Everything is clickable.',
-  lang: 'Language', names: 'Note names', chords: 'Chords', triads: 'Triads', sevenths: 'Seventh chords',
+  lang: 'Language', names: 'Note names', chords: 'Chords', triads: 'Triads', sevenths: 'Seventh chords', sizeShared: 'Applies everywhere: circle of fifths, chord row, jump card and bridge matrix.',
   instrument: 'Instrument', sound: 'Sound', on: 'On', off: 'Off',
   playScale: 'Play scale', playPath: 'Play progression',
   circleTitle: 'Circle of fifths',

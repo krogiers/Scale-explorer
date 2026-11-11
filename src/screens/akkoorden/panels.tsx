@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fill } from '../../i18n';
 import { useApp } from '../../state';
-import { Heading, Legend } from '../../ui';
+import { Heading, Legend, SizeToggle } from '../../ui';
 import { Chart } from './chart/Chart';
 import { ChordLookup } from './ChordLookup';
 import { ChordNetwork } from './ChordNetwork';
@@ -11,15 +11,11 @@ import { Sequences } from './Sequences';
 
 /** De akkoorden van de ladder, met de keuze drie- of vierklanken. */
 export function ChordsPanel() {
-  const { state, dispatch, t, scale, scaleLabel } = useApp();
+  const { t, scale, scaleLabel } = useApp();
   return (
     <>
       <Heading title={fill(t.chordsTitle, { scale: scaleLabel(scale) })}>
-        <div className="seg" role="group" aria-label={t.chords}>
-          {([3, 4] as const).map((n) => (
-            <button key={n} type="button" aria-pressed={state.size === n} onClick={() => dispatch({ type: 'settings', patch: { size: n } })}>{n === 3 ? t.triads : t.sevenths}</button>
-          ))}
-        </div>
+        <SizeToggle />
       </Heading>
       <ChordRow />
       <Legend items={[['var(--bor)', t.charLegend]]} />

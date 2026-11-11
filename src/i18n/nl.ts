@@ -1,7 +1,7 @@
 export const nl = {
   title: 'Scale Explorer',
   tagline: 'Kies een grondtoon en een modus, klik op een akkoord en zie waar je naartoe kunt. Alles is klikbaar.',
-  lang: 'Taal', names: 'Nootnamen', chords: 'Akkoorden', triads: 'Drieklanken', sevenths: 'Vierklanken',
+  lang: 'Taal', names: 'Nootnamen', chords: 'Akkoorden', triads: 'Drieklanken', sevenths: 'Vierklanken', sizeShared: 'Geldt overal: kwintencirkel, akkoordenrij, sprongkaart en brugmatrix.',
   instrument: 'Instrument', sound: 'Geluid', on: 'Aan', off: 'Uit',
   playScale: 'Speel toonladder', playPath: 'Speel progressie',
   circleTitle: 'Kwintencirkel',

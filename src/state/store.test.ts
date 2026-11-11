@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_MIX } from '../audio';
 import { clampBpm, MAX_CHORDS, reducer, validChart, type State } from '.';
 
-const base: State = { root: 0, mode: 1, degree: 0, size: 3, lang: 'nl', namer: 'en', instrument: 'piano', sound: false, timbre: 'piano', theme: 'auto', mix: DEFAULT_MIX, showBlue: true, showPenta: false, meter: 4, bpm: 90, focus: 0, cursor: 1, history: [], path: [{ root: 0, mode: 1, degree: 0, beats: 4, size: 3 }] };
+const base: State = { root: 0, mode: 1, degree: 0, size: 3, lang: 'nl', namer: 'en', instrument: 'piano', sound: false, compTimbre: 'piano', leadTimbre: 'piano', theme: 'auto', mix: DEFAULT_MIX, showBlue: true, showPenta: false, meter: 4, bpm: 90, focus: 0, cursor: 1, history: [], path: [{ root: 0, mode: 1, degree: 0, beats: 4, size: 3 }] };
 
 describe('opgeslagen gegevens', () => {
   it('neemt een geldig schema over', () => {
@@ -159,12 +159,12 @@ describe('akkoord verplaatsen', () => {
 
 describe('je instrument en de klank staan los', () => {
   it('een ander instrument verandert de klank niet', () => {
-    expect(reducer(base, { type: 'settings', patch: { instrument: 'tenorsax' } }).timbre).toBe('piano');
+    const s = reducer(base, { type: 'settings', patch: { instrument: 'tenorsax' } });
+    expect([s.compTimbre, s.leadTimbre]).toEqual(['piano', 'piano']);
   });
-  it('een andere klank verandert het instrument niet', () => {
-    const s = reducer({ ...base, instrument: 'tenorsax' }, { type: 'settings', patch: { timbre: 'strings' } });
-    expect(s.timbre).toBe('strings');
-    expect(s.instrument).toBe('tenorsax');
+  it('een andere klank verandert het instrument niet, en akkoord- en melodieklank staan los', () => {
+    const s = reducer({ ...base, instrument: 'tenorsax' }, { type: 'settings', patch: { compTimbre: 'rhodes' } });
+    expect([s.compTimbre, s.leadTimbre, s.instrument]).toEqual(['rhodes', 'piano', 'tenorsax']);
   });
 });
 
@@ -175,5 +175,15 @@ describe('bewaarde voorkeuren van vroeger', () => {
     expect(instrumentFrom({ instrument: 'sax', saxKey: 'Eb' })).toBe('altsax');
     expect(instrumentFrom({ instrument: 'trumpet' })).toBe('trumpet');
     expect(instrumentFrom({ instrument: 'onbekend' })).toBe('piano');
+  });
+  it('de oude ene klank: een akkoordinstrument blijft akkoordklank, een blazer wordt melodieklank', async () => {
+    const { timbresFrom } = await import('./persist');
+    expect(timbresFrom({ timbre: 'rhodes' }, 'tenorsax')).toEqual({ compTimbre: 'rhodes', leadTimbre: 'tenorsax' });
+    expect(timbresFrom({ timbre: 'sax' }, 'piano')).toEqual({ compTimbre: 'piano', leadTimbre: 'tenorsax' });
+    expect(timbresFrom({ timbre: 'flute' }, 'piano')).toEqual({ compTimbre: 'piano', leadTimbre: 'flute' });
+    // zonder keuze: piano voor de akkoorden, je eigen instrument voor de melodie
+    expect(timbresFrom({}, 'altsax')).toEqual({ compTimbre: 'piano', leadTimbre: 'altsax' });
+    // een blazer als akkoordklank is niet toegelaten
+    expect(timbresFrom({ compTimbre: 'tenorsax', leadTimbre: 'onzin' }, 'piano')).toEqual({ compTimbre: 'piano', leadTimbre: 'piano' });
   });
 });

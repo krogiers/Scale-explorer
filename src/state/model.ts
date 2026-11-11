@@ -1,13 +1,13 @@
 /** Het model van de toestand: wat er in de app gekozen is, en de acties die het veranderen. */
 import { chordsOf, scaleOf, type Chord, type ChordSize, type Destination, type ModeIndex } from '../core';
 import type { Lang } from '../i18n';
-import type { Mix, Timbre } from '../audio';
+import type { CompTimbre, Mix, Timbre } from '../audio';
 
 export interface Position { root: number; mode: ModeIndex; degree: number }
 /** Eén akkoord in het schema: waar het staat, hoeveel tellen het duurt en of het een drie- of vierklank is. */
 export interface PathEntry extends Position { beats: number; size: ChordSize }
 export const chordOf = (p: PathEntry): Chord => chordsOf(scaleOf(p.root, p.mode), p.size)[p.degree];
-export type { Timbre };
+export type { CompTimbre, Timbre };
 export type Theme = 'auto' | 'light' | 'dark';
 export interface State extends Position {
   /** Drie- of vierklanken in de akkoordenrij en voor nieuwe akkoorden in het schema. */
@@ -17,7 +17,10 @@ export interface State extends Position {
   /** Het instrument dat jij speelt: bepaalt in welke toonaard je alles leest en welke grepen je ziet (niet de klank). */
   instrument: string;
   sound: boolean;
-  timbre: Timbre;
+  /** Klank van de akkoorden, overal in de app en in de loop (een begeleidingsinstrument). */
+  compTimbre: CompTimbre;
+  /** Klank van losse noten: toonladders en vergelijken (bv. je eigen instrument). */
+  leadTimbre: Timbre;
   /** Kleurthema: volgt het systeem, of vast licht of donker. */
   theme: Theme;
   /** Mengpaneel: volume, links/rechts, stil en solo per kanaal. */
@@ -39,7 +42,7 @@ export interface State extends Position {
   history: { path: PathEntry[]; focus: number; cursor: number }[];
 }
 
-export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'timbre' | 'meter' | 'showBlue' | 'showPenta' | 'bpm' | 'theme' | 'mix'>>;
+export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'compTimbre' | 'leadTimbre' | 'meter' | 'showBlue' | 'showPenta' | 'bpm' | 'theme' | 'mix'>>;
 
 export const BPM_MIN = 40, BPM_MAX = 220;
 /** Tempo binnen het bereik van de schuif; onzin (NaN, tekst) wordt het standaardtempo. */

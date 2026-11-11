@@ -13,7 +13,7 @@ describe('mengpaneel', () => {
   });
 
   it('standaard klinkt alles zoals voor het mengpaneel', () => {
-    for (const ch of ['keys', 'bass', 'drums', 'click', 'reverb', 'master'] as const) expect(channelGain(DEFAULT_MIX, ch)).toBe(1);
+    for (const ch of ['keys', 'lead', 'bass', 'drums', 'click', 'reverb', 'master'] as const) expect(channelGain(DEFAULT_MIX, ch)).toBe(1);
   });
 
   it('stil zet één kanaal uit, solo alle andere partijen (maar niet galm of totaal)', () => {

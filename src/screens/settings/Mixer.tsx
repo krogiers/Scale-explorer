@@ -30,7 +30,7 @@ export function Mixer() {
       <div className="mix-rows">
         {CHANNELS.map((ch) => {
           const s = mix[ch], name = t.mixCh[ch];
-          const sub = ch === 'keys' ? t.timbres[state.timbre] : null;
+          const sub = ch === 'keys' ? t.timbres[state.compTimbre] : ch === 'lead' ? t.timbres[state.leadTimbre] : null;
           const silent = s.mute || (isPart(ch) && PARTS.some((p) => mix[p].solo) && !s.solo);
           return (
             <div key={ch} className={`mix-row${silent ? ' silent' : ''}${isPart(ch) ? '' : ' bus'}`}>

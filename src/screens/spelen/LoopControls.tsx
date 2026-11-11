@@ -1,8 +1,8 @@
 import { blueNote, CHAR_DEGREE, scaleOf } from '../../core';
-import { TIMBRES } from '../../audio';
+import { COMP_TIMBRES } from '../../audio';
 import { LOOP_STYLES, type LoopStyle } from '../../audio/loop';
 import { fill } from '../../i18n';
-import { BPM_MAX, BPM_MIN, chordOf, practiceAt, PRACTICE_BARS, useApp, useLoop, type Timbre } from '../../state';
+import { BPM_MAX, BPM_MIN, chordOf, practiceAt, PRACTICE_BARS, useApp, useLoop, type CompTimbre } from '../../state';
 import { Heading } from '../../ui';
 
 /** Bediening van de meespeelloop (de speler zelf zit in de gedeelde toestand, zie state/loop). */
@@ -79,9 +79,9 @@ export function LoopControls() {
             </select>
           </div>
         )}
-        <div className="field"><label htmlFor="timbre">{t.timbre}</label>
-          <select id="timbre" value={state.timbre} onChange={(e) => dispatch({ type: 'settings', patch: { timbre: e.target.value as Timbre } })}>
-            {TIMBRES.map((k) => <option key={k} value={k}>{t.timbres[k]}</option>)}
+        <div className="field"><label htmlFor="comp">{t.compTimbre}</label>
+          <select id="comp" value={state.compTimbre} title={t.compTimbreHelp} onChange={(e) => dispatch({ type: 'settings', patch: { compTimbre: e.target.value as CompTimbre } })}>
+            {COMP_TIMBRES.map((k) => <option key={k} value={k}>{t.timbres[k]}</option>)}
           </select>
         </div>
         {!drill && <label className="check"><input id="drums" type="checkbox" checked={opts.drums} onChange={(e) => set({ drums: e.target.checked })} /> {t.drums}</label>}

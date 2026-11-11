@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { chordsOf, scaleOf } from '../core';
-import { compareEvents } from './events';
+import { chordEvents, compareEvents, scaleEvents } from './events';
 import { progressionVoicings, voiceLead, voicing } from './voicing';
 
 const c7 = chordsOf(scaleOf(0, 1), 4); // C Ionisch, vierklanken
@@ -46,5 +46,14 @@ describe('hoor het verschil', () => {
   it('relatief (zelfde noten): geen wisselnoten, de bas verschuift naar het nieuwe thuis', () => {
     const ev = compareEvents(scaleOf(0, 1), scaleOf(9, 4)); // C Ionisch → A Aeolisch
     expect(new Set(ev.filter((e) => e[3] === 'bass').map((e) => e[0]))).toEqual(new Set([36, 45]));
+  });
+  it('de ladders in de melodieklank, het orgelpunt (kwint) in de akkoordklank, de grondtoon in de bas', () => {
+    const ev = compareEvents(scaleOf(0, 1), scaleOf(0, 0));
+    expect(ev.filter((e) => e[0] >= 60).every((e) => e[3] === 'lead')).toBe(true);
+    expect(ev.filter((e) => e[3] === undefined).every((e) => e[0] === 55)).toBe(true);
+  });
+  it('een toonladder speelt in de melodieklank, een akkoord in de akkoordklank', () => {
+    expect(scaleEvents(scaleOf(2, 3)).every((e) => e[3] === 'lead')).toBe(true);
+    expect(chordEvents(chordsOf(scaleOf(0, 1), 3)[0]).map((e) => e[3] ?? 'keys')).toEqual(['bass', 'keys', 'keys', 'keys']);
   });
 });

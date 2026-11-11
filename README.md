@@ -314,7 +314,13 @@ De drums (`planDrums` in `loop/grooves.ts`, klanken in `engine/drums.ts`) worden
 
 Een tenorsaxofonist leest een B♭-partij, een pianist dezelfde muziek in concert. In de app staat de speler centraal: in ⚙ Instellingen kies je **Mijn instrument** (piano, gitaar, dwarsfluit in C; klarinet, trompet, sopraan- en tenorsax in B♭; alt- en baritonsax in E♭). Daarna staan **alle** noten, ladders, akkoorden, het schema en de loop zoals op jouw partij. Concert C Lydisch heet voor een tenorsax D Lydisch, en Cmaj7 heet Dmaj7. Bovenaan staat altijd je instrument met zijn toonaard (bv. "Tenorsax · B♭"); een klik opent de instellingen.
 
-Je instrument en de klank staan los van elkaar. Het instrument bepaalt wat je leest en welke grepen het instrumentpaneel toont; de klank kies je apart bij de loop, en niets verandert die stiekem. Elke klank speelt in concert, dus ze klopt altijd met wat jij speelt.
+Je instrument en de klank staan los van elkaar. Het instrument bepaalt wat je leest en welke grepen het instrumentpaneel toont; niets verandert de klank stiekem. Elke klank speelt in concert, dus ze klopt altijd met wat jij speelt.
+
+Er zijn twee klanken (in Instellingen; de akkoordklank ook bij de loop):
+- **Akkoordklank** (`compTimbre`, partij `keys`): elk akkoord, bij een klik, in de sequenties, het schema en de loop. Alleen instrumenten die akkoorden kunnen spelen (`COMP_TIMBRES`: piano, Rhodes, gitaar, orgel, vibrafoon, strijkers, synthesizer). Een blazer speelt één noot tegelijk; vier saxen in nauwe ligging klinken niet als een sax maar als een vage orgelklank.
+- **Melodieklank** (`leadTimbre`, partij `lead`): losse noten, dus de toonladder en de ladders van "Hoor het verschil" (het orgelpunt eronder is begeleiding en speelt in de akkoordklank). Elke klank mag, bv. je eigen instrument.
+
+De grondtoon onder een akkoord speelt altijd de contrabas (partij `bass`). Elke partij heeft een eigen kanaal in het mengpaneel.
 
 Alleen de namen veranderen. De app rekent, bewaart en klinkt in concert, dus de begeleiding speelt vanzelf in de juiste toon, en een schema dat je in B♭ maakt staat voor een pianist gewoon in concert. De transpositie zit op één plek, in de naamgeving (`src/naming`, `readingFor`, `transposeNote`):
 
@@ -322,7 +328,7 @@ Alleen de namen veranderen. De app rekent, bewaart en klinkt in concert, dus de 
 - **Dubbele voortekens** worden omgespeld (F𝄪 wordt G). Voor B♭ komt dat nooit voor; voor E♭ alleen in de familie van concert B majeur.
 - **Kwintencirkel**: die draait mee, zodat jouw geschreven C bovenaan staat. De voortekening in het midden en in het modirooster is die van jouw partij.
 - **Instrumentpaneel**: toont de grepen van jouw instrument met dezelfde geschreven ladder, zodat de greepkaarten en de rest van de app altijd dezelfde spelling hebben. De vier saxen delen hun grepen; alleen de toonaard verschilt.
-- **Oude voorkeuren**: vroeger was er één sax met een aparte stemming. Die wordt bij het laden tenorsax (B♭) of altsax (E♭), en de klank "sax" wordt tenorsax.
+- **Oude voorkeuren**: vroeger was er één sax met een aparte stemming. Die wordt bij het laden tenorsax (B♭) of altsax (E♭), en de klank "sax" wordt tenorsax. De vroegere ene klank wordt de akkoordklank als het een akkoordinstrument is, anders de melodieklank (`timbresFrom`). Zonder keuze is de akkoordklank piano en de melodieklank je eigen instrument.
 
 ## Klank
 

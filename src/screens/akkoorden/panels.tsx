@@ -69,9 +69,12 @@ export function AkkoordenScreen() {
         <section className="panel"><ChordsPanel /></section>
         <section className="panel" id="volgende-stap"><NextPanel view={view} setView={setView} /></section>
       </div>
-      <section className="panel chartpanel">
-        <Chart onShowSequences={() => { setView('sequences'); document.getElementById('volgende-stap')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} />
-      </section>
+      {/* eigen kolom, even hoog als de linker: het schema blijft staan zolang je daar scrolt, en schuift weg vóór "Akkoord opzoeken" */}
+      <div className="chartcol">
+        <section className="panel chartpanel">
+          <Chart onShowSequences={() => { setView('sequences'); document.getElementById('volgende-stap')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} />
+        </section>
+      </div>
       <section className="panel wide"><ChordLookup /></section>
     </div>
   );

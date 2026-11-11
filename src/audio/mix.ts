@@ -2,10 +2,10 @@
  * Het mengpaneel, los van de geluidskaart (zodat het te testen is): per kanaal een schuiver,
  * links/rechts, stil (M) en solo (S). Galm en Totaal hebben alleen een schuiver.
  */
-export const CHANNELS = ['keys', 'bass', 'drums', 'click', 'reverb', 'master'] as const;
+export const CHANNELS = ['keys', 'lead', 'bass', 'drums', 'click', 'reverb', 'master'] as const;
 export type Channel = (typeof CHANNELS)[number];
 /** Kanalen met links/rechts, stil en solo: de echte partijen. */
-export const PARTS = ['keys', 'bass', 'drums', 'click'] as const;
+export const PARTS = ['keys', 'lead', 'bass', 'drums', 'click'] as const;
 export type PartChannel = (typeof PARTS)[number];
 
 /** vol: stand van de schuiver, 0 tot 100 (75 = zoals voorheen). pan: -1 links tot 1 rechts. */
@@ -16,6 +16,7 @@ export type Mix = Record<Channel, Strip>;
 export const UNITY = 75;
 export const DEFAULT_MIX: Mix = {
   keys: { vol: UNITY, pan: -0.15, mute: false, solo: false },
+  lead: { vol: UNITY, pan: 0.05, mute: false, solo: false },
   bass: { vol: UNITY, pan: 0, mute: false, solo: false },
   drums: { vol: UNITY, pan: 0.15, mute: false, solo: false },
   click: { vol: UNITY, pan: 0, mute: false, solo: false },

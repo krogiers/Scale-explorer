@@ -1,15 +1,17 @@
 import { useEffect, useRef } from 'react';
+import { COMP_TIMBRES, TIMBRES } from '../../audio';
 import { LANGS } from '../../i18n';
 import { INSTRUMENTS } from '../../instruments';
 import { NOTE_NAMERS } from '../../naming';
-import { useApp, type SettingsPatch, type Theme } from '../../state';
+import { useApp, type CompTimbre, type SettingsPatch, type Theme, type Timbre } from '../../state';
 import { Mixer } from './Mixer';
 
 const THEMES: Theme[] = ['auto', 'light', 'dark'];
 
 /**
  * Instellingen achter ⚙, als dialoogvenster: wat je één keer instelt (je instrument, taal, nootnamen, geluid, thema)
- * en het mengpaneel. Je instrument staat bovenaan: het bepaalt in welke toonaard de hele app leest.
+ * en het mengpaneel. Je instrument staat bovenaan: het bepaalt in welke toonaard de hele app leest. Bij het geluid kies je
+ * twee klanken: één voor akkoorden (een begeleidingsinstrument) en één voor losse noten (bv. je eigen instrument).
  * Blue note en pentatonisch staan als chips bij de notenrij, drie- of vierklanken bij de akkoorden.
  */
 export function Settings({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -57,7 +59,21 @@ export function Settings({ open, onClose }: { open: boolean; onClose: () => void
             {THEMES.map((th) => <button key={th} type="button" aria-pressed={state.theme === th} onClick={() => set({ theme: th })}>{t.themes[th]}</button>)}
           </div>
         </div>
-        {state.sound && <Mixer />}
+        {state.sound && <>
+          <div className="field"><label htmlFor="s-comp">{t.compTimbre}</label>
+            <select id="s-comp" value={state.compTimbre} aria-describedby="s-comp-help" onChange={(e) => set({ compTimbre: e.target.value as CompTimbre })}>
+              {COMP_TIMBRES.map((k) => <option key={k} value={k}>{t.timbres[k]}</option>)}
+            </select>
+            <p id="s-comp-help" className="muted small">{t.compTimbreHelp}</p>
+          </div>
+          <div className="field"><label htmlFor="s-lead">{t.leadTimbre}</label>
+            <select id="s-lead" value={state.leadTimbre} aria-describedby="s-lead-help" onChange={(e) => set({ leadTimbre: e.target.value as Timbre })}>
+              {TIMBRES.map((k) => <option key={k} value={k}>{t.timbres[k]}</option>)}
+            </select>
+            <p id="s-lead-help" className="muted small">{t.leadTimbreHelp}</p>
+          </div>
+          <Mixer />
+        </>}
       </div>
     </dialog>
   );

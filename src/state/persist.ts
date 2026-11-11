@@ -1,6 +1,6 @@
 /** Bewaren in de browser (localStorage) en de begintoestand daaruit opbouwen. Onleesbare gegevens worden genegeerd. */
 import type { ChordSize } from '../core';
-import { TIMBRES, validMix } from '../audio';
+import { isCompTimbre, TIMBRES, validMix, type CompTimbre, type Timbre } from '../audio';
 import { MESSAGES } from '../i18n';
 import { INSTRUMENTS } from '../instruments';
 import { clampBpm, type PathEntry, type State } from './model';
@@ -40,6 +40,22 @@ export function instrumentFrom(p: { instrument?: unknown; saxKey?: unknown }): s
   return INSTRUMENTS.some((i) => i.id === p.instrument) ? (p.instrument as string) : 'piano';
 }
 
+const isTimbre = (t: unknown): t is Timbre => (TIMBRES as readonly unknown[]).includes(t);
+
+/**
+ * Akkoord- en melodieklank uit de voorkeuren. Vroeger was er één klank ('timbre', met 'sax' = tenorsax): een
+ * akkoordinstrument blijft de akkoordklank, een blazer wordt de melodieklank. Zonder keuze klinkt de melodie als je
+ * eigen instrument (alle instrumenten hebben een eigen klank), de akkoorden als piano.
+ */
+export function timbresFrom(p: Record<string, unknown>, instrument: string): { compTimbre: CompTimbre; leadTimbre: Timbre } {
+  const old = p.timbre === 'sax' ? 'tenorsax' : p.timbre;
+  const own: Timbre = isTimbre(instrument) ? instrument : 'piano';
+  return {
+    compTimbre: isCompTimbre(p.compTimbre) ? p.compTimbre : isCompTimbre(old) ? old : 'piano',
+    leadTimbre: isTimbre(p.leadTimbre) ? p.leadTimbre : isTimbre(old) && !isCompTimbre(old) ? old : own,
+  };
+}
+
 export function initial(): State {
   const p = loadPrefs();
   const size: ChordSize = p.size === 4 ? 4 : 3;
@@ -47,7 +63,7 @@ export function initial(): State {
   const start: PathEntry = saved?.[saved.length - 1] ?? { root: 2, mode: 3, degree: 0, beats: 4, size }; // D Dorisch
   return {
     root: start.root, mode: start.mode, degree: start.degree,
-    timbre: (p.timbre as string) === 'sax' ? 'tenorsax' : p.timbre && TIMBRES.includes(p.timbre) ? p.timbre : 'piano',
+    ...timbresFrom(p as Record<string, unknown>, instrumentFrom(p)),
     meter: p.meter === 3 ? 3 : 4,
     bpm: clampBpm(p.bpm ?? legacyLoopBpm()),
     showBlue: p.showBlue !== false,
@@ -69,7 +85,7 @@ export function initial(): State {
 /** Voorkeuren bewaren (alles behalve het schema en de huidige positie). */
 export function savePrefs(s: State) {
   try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: s.lang, namer: s.namer, size: s.size, sound: s.sound, instrument: s.instrument, timbre: s.timbre, meter: s.meter, showBlue: s.showBlue, showPenta: s.showPenta, bpm: s.bpm, theme: s.theme, mix: s.mix }));
+    localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: s.lang, namer: s.namer, size: s.size, sound: s.sound, instrument: s.instrument, compTimbre: s.compTimbre, leadTimbre: s.leadTimbre, meter: s.meter, showBlue: s.showBlue, showPenta: s.showPenta, bpm: s.bpm, theme: s.theme, mix: s.mix }));
   } catch { /* opslag niet beschikbaar: geen probleem */ }
 }
 

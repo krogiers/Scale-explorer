@@ -76,7 +76,10 @@ dialog.sheet{border:1px solid var(--line-strong);border-radius:14px;padding:18px
 dialog.sheet::backdrop{background:rgba(10,14,20,.45)}
 .sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .sheet-head h2{font-family:var(--f-display);font-size:24px;letter-spacing:0;text-transform:none;color:var(--ink)}
-.sheet .settings{flex-direction:column;align-items:flex-start;gap:16px}
+.sheet .settings{flex-direction:column;align-items:flex-start;gap:var(--sp-4)}
+/* keuzelijsten in het venster: alle even breed */
+.sheet .settings .field:has(select){align-self:stretch}
+.sheet .settings select{width:100%}
 
 /* melding bovenaan, onder de balk */
 .toast-wrap{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:30;max-width:calc(100vw - 32px)}

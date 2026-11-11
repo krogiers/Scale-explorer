@@ -4,7 +4,7 @@ import { LoopPlayer, loopState } from './loop';
 import type { AudioEngine } from './types';
 
 const fakeEngine = () => ({
-  now: () => 0, play: vi.fn(), noteAt: vi.fn(), clickAt: vi.fn(), drumAt: vi.fn(), stopAll: vi.fn(), setTimbre: vi.fn(), setMix: vi.fn(), ready: () => Promise.resolve(),
+  now: () => 0, play: vi.fn(), noteAt: vi.fn(), clickAt: vi.fn(), drumAt: vi.fn(), stopAll: vi.fn(), setTimbres: vi.fn(), setMix: vi.fn(), ready: () => Promise.resolve(),
 }) satisfies AudioEngine;
 
 describe('er speelt maar één ding', () => {

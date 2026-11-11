@@ -55,7 +55,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     savePrefs(state);
     document.documentElement.lang = state.lang;
     document.title = t.title;
-  }, [state.lang, state.namer, state.size, state.sound, state.instrument, state.timbre, state.meter, state.showBlue, state.showPenta, state.bpm, state.theme, state.mix, t.title]);
+  }, [state.lang, state.namer, state.size, state.sound, state.instrument, state.compTimbre, state.leadTimbre, state.meter, state.showBlue, state.showPenta, state.bpm, state.theme, state.mix, t.title]);
 
   useEffect(() => {
     if (state.theme === 'auto') delete document.documentElement.dataset.theme;
@@ -64,7 +64,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { saveChart(state.path); }, [state.path]);
 
-  useEffect(() => { audio.setTimbre(state.timbre); }, [state.timbre]);
+  useEffect(() => { void audio.setTimbres(state.compTimbre, state.leadTimbre); }, [state.compTimbre, state.leadTimbre]);
 
   useEffect(() => { audio.setMix(state.mix); }, [state.mix]);
 
@@ -80,8 +80,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const preview = () => playOnly(chordEvents(chordsOf(scaleOf(next.root, next.mode), next.size)[next.degree]), 'chord');
       if (next.sound && !loopState.running) {
         if (plays) preview();
-        // een nieuwe klank meteen laten horen, maar pas als de opnames ervan geladen zijn
-        else if (next.timbre !== prev.timbre) { audio.now(); void audio.setTimbre(next.timbre).then(preview); }
+        // een nieuwe klank meteen laten horen (een akkoord of de toonladder), maar pas als de opnames ervan geladen zijn
+        else if (next.compTimbre !== prev.compTimbre || next.leadTimbre !== prev.leadTimbre) {
+          const lead = next.leadTimbre !== prev.leadTimbre;
+          audio.now();
+          void audio.setTimbres(next.compTimbre, next.leadTimbre).then(lead ? () => playOnly(scaleEvents(scaleOf(next.root, next.mode)), 'scale') : preview);
+        }
       }
     };
     return {

@@ -6,7 +6,7 @@ import { progressionVoicings, voicing } from './voicing';
 export const chordEvents = (c: Chord, at = 0, dur = 1.1, notes: number[] = voicing(c)): NoteEvent[] =>
   notes.map((m, i) => [m, at + i * 0.018, dur, i === 0 ? 'bass' : 'keys']);
 
-/** Toonladder oplopend vanaf de grondtoon; met notes speel je een deel ervan (bv. pentatonisch). */
+/** Toonladder oplopend vanaf de grondtoon, in de melodieklank; met notes speel je een deel ervan (bv. pentatonisch). */
 export function scaleEvents(s: Scale, notes: Note[] = s.notes): NoteEvent[] {
   let prev = 60 + s.root - (s.root > 6 ? 12 : 0) - 1;
   const ev: NoteEvent[] = notes.map((n, i) => {
@@ -14,15 +14,15 @@ export function scaleEvents(s: Scale, notes: Note[] = s.notes): NoteEvent[] {
     while (x <= prev) x += 12;
     while (x > prev + 12) x -= 12;
     prev = x;
-    return [x, i * 0.28, 0.3];
+    return [x, i * 0.28, 0.3, 'lead'];
   });
-  ev.push([ev[0][0] + 12, notes.length * 0.28, 0.6]);
+  ev.push([ev[0][0] + 12, notes.length * 0.28, 0.6, 'lead']);
   return ev;
 }
 
 /**
  * "Hoor het verschil": ladder a en daarna ladder b, elk boven een orgelpunt op hun eigen grondtoon (laag, in de bas).
- * De noten die verschillen klinken langer. Is er precies één noot anders (F → F♯), dan wisselen die twee nog twee keer af
+ * De ladders klinken in de melodieklank, het orgelpunt in de akkoordklank. De noten die verschillen klinken langer. Is er precies één noot anders (F → F♯), dan wisselen die twee nog twee keer af
  * boven de grondtoon van b: zo hoor je de kleur zelf, zoals de oefening "F en F♯ afwisselen boven een drone".
  */
 export function compareEvents(a: Scale, b: Scale, step = 0.32): NoteEvent[] {
@@ -37,9 +37,9 @@ export function compareEvents(a: Scale, b: Scale, step = 0.32): NoteEvent[] {
       let x = 60 + note.pc;
       while (x <= prev) x += 12;
       prev = x;
-      ev.push([x, t0 + i * step, other.pcs.has(note.pc) ? step * 1.05 : step * 2.2]);
+      ev.push([x, t0 + i * step, other.pcs.has(note.pc) ? step * 1.05 : step * 2.2, 'lead']);
     });
-    ev.push([low(s.root) + 36, t0 + n * step, step * 2.5]);
+    ev.push([low(s.root) + 36, t0 + n * step, step * 2.5, 'lead']);
     return t0 + (n + 2.5) * step;
   };
   let t = run(a, b, 0);
@@ -49,7 +49,7 @@ export function compareEvents(a: Scale, b: Scale, step = 0.32): NoteEvent[] {
     const near = (pc: number) => { let x = 60 + pc; while (x < 60 + b.root) x += 12; return x; };
     const [o, i] = [near(out[0].pc), near(inn[0].pc)];
     ev.push([low(b.root), t, step * 8.5, 'bass'], [low(b.root) + 19, t, step * 8.5]);
-    [o, i, o, i].forEach((m, k) => ev.push([m, t + k * step * 2, step * 1.9]));
+    [o, i, o, i].forEach((m, k) => ev.push([m, t + k * step * 2, step * 1.9, 'lead']));
   }
   return ev;
 }

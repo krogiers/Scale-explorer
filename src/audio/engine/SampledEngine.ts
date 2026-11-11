@@ -1,6 +1,7 @@
 /**
  * De geluidsmotor. Gebruikt echte opnames (samples) van piano, Rhodes en contrabas, met:
- * - strijkers, cello, orgel, vibrafoon, klarinet, trompet en dwarsfluit als extra klanken, pas geladen wanneer iemand ze kiest;
+ * - twee klanken: één voor de akkoorden (begeleiding) en één voor losse noten (melodie: toonladders, vergelijken);
+ * - extra klanken (gitaar, strijkers, orgel, blazers…) pas geladen wanneer iemand ze kiest;
  * - voor aangehouden klanken (strijkers, cello, orgel en de blazers) een stuk van de opname dat zich herhaalt met overvloeien, zodat lange akkoorden niet wegvallen;
  * - toonhoogteverschuiving van hooguit anderhalve halve toon naar de dichtstbijzijnde opname;
  * - een galm (convolutie met een kunstmatige zaalrespons) zodat het niet droog en digitaal klinkt;
@@ -10,7 +11,7 @@
  */
 import { SAMPLES } from '../samples/base';
 import { channelGain, DEFAULT_MIX, PARTS, type Mix, type PartChannel } from '../mix';
-import type { AudioEngine, Drum, NoteEvent, Part, Timbre } from '../types';
+import type { AudioEngine, CompTimbre, Drum, NoteEvent, Part, Timbre } from '../types';
 import { noiseBuffer, playClick, playDrum } from './drums';
 import { playSample } from './sampler';
 import { synthNote } from './synth';
@@ -40,11 +41,18 @@ export class SampledEngine implements AudioEngine {
   /** Telt elke stopAll: zo weet een uitgesteld "speel" dat er intussen iets anders begonnen is. */
   private gen = 0;
   private extra = new Map<string, Promise<void>>();
-  private timbre: Timbre = 'piano';
+  private comp: CompTimbre = 'piano';
+  private lead: Timbre = 'piano';
 
-  setTimbre(t: Timbre): Promise<void> {
-    this.timbre = t;
-    return this.ctx ? this.loadExtra(this.ctx, t) : Promise.resolve();
+  setTimbres(comp: CompTimbre, lead: Timbre): Promise<void> {
+    this.comp = comp;
+    this.lead = lead;
+    return this.ctx ? this.loadChosen(this.ctx) : Promise.resolve();
+  }
+
+  /** De opnames van beide gekozen klanken. */
+  private loadChosen(c: AudioContext): Promise<void> {
+    return Promise.all([this.loadExtra(c, this.comp), this.loadExtra(c, this.lead)]).then(() => undefined);
   }
 
   /** Het mengpaneel toepassen; een schuiver hoor je meteen, ook terwijl de loop speelt. */
@@ -75,7 +83,7 @@ export class SampledEngine implements AudioEngine {
   ready(): Promise<void> {
     const c = this.ensure();
     if (!c) return Promise.resolve();
-    const all = Promise.all([this.base, this.loadExtra(c, this.timbre)]).then(() => undefined);
+    const all = Promise.all([this.base, this.loadChosen(c)]).then(() => undefined);
     return Promise.race([all, new Promise<void>((r) => window.setTimeout(r, 4000))]);
   }
 
@@ -176,7 +184,7 @@ export class SampledEngine implements AudioEngine {
   private async load(c: AudioContext) {
     if (this.loading) return;
     this.loading = true;
-    void this.loadExtra(c, this.timbre);
+    void this.loadChosen(c);
     this.base = Promise.all(Object.entries(SAMPLES).map(([name, notes]) => this.decode(c, name, notes))).then(() => undefined);
     await this.base;
   }
@@ -202,20 +210,21 @@ export class SampledEngine implements AudioEngine {
   noteAt(midi: number, t: number, dur: number, vel = 1, part: Part = 'keys') {
     const c = this.ensure();
     if (!c) return;
-    const out = this.bus![part === 'bass' ? 'bass' : 'keys'];
+    const out = this.bus![part];
     // een beetje menselijk: aanslag en timing variëren licht
     t = Math.max(c.currentTime, t + jitter(0.008));
     vel = Math.min(1, Math.max(0.1, vel * (1 + jitter(0.1))));
     // is de gekozen klank nog aan het laden (net gewisseld), speel dan intussen piano in plaats van de synthesizer
-    let bankName: string = part === 'bass' ? 'bass' : this.timbre;
-    if (!this.banks.has(bankName) && part === 'keys' && this.timbre !== 'synth') bankName = 'piano';
+    const timbre = part === 'lead' ? this.lead : this.comp;
+    let bankName: string = part === 'bass' ? 'bass' : timbre;
+    if (!this.banks.has(bankName) && part !== 'bass' && timbre !== 'synth') bankName = 'piano';
     const bank = this.banks.get(bankName);
     const hit = bank ? this.nearest(bank, midi) : null;
-    if (this.timbre === 'synth' && part === 'keys') return synthNote(c, out, midi, t, dur, vel);
+    if (timbre === 'synth' && part !== 'bass') return synthNote(c, out, midi, t, dur, vel);
     if (!hit) return synthNote(c, out, midi, t, dur, vel);
     const [buffer, sampleMidi] = hit;
     const rate = Math.pow(2, (midi - sampleMidi) / 12);
-    playSample(c, out, part === 'keys', buffer, rate, VOICES[bankName] ?? VOICES.piano, t, dur, vel);
+    playSample(c, out, part !== 'bass', buffer, rate, VOICES[bankName] ?? VOICES.piano, t, dur, vel);
   }
 
   clickAt(t: number, accent: boolean) {

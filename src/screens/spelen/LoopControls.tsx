@@ -8,7 +8,7 @@ import { Heading } from '../../ui';
 /** Bediening van de meespeelloop (de speler zelf zit in de gedeelde toestand, zie state/loop). */
 export function LoopControls() {
   const { state, dispatch, t, names, scaleLabel } = useApp();
-  const { running, info, opts, setOpts: set, toggle, practice, setPracticeBars } = useLoop();
+  const { running, info, nextChord, opts, setOpts: set, toggle, practice, setPracticeBars } = useLoop();
   const drill = running ? practice : null;
 
   let now = <p className="muted small">{t.loopIdle}</p>;
@@ -38,7 +38,7 @@ export function LoopControls() {
       const p = state.path[info.chord % state.path.length];
       const s = scaleOf(p.root, p.mode);
       const c = chordOf(p);
-      const nc = chordOf(state.path[(info.chord + 1) % state.path.length]);
+      const nc = chordOf(state.path[nextChord] ?? p);
       now = (
         <div className="loop-now">
           <b className="loop-chord">{names.chord(c)}</b>

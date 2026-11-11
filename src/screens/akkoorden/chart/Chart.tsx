@@ -1,8 +1,8 @@
 import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { scaleOf } from '../../../core';
 import { fill } from '../../../i18n';
-import { chordOf, MAX_CHORDS, useApp, useLoop } from '../../../state';
-import { Heading, layoutBars, PlayButton, showToast } from '../../../ui';
+import { chordOf, MAX_CHORDS, REPEAT_TIMES, useApp, useLoop, type PathEntry } from '../../../state';
+import { Heading, layoutBars, PlayButton, repeatClass, RepeatSigns, showToast } from '../../../ui';
 import { useChartDrag } from './useChartDrag';
 
 const DURATIONS = [1, 2, 3, 4, 6, 8, 12, 16];
@@ -25,6 +25,8 @@ export function Chart({ onShowSequences }: { onShowSequences: () => void }) {
     return { p, s, c: chordOf(p) };
   };
   const canUndo = state.history.length > 0;
+  /** De herhaaltekens van een akkoord in woorden, voor schermlezers. */
+  const marksText = (p: PathEntry) => [p.repStart && t.repA11yStart, p.repEnd && fill(t.repA11yEnd, { n: p.repEnd }), p.volta && fill(t.voltaA11y, { n: p.volta })].filter(Boolean).map((x) => `, ${x}`).join('');
 
   // Ctrl/Cmd+Z maakt de laatste wijziging aan het schema ongedaan (niet in tekstvelden)
   useEffect(() => {
@@ -96,13 +98,14 @@ export function Chart({ onShowSequences }: { onShowSequences: () => void }) {
               const prev = sg.index > 0 ? state.path[sg.index - 1] : null;
               const keyChange = !prev || prev.root !== state.path[sg.index].root || prev.mode !== state.path[sg.index].mode;
               const drop = sg.start && dropGap === sg.index ? ' drop-before' : dropGap === n && b === bars.length - 1 && k === lastSeg ? ' drop-after' : '';
-              const cls = `cell${sg.index === focus ? ' focus' : ''}${sg.index === playing ? ' playing' : ''}${drag?.from === sg.index ? ' lifted' : ''}${drop}`;
+              const cls = `cell${sg.index === focus ? ' focus' : ''}${sg.index === playing ? ' playing' : ''}${drag?.from === sg.index ? ' lifted' : ''}${drop}${repeatClass(state.path[sg.index], sg)}`;
               return sg.start ? [
                 gap(sg.index),
                 <button key={k} type="button" className={cls} style={{ flexGrow: sg.beats }} data-idx={sg.index} data-start=""
                   onPointerDown={onPointerDown(sg.index)} onKeyDown={onCellKey(sg.index)}
                   onClick={() => { if (!consumeClick()) dispatch({ type: 'focusPath', index: sg.index }); }}
-                  aria-label={`${names.chord(c)}, ${scaleLabel(s)}, ${fill(t.beatsN, { n: state.path[sg.index].beats })}`}>
+                  aria-label={`${names.chord(c)}, ${scaleLabel(s)}, ${fill(t.beatsN, { n: state.path[sg.index].beats })}${marksText(state.path[sg.index])}`}>
+                  <RepeatSigns p={state.path[sg.index]} seg={sg} />
                   <span className={`k${keyChange ? '' : ' same'}`}>{scaleLabel(s)}</span>
                   <b>{names.chord(c)}</b>
                   <span className="grip" aria-hidden="true">⠿</span>
@@ -110,6 +113,7 @@ export function Chart({ onShowSequences }: { onShowSequences: () => void }) {
                 ...(b === bars.length - 1 && k === lastSeg ? [gap(n)] : []),
               ] : [
                 <span key={k} className={`${cls} cont`} style={{ flexGrow: sg.beats }} data-idx={sg.index} aria-hidden="true">
+                  <RepeatSigns p={state.path[sg.index]} seg={sg} />
                   {sg.beats === state.meter && k === 0 ? '%' : '·'}
                 </span>,
                 ...(b === bars.length - 1 && k === lastSeg ? [gap(n)] : []),
@@ -131,6 +135,21 @@ export function Chart({ onShowSequences }: { onShowSequences: () => void }) {
           <div className="seg" role="group">
             {([3, 4] as const).map((n) => (
               <button key={n} type="button" aria-pressed={f.p.size === n} onClick={() => dispatch({ type: 'setSize', index: focus, size: n })}>{n === 3 ? t.triads : t.sevenths}</button>
+            ))}
+          </div>
+        </div>
+        <div className="field"><span className="lbl">{t.repeat}</span>
+          <div className="seg" role="group" aria-label={t.repeat}>
+            <button type="button" aria-pressed={!!f.p.repStart} title={t.repStartTip} onClick={() => dispatch({ type: 'setMarks', index: focus, marks: { repStart: !f.p.repStart } })}>‖:</button>
+            {REPEAT_TIMES.map((n) => (
+              <button key={n} type="button" aria-pressed={f.p.repEnd === n} title={fill(t.repEndTip, { n })} onClick={() => dispatch({ type: 'setMarks', index: focus, marks: { repEnd: f.p.repEnd === n ? undefined : n } })}>:‖ ×{n}</button>
+            ))}
+          </div>
+        </div>
+        <div className="field"><span className="lbl">{t.volta}</span>
+          <div className="seg" role="group" aria-label={t.volta}>
+            {([1, 2] as const).map((v) => (
+              <button key={v} type="button" aria-pressed={f.p.volta === v} title={v === 1 ? t.voltaTip1 : t.voltaTip2} onClick={() => dispatch({ type: 'setMarks', index: focus, marks: { volta: f.p.volta === v ? undefined : v } })}>{v}.</button>
             ))}
           </div>
         </div>

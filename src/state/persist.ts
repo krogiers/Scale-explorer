@@ -4,6 +4,7 @@ import { isCompTimbre, TIMBRES, validMix, type CompTimbre, type Timbre } from '.
 import { MESSAGES } from '../i18n';
 import { INSTRUMENTS } from '../instruments';
 import { clampBpm, type PathEntry, type State } from './model';
+import { validMarks } from './repeats';
 
 const PREFS_KEY = 'tln-prefs';
 function loadPrefs(): Partial<State> {
@@ -18,7 +19,7 @@ export function validChart(c: unknown, defaultSize: ChordSize = 3): PathEntry[] 
   if (!Array.isArray(c) || c.length === 0) return null;
   const ok = c.every((e) => e && inRange(e.root, 0, 11) && inRange(e.mode, 0, 6) && inRange(e.degree, 0, 6) && inRange(e.beats, 1, 16)
     && (e.size === undefined || e.size === 3 || e.size === 4));
-  return ok ? c.map(({ root, mode, degree, beats, size }) => ({ root, mode, degree, beats, size: size ?? defaultSize })) : null;
+  return ok ? c.map((e) => ({ root: e.root, mode: e.mode, degree: e.degree, beats: e.beats, size: e.size ?? defaultSize, ...validMarks(e) })) : null;
 }
 
 function loadChart(defaultSize: ChordSize): PathEntry[] | null {

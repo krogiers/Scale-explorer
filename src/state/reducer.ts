@@ -1,6 +1,7 @@
 /** De reducer: pure overgangen van de toestand, met ongedaan maken voor het schema. */
 import { scaleOf } from '../core';
 import { clampBpm, type Action, type PathEntry, type State } from './model';
+import { validMarks, withoutMarks } from './repeats';
 
 const entry = (s: State): PathEntry => ({ root: s.root, mode: s.mode, degree: s.degree, beats: s.meter, size: s.size });
 export const MAX_CHORDS = 64;
@@ -53,9 +54,23 @@ export function reducer(s: State, a: Action): State {
       const next = edit(s, s.path.map((e, i) => (i === a.index ? { ...e, size: a.size } : e)), s.focus, s.cursor);
       return a.index === s.focus ? { ...next, size: a.size } : next;
     }
+    case 'setMarks': {
+      const e = s.path[a.index];
+      if (!e) return s;
+      // een sleutel in marks vervangt het teken (undefined = weg); de rest blijft
+      const merged: PathEntry = { ...withoutMarks(e), ...validMarks({ repStart: e.repStart, repEnd: e.repEnd, volta: e.volta, ...a.marks }) };
+      if (merged.repStart === e.repStart && merged.repEnd === e.repEnd && merged.volta === e.volta) return s;
+      return edit(s, s.path.map((x, i) => (i === a.index ? merged : x)), s.focus, s.cursor);
+    }
     case 'removeAt': {
-      if (!s.path[a.index]) return s;
-      const path = s.path.filter((_, i) => i !== a.index);
+      const gone = s.path[a.index];
+      if (!gone) return s;
+      // de herhaaltekens van een verwijderd akkoord schuiven door: een begin naar het volgende, een einde naar het vorige
+      const path = s.path.filter((_, i) => i !== a.index).map((e, i) => {
+        if (gone.repStart && i === a.index && !e.repStart) return { ...e, repStart: true };
+        if (gone.repEnd && i === a.index - 1 && !e.repEnd) return { ...e, repEnd: gone.repEnd };
+        return e;
+      });
       // de cursor blijft op dezelfde plek in de muziek: stond hij erachter, dan schuift hij één op
       const cursor = clampCursor(s.cursor > a.index ? s.cursor - 1 : s.cursor, path.length);
       const focus = Math.min(s.focus > a.index ? s.focus - 1 : s.focus, path.length - 1);
@@ -67,7 +82,7 @@ export function reducer(s: State, a: Action): State {
       if (!moved || a.to < 0 || a.to > s.path.length) return s;
       if (a.copy) {
         if (s.path.length >= MAX_CHORDS) return s;
-        return atEntry(edit(s, [...s.path.slice(0, a.to), { ...moved }, ...s.path.slice(a.to)], a.to, clampCursor(s.cursor > a.to || s.cursor === s.path.length ? s.cursor + 1 : s.cursor, s.path.length + 1)), moved, a.to);
+        return atEntry(edit(s, [...s.path.slice(0, a.to), withoutMarks(moved), ...s.path.slice(a.to)], a.to, clampCursor(s.cursor > a.to || s.cursor === s.path.length ? s.cursor + 1 : s.cursor, s.path.length + 1)), moved, a.to);
       }
       // de opening vlak voor of na het akkoord zelf: het blijft waar het staat
       if (a.to === a.from || a.to === a.from + 1) return s;

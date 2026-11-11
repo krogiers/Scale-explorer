@@ -2,10 +2,11 @@
 import { chordsOf, scaleOf, type Chord, type ChordSize, type Destination, type ModeIndex } from '../core';
 import type { Lang } from '../i18n';
 import type { CompTimbre, Mix, Timbre } from '../audio';
+import type { RepeatMarks } from './repeats';
 
 export interface Position { root: number; mode: ModeIndex; degree: number }
-/** Eén akkoord in het schema: waar het staat, hoeveel tellen het duurt en of het een drie- of vierklank is. */
-export interface PathEntry extends Position { beats: number; size: ChordSize }
+/** Eén akkoord in het schema: waar het staat, hoeveel tellen het duurt, drie- of vierklank, en eventuele herhaaltekens. */
+export interface PathEntry extends Position, RepeatMarks { beats: number; size: ChordSize }
 export const chordOf = (p: PathEntry): Chord => chordsOf(scaleOf(p.root, p.mode), p.size)[p.degree];
 export type { CompTimbre, Timbre };
 export type Theme = 'auto' | 'light' | 'dark';
@@ -63,6 +64,8 @@ export type Action =
   | { type: 'focusPath'; index: number }
   | { type: 'setBeats'; index: number; beats: number }
   | { type: 'setSize'; index: number; size: ChordSize }
+  /** Herhaaltekens op een akkoord zetten of weghalen (undefined = weg). */
+  | { type: 'setMarks'; index: number; marks: RepeatMarks }
   | { type: 'undo' }
   | { type: 'removeAt'; index: number }
   | { type: 'clearPath' }

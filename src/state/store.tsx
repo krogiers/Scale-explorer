@@ -8,6 +8,7 @@ import { audio, chordEvents, compareEvents, playing, playOnly, progressionEvents
 import { loopState } from '../audio/loop';
 import { chordOf, type Action, type State } from './model';
 import { initial, saveChart, savePrefs } from './persist';
+import { playOrder } from './repeats';
 import { reducer } from './reducer';
 
 interface Ctx {
@@ -94,7 +95,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       scaleLabel: (s: Scale) => `${names.note(s.notes[0])} ${t.modes[s.mode]}`,
       concertLabel: (s: Scale) => `${concertNames.note(s.notes[0])} ${t.modes[s.mode]}`,
       playScale: () => play(scaleEvents(scale, state.showPenta ? pentatonic(scale).notes : scale.notes), 'scale'),
-      playPath: () => play(progressionEvents(state.path.map((p) => ({ chord: chordOf(p), beats: p.beats })), 60 / state.bpm), 'path'),
+      playPath: () => play(progressionEvents(playOrder(state.path).map((i) => ({ chord: chordOf(state.path[i]), beats: state.path[i].beats })), 60 / state.bpm), 'path'),
       playChords: (items, id) => play(progressionEvents(items, 60 / state.bpm), id),
       playCompare: (a, b, id) => play(compareEvents(a, b), id),
       playChord: () => play(chordEvents(chords[state.degree]), 'chord'),

@@ -48,14 +48,14 @@ function useScreen(): [Screen, (s: Screen) => void] {
  */
 function LoopPill({ onOpen }: { onOpen: () => void }) {
   const { state, t, names, scaleLabel } = useApp();
-  const { running, info, toggle, practice } = useLoop();
+  const { running, info, nextChord, toggle, practice } = useLoop();
   if (!running) return null;
   const n = state.path.length;
   const drill = practice && info && info.chord >= 0 ? practiceAt(practice, info).now : null;
   const text = !info ? t.loopTitle : info.chord < 0 ? `${t.countingIn} ${info.beat + 1}`
     : drill ? scaleLabel(scaleOf(drill.root, drill.mode))
     : n === 0 ? t.loopTitle
-    : `${names.chord(chordOf(state.path[info.chord % n]))}${n > 1 ? ` → ${names.chord(chordOf(state.path[(info.chord + 1) % n]))}` : ''}`;
+    : `${names.chord(chordOf(state.path[info.chord % n]))}${n > 1 && state.path[nextChord] ? ` → ${names.chord(chordOf(state.path[nextChord]))}` : ''}`;
   return (
     <div className="loop-pill">
       <button type="button" className="lp-stop iconbtn" onClick={toggle} aria-label={t.loopStop} title={t.loopStop}>■</button>

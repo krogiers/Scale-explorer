@@ -7,6 +7,7 @@ import type { Spot } from '../core';
 import { audio, progressionVoicings } from '../audio';
 import { LOOP_STYLES, LoopPlayer, type BeatInfo, type LoopOptions, type TimelineItem } from '../audio/loop';
 import { chordOf } from './model';
+import { playOrder } from './repeats';
 import { useApp } from './store';
 
 const KEY = 'tln-loop';
@@ -48,8 +49,13 @@ export function practiceAt(p: Practice, info: BeatInfo | null): { now: Spot; oth
 
 interface LoopCtx {
   running: boolean;
-  /** De tel die nu klinkt (chord = -1 tijdens het aftellen), of null als de loop stilstaat. */
+  /**
+   * De tel die nu klinkt, of null als de loop stilstaat. chord = -1 tijdens het aftellen; bij het schema is het de
+   * plaats in het schema (herhalingen lopen dus terug), bij een oefening de maat van de oefening.
+   */
   info: BeatInfo | null;
+  /** Het akkoord in het schema dat hierna komt, met de herhalingen meegerekend; -1 als er geen is. */
+  nextChord: number;
   opts: LoopSettings;
   setOpts: (patch: Partial<LoopSettings>) => void;
   toggle: () => void;
@@ -73,11 +79,17 @@ export function LoopProvider({ children }: { children: ReactNode }) {
   const setPractice = (p: Practice | null) => { practiceRef.current = p; setPracticeState(p); };
 
   // de planner leest altijd de nieuwste progressie en instellingen via refs
+  // de tijdlijn speelt de herhalingen uitgeschreven; order[stap] = plaats in het schema
   const timeline = useRef<TimelineItem[]>([]);
-  timeline.current = useMemo(() => {
-    const voicings = progressionVoicings(state.path.map(chordOf));
-    return state.path.map((p, i) => ({ voicing: voicings[i], beats: p.beats }));
+  const order = useRef<number[]>([]);
+  const built = useMemo(() => {
+    const ord = playOrder(state.path);
+    const voicings = progressionVoicings(ord.map((i) => chordOf(state.path[i])));
+    return { ord, items: ord.map((i, k) => ({ voicing: voicings[k], beats: state.path[i].beats })) };
   }, [state.path]);
+  timeline.current = built.items;
+  order.current = built.ord;
+  const [step, setStep] = useState(-1);
   const optsRef = useRef<LoopOptions>({ ...opts, bpm: state.bpm, meter: state.meter });
   optsRef.current = { ...opts, bpm: state.bpm, meter: state.meter };
   // een oefening is een drone: aangehouden, zonder drums (metronoom en aftellen zoals ingesteld)
@@ -87,7 +99,14 @@ export function LoopProvider({ children }: { children: ReactNode }) {
   const player = useRef<LoopPlayer | null>(null);
   if (!player.current) {
     // info = null betekent: gestopt (ook als iets anders begon te spelen en de loop overnam)
-    player.current = new LoopPlayer(audio, getTimeline, getOpts, (i) => { setInfo(i); if (!i) { setRunning(false); setPractice(null); } });
+    player.current = new LoopPlayer(audio, getTimeline, getOpts, (i) => {
+      // bij het schema: de stap in de tijdlijn terugvertalen naar de plaats in het schema
+      const ord = order.current;
+      const map = i && i.chord >= 0 && !practiceRef.current;
+      setStep(map ? i.chord : -1);
+      setInfo(map ? { ...i, chord: ord[i.chord % ord.length] ?? 0 } : i);
+      if (!i) { setRunning(false); setPractice(null); }
+    });
   }
   useEffect(() => () => player.current?.stop(), []);
   // schema leeggemaakt terwijl de loop het speelt: er valt niets meer te spelen
@@ -95,8 +114,10 @@ export function LoopProvider({ children }: { children: ReactNode }) {
   useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(opts)); } catch { /* niet erg */ } }, [opts]);
   useEffect(() => { try { localStorage.setItem(BARS_KEY, String(bars)); } catch { /* niet erg */ } }, [bars]);
 
+  const ord = built.ord;
+  const nextChord = step >= 0 && ord.length ? ord[(step + 1) % ord.length] : -1;
   const value = useMemo<LoopCtx>(() => ({
-    running, info, opts, practice,
+    running, info, nextChord, opts, practice,
     startPractice: (a, b) => {
       const p = player.current!;
       if (p.running) p.stop(); // dit wist ook een vorige oefening
@@ -111,7 +132,7 @@ export function LoopProvider({ children }: { children: ReactNode }) {
       const p = player.current!;
       if (p.running) { p.stop(); setRunning(false); } else { p.start(); setRunning(p.running); }
     },
-  }), [running, info, opts, practice, bars]);
+  }), [running, info, nextChord, opts, practice, bars]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

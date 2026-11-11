@@ -6,6 +6,8 @@ export interface Segment {
   beats: number;
   /** Begint het akkoord in deze maat (dan tonen we de naam), of loopt het door uit een vorige maat? */
   start: boolean;
+  /** Eindigt het akkoord in deze maat (daar staat een eventueel herhaalteken :‖)? */
+  end: boolean;
 }
 export interface Bar { segments: Segment[] }
 
@@ -18,9 +20,9 @@ export function layoutBars(durations: number[], meter: number): Bar[] {
     let start = true;
     while (left > 0) {
       const take = Math.min(left, free);
-      current.segments.push({ index, beats: take, start });
-      start = false;
       left -= take;
+      current.segments.push({ index, beats: take, start, end: left === 0 });
+      start = false;
       free -= take;
       if (free === 0) { bars.push(current); current = { segments: [] }; free = meter; }
     }

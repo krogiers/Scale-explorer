@@ -3,7 +3,7 @@
  * wisselt, en het scherm Spelen, de bovenbalk en het schema dezelfde loop tonen. Moet binnen AppProvider staan.
  */
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { makeMelody, scaleOf, seededRng, type MelodyNote, type Spot } from '../core';
+import { makeMelody, scaleOf, seededRng, type MelodyNote, type MelodyStep, type Spot } from '../core';
 import { audio, progressionVoicings } from '../audio';
 import { LOOP_STYLES, LoopPlayer, type BeatInfo, type LoopOptions, type TimelineItem } from '../audio/loop';
 import { chordOf } from './model';
@@ -57,8 +57,10 @@ interface LoopCtx {
   info: BeatInfo | null;
   /** Het akkoord in het schema dat hierna komt, met de herhalingen meegerekend; -1 als er geen is. */
   nextChord: number;
-  /** De verzonnen melodie bij het akkoord dat nu speelt (leeg als de melodie uit staat of niets speelt). */
-  melodyNow: MelodyNote[];
+  /** De verzonnen melodie over het hele schema (herhalingen uitgeschreven), of null als ze uit staat. */
+  melody: { steps: MelodyStep[]; notes: MelodyNote[][] } | null;
+  /** De tel die nu klinkt, geteld vanaf het begin van de (uitgeschreven) tijdlijn; null als het schema niet speelt. */
+  beatNow: number | null;
   /** Een nieuwe melodie verzinnen (dezelfde blijft terugkomen tot je dit vraagt). */
   newMelody: () => void;
   opts: LoopSettings;
@@ -92,10 +94,11 @@ export function LoopProvider({ children }: { children: ReactNode }) {
   const built = useMemo(() => {
     const ord = playOrder(state.path);
     const voicings = progressionVoicings(ord.map((i) => chordOf(state.path[i])));
-    const melody = opts.melody
-      ? makeMelody(ord.map((i) => ({ scale: scaleOf(state.path[i].root, state.path[i].mode), chord: chordOf(state.path[i]), beats: state.path[i].beats })), state.meter, seededRng(seed))
-      : null;
-    return { ord, melody, items: ord.map((i, k) => ({ voicing: voicings[k], beats: state.path[i].beats, ...(melody && { melody: melody[k] }) })) };
+    const steps: MelodyStep[] = ord.map((i) => ({ scale: scaleOf(state.path[i].root, state.path[i].mode), chord: chordOf(state.path[i]), beats: state.path[i].beats }));
+    const melody = opts.melody ? makeMelody(steps, state.meter, seededRng(seed)) : null;
+    const starts: number[] = [];
+    steps.reduce((t, s) => { starts.push(t); return t + s.beats; }, 0);
+    return { ord, steps, starts, melody, items: ord.map((i, k) => ({ voicing: voicings[k], beats: state.path[i].beats, ...(melody && { melody: melody[k] }) })) };
   }, [state.path, state.meter, opts.melody, seed]);
   timeline.current = built.items;
   order.current = built.ord;
@@ -126,9 +129,10 @@ export function LoopProvider({ children }: { children: ReactNode }) {
 
   const ord = built.ord;
   const nextChord = step >= 0 && ord.length ? ord[(step + 1) % ord.length] : -1;
-  const melodyNow = built.melody && step >= 0 ? built.melody[step % built.melody.length] ?? [] : [];
+  const melody = useMemo(() => (built.melody ? { steps: built.steps, notes: built.melody } : null), [built]);
+  const beatNow = step >= 0 && info && built.starts.length ? built.starts[step % built.starts.length] + info.beat : null;
   const value = useMemo<LoopCtx>(() => ({
-    running, info, nextChord, melodyNow, newMelody: () => setSeed((s) => (s * 1103515245 + 12345) % 2 ** 31), opts, practice,
+    running, info, nextChord, melody, beatNow, newMelody: () => setSeed((s) => (s * 1103515245 + 12345) % 2 ** 31), opts, practice,
     startPractice: (a, b) => {
       const p = player.current!;
       if (p.running) p.stop(); // dit wist ook een vorige oefening
@@ -143,7 +147,7 @@ export function LoopProvider({ children }: { children: ReactNode }) {
       const p = player.current!;
       if (p.running) { p.stop(); setRunning(false); } else { p.start(); setRunning(p.running); }
     },
-  }), [running, info, nextChord, melodyNow, opts, practice, bars]);
+  }), [running, info, nextChord, melody, beatNow, opts, practice, bars]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

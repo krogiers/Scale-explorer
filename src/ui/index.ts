@@ -8,4 +8,5 @@ export * from './format';
 export { useChordPick } from './useChordPick';
 export { SizeToggle } from './SizeToggle';
 export { RepeatSigns, repeatClass } from './RepeatSigns';
-export { placeNotes, Staff, useClef, type Clef } from './Staff';
+export { LeadSheet } from './LeadSheet';
+export { sheetBars, splitDur, type SheetBar, type SheetEvent } from './sheetLayout';

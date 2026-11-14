@@ -1,21 +1,22 @@
-import type { ReactNode } from 'react';
-import { blueNote, CHAR_DEGREE, pentatonic, scaleOf, type Chord, type Note, type Scale } from '../../core';
+import { useState, type ReactNode } from 'react';
+import { blueNote, CHAR_DEGREE, pentatonic, scaleOf, type Note, type Scale } from '../../core';
 import { COMP_TIMBRES } from '../../audio';
 import { LOOP_STYLES, type LoopStyle } from '../../audio/loop';
 import { fill } from '../../i18n';
-import { transposeNote, writtenScale } from '../../naming';
+import { transposeNote } from '../../naming';
 import { BPM_MAX, BPM_MIN, chordOf, practiceAt, PRACTICE_BARS, useApp, useLoop, type CompTimbre } from '../../state';
-import { Heading, Staff, useClef } from '../../ui';
+import { Heading, LeadSheet } from '../../ui';
+
+const SHEET_KEY = 'tln-mel-sheet';
 
 /** Bediening van de meespeelloop (de speler zelf zit in de gedeelde toestand, zie state/loop). */
 export function LoopControls() {
   const { state, dispatch, t, names, scaleLabel } = useApp();
-  const { running, info, nextChord, melodyNow, newMelody, opts, setOpts: set, toggle, practice, setPracticeBars } = useLoop();
+  const { running, info, nextChord, melody, beatNow, newMelody, opts, setOpts: set, toggle, practice, setPracticeBars } = useLoop();
   const drill = running ? practice : null;
-  const [clef, setClef] = useClef();
-  // notenbalken staan in je stemming, zoals de rest: de geschreven noten
-  const written = (s: Scale) => writtenScale(s, names.reading);
-  const writtenChord = (c: Chord) => c.notes.map((n) => transposeNote(n, names.reading));
+  // de noten van de melodie tonen (leadsheet): een gemak per kijker, onthouden in de browser
+  const [sheet, setSheetState] = useState(() => { try { return localStorage.getItem(SHEET_KEY) === '1'; } catch { return false; } });
+  const setSheet = (v: boolean) => { setSheetState(v); try { localStorage.setItem(SHEET_KEY, v ? '1' : '0'); } catch { /* niet erg */ } };
 
   let now = <p className="muted small">{t.loopIdle}</p>;
   if (running && info) {
@@ -61,10 +62,9 @@ export function LoopControls() {
           <span className="small">{scaleLabel(x)}</span>
           <span className="tones-big">{notes(x.notes, (n) => (s.pcs.has(n.pc) ? undefined : 'hot'))}</span>
           <span className="muted small">{changed.length ? fill(t.lnChanged, { notes: changed.map(names.note).join(', ') }) : t.lnSame}</span>
-          <Staff notes={writtenChord(chordOf(np!))} clef={clef} chord mark={(n) => (s.pcs.has((n.pc - names.reading.semis + 12) % 12) ? undefined : 'hot')} label={`${names.chord(chordOf(np!))}: ${chordOf(np!).notes.map(names.note).join(' ')}`} />
         </div>
       );
-      // vaste kolommen (nu · noten en notenbalken · daarna): tijdens het spelen verspringt er niets
+      // vaste kolommen (nu · noten · daarna): tijdens het spelen verspringt er niets
       now = (
         <div className="loop-now fixed">
           <div className="ln-now">
@@ -82,25 +82,6 @@ export function LoopControls() {
               {row(t.blue, blue.inScale ? <span className="muted small">{t.blueInScale}</span> : <span className="bl">{names.note(blue.note)}</span>)}
             </dl>
             <span className="muted small">{fill(t.charHint, { note: names.note(s.notes[CHAR_DEGREE[s.mode]]) })}</span>
-            <div className="staves">
-              <div className="seg clef-pick" role="group" aria-label={t.clef}>
-                <button type="button" aria-pressed={clef === 'treble'} title={t.clefTreble} aria-label={t.clefTreble} onClick={() => setClef('treble')}>{'\u{1D11E}'}</button>
-                <button type="button" aria-pressed={clef === 'bass'} title={t.clefBass} aria-label={t.clefBass} onClick={() => setClef('bass')}>{'\u{1D122}'}</button>
-              </div>
-              <figure><figcaption>{t.lnChord}</figcaption>
-                <Staff notes={writtenChord(c)} clef={clef} chord label={`${names.chord(c)}: ${c.notes.map(names.note).join(' ')}`} /></figure>
-              <figure><figcaption>{t.lnScale}</figcaption>
-                <Staff notes={written(s).notes} clef={clef} mark={(n) => (n.pc === (char + names.reading.semis) % 12 ? 'char' : undefined)} label={`${scaleLabel(s)}: ${s.notes.map(names.note).join(' ')}`} /></figure>
-              {opts.melody && (() => {
-                // de melodie bij dit akkoord, gespeld zoals in de ladder en in je stemming (met echte octaven)
-                const mn = melodyNow.map((x) => s.notes.find((n) => n.pc === x.midi % 12) ?? s.notes[0]);
-                return (
-                  <figure className="mel"><figcaption>{t.melody}</figcaption>
-                    <Staff notes={mn.map((n) => transposeNote(n, names.reading))} midis={melodyNow.map((x) => x.midi + names.reading.semis)} clef={clef}
-                      label={`${t.melody}: ${mn.map(names.note).join(' ')}`} /></figure>
-                );
-              })()}
-            </div>
           </div>
           {next(ns)}
         </div>
@@ -140,12 +121,23 @@ export function LoopControls() {
         {!drill && <label className="check"><input id="drums" type="checkbox" checked={opts.drums} onChange={(e) => set({ drums: e.target.checked })} /> {t.drums}</label>}
         <label className="check"><input id="metro" type="checkbox" checked={opts.metronome} onChange={(e) => set({ metronome: e.target.checked })} /> {t.metronome}</label>
         <label className="check"><input id="countin" type="checkbox" checked={opts.countIn} onChange={(e) => set({ countIn: e.target.checked })} /> {t.countIn}</label>
-        {!drill && <>
-          <label className="check" title={t.melodyHelp}><input id="melody" type="checkbox" checked={!!opts.melody} onChange={(e) => set({ melody: e.target.checked })} /> ♪ {t.melody}</label>
-          {opts.melody && <button type="button" className="ghost" title={t.melodyNewTip} onClick={newMelody}>↻ {t.melodyNew}</button>}
-        </>}
+        {!drill && (
+          <div className="mel-ctl" role="group" aria-label={t.melody}>
+            <button type="button" className="meltoggle" aria-pressed={!!opts.melody} title={t.melodyHelp} onClick={() => set({ melody: !opts.melody })}>♪ {t.melody}</button>
+            {opts.melody && <>
+              <button type="button" className="iconbtn" title={t.melodyNewTip} aria-label={t.melodyNew} onClick={newMelody}>↻</button>
+              <button type="button" className="iconbtn" aria-pressed={sheet} title={sheet ? t.melodySheetHide : t.melodySheetShow} aria-label={t.melodySheet} onClick={() => setSheet(!sheet)}>👁</button>
+            </>}
+          </div>
+        )}
       </div>
       <div aria-live="polite">{now}</div>
+      {!drill && melody && sheet && (
+        <figure className="mel-sheet">
+          <figcaption>{t.melodySheet}</figcaption>
+          <LeadSheet steps={melody.steps} notes={melody.notes} meter={state.meter} spell={(n) => transposeNote(n, names.reading)} semis={names.reading.semis} chordName={names.chord} now={beatNow} label={t.melodySheet} />
+        </figure>
+      )}
     </div>
   );
 }

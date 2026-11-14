@@ -34,7 +34,7 @@ export const en = {
   tempo: 'Tempo', accompaniment: 'Accompaniment', styles: { comp: 'Straight (bass and chord)', sustain: 'Sustained (ballad)', swing: 'Swing (walking bass)', shuffle: 'Shuffle / blues', bossa: 'Bossa nova', funk: 'Funk (sixteenths)' }, drums: 'Drums',
   metronome: 'Metronome', countIn: 'Count-in', countingIn: 'Count-in',
   nowPlay: 'Play {scale}', charHint: 'characteristic note {note}', nextUp: 'then {chord}', loopIdle: 'Press Start loop and play along. Tip: with one chord you get a modal vamp, ideal for learning to hear a mode.',
-  chordNotes: 'Notes', blue: 'Blue note', blueNote: 'blue note {n}', blueInScale: 'already in the mode', blueHelp: 'The blue note is the flattened fifth (♭5) of the root, the signature note of the blues scale 1 ♭3 4 ♭5 5 ♭7. Use it as a passing note between the 4 and the 5.', show: 'Show', hide: 'Hide',
+  chordNotes: 'Notes', lnChord: 'Chord', lnScale: 'Scale', lnNext: 'Next', lnSame: 'same scale: just keep playing', lnChanged: 'changes: {notes}', clef: 'Clef', clefTreble: 'Treble clef', clefBass: 'Bass clef', blue: 'Blue note', blueNote: 'blue note {n}', blueInScale: 'already in the mode', blueHelp: 'The blue note is the flattened fifth (♭5) of the root, the signature note of the blues scale 1 ♭3 4 ♭5 5 ♭7. Use it as a passing note between the 4 and the 5.', show: 'Show', hide: 'Hide',
   penta: 'Pentatonic', pentaKinds: { major: 'Major pentatonic', minor: 'Minor pentatonic', locrian: 'Locrian pentatonic' },
   pentaDropped: 'Without {notes} (dimmed).', pentaChar: 'The characteristic note drops out: that is why the same pentatonic scale also sounds good over the neighbouring modes.',
   pentaBlues: 'Add the blue note {n} and you have the blues scale.', lgPenta: 'outside the pentatonic',

@@ -21,3 +21,15 @@
 .pc.playing .k{color:var(--surface)}
 /* oefenmodus: de brugnoot in de notenrij */
 .loop-now .hot{color:var(--hot);font-weight:700}
+/* "nu": noten van akkoord, ladder en pentatonisch; "daarna": het volgende akkoord, met de noten die anders worden */
+.loop-notes{display:grid;grid-template-columns:auto 1fr;gap:0 var(--sp-3);margin:var(--sp-1) 0;align-items:baseline}
+.loop-notes dt{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.loop-notes dd{margin:0}
+.loop-notes span+span::before,.loop-next .tones-big span+span::before{content:" "}
+.loop-notes .bl{color:var(--blue)}
+.loop-notes .char{color:var(--bor);font-weight:700}
+.loop-next{display:flex;flex-direction:column;gap:2px;min-width:0;padding-left:var(--sp-4);border-left:1px solid var(--brass)}
+.loop-next .lbl{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.loop-next-chord{font-family:var(--f-display);font-size:28px;line-height:1.1}
+.loop-next .hot{color:var(--hot);font-weight:700}
+@media (max-width:640px){.loop-now .loop-what{flex-basis:100%}.loop-next{padding-left:0;border-left:0;border-top:1px solid var(--brass);padding-top:var(--sp-2);width:100%}}

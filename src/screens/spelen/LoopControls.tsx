@@ -1,15 +1,21 @@
-import { blueNote, CHAR_DEGREE, scaleOf } from '../../core';
+import type { ReactNode } from 'react';
+import { blueNote, CHAR_DEGREE, pentatonic, scaleOf, type Chord, type Note, type Scale } from '../../core';
 import { COMP_TIMBRES } from '../../audio';
 import { LOOP_STYLES, type LoopStyle } from '../../audio/loop';
 import { fill } from '../../i18n';
+import { transposeNote, writtenScale } from '../../naming';
 import { BPM_MAX, BPM_MIN, chordOf, practiceAt, PRACTICE_BARS, useApp, useLoop, type CompTimbre } from '../../state';
-import { Heading } from '../../ui';
+import { Heading, Staff, useClef } from '../../ui';
 
 /** Bediening van de meespeelloop (de speler zelf zit in de gedeelde toestand, zie state/loop). */
 export function LoopControls() {
   const { state, dispatch, t, names, scaleLabel } = useApp();
   const { running, info, nextChord, opts, setOpts: set, toggle, practice, setPracticeBars } = useLoop();
   const drill = running ? practice : null;
+  const [clef, setClef] = useClef();
+  // notenbalken staan in je stemming, zoals de rest: de geschreven noten
+  const written = (s: Scale) => writtenScale(s, names.reading);
+  const writtenChord = (c: Chord) => c.notes.map((n) => transposeNote(n, names.reading));
 
   let now = <p className="muted small">{t.loopIdle}</p>;
   if (running && info) {
@@ -38,15 +44,49 @@ export function LoopControls() {
       const p = state.path[info.chord % state.path.length];
       const s = scaleOf(p.root, p.mode);
       const c = chordOf(p);
-      const nc = chordOf(state.path[nextChord] ?? p);
+      const penta = pentatonic(s);
+      const blue = blueNote(s);
+      const char = s.notes[CHAR_DEGREE[s.mode]].pc;
+      // het volgende akkoord (met de herhalingen meegerekend) en wat er in zijn ladder anders is
+      const np = state.path[nextChord];
+      const ns = np && state.path.length > 1 ? scaleOf(np.root, np.mode) : null;
+      const changed = ns ? ns.notes.filter((n) => !s.pcs.has(n.pc)) : [];
+      const notes = (ns: Note[], cls?: (n: Note) => string | undefined) => ns.map((n, i) => <span key={i} className={cls?.(n)}>{names.note(n)}</span>);
+      const row = (label: string, body: ReactNode) => <><dt>{label}</dt><dd className="tones-big">{body}</dd></>;
+      const next = (x: Scale) => (
+        <div className="loop-next">
+          <span className="lbl">{t.lnNext}</span>
+          <b className="loop-next-chord">{names.chord(chordOf(np!))}</b>
+          <span className="small">{scaleLabel(x)}</span>
+          <span className="tones-big">{notes(x.notes, (n) => (s.pcs.has(n.pc) ? undefined : 'hot'))}</span>
+          <span className="muted small">{changed.length ? fill(t.lnChanged, { notes: changed.map(names.note).join(', ') }) : t.lnSame}</span>
+          <Staff notes={writtenChord(chordOf(np!))} clef={clef} chord mark={(n) => (s.pcs.has((n.pc - names.reading.semis + 12) % 12) ? undefined : 'hot')} label={`${names.chord(chordOf(np!))}: ${chordOf(np!).notes.map(names.note).join(' ')}`} />
+        </div>
+      );
       now = (
         <div className="loop-now">
           <b className="loop-chord">{names.chord(c)}</b>
           <div className="loop-what">
             <span className="loop-scale">{fill(t.nowPlay, { scale: scaleLabel(s) })}</span>
-            <span className="tones-big">{t.chordNotes}: {c.notes.map(names.note).join(' ')}{state.showBlue && !blueNote(s).inScale && <span className="bl"> · {fill(t.blueNote, { n: names.note(blueNote(s).note) })}</span>}</span>
-            <span className="muted small">{fill(t.charHint, { note: names.note(s.notes[CHAR_DEGREE[s.mode]]) })}{state.path.length > 1 ? ' · ' + fill(t.nextUp, { chord: names.chord(nc) }) : ''}</span>
+            <dl className="loop-notes">
+              {row(t.lnChord, notes(c.notes))}
+              {row(t.lnScale, notes(s.notes, (n) => (n.pc === char ? 'char' : undefined)))}
+              {row(t.penta, notes(penta.notes))}
+              {!blue.inScale && row(t.blue, <span className="bl">{names.note(blue.note)}</span>)}
+            </dl>
+            <span className="muted small">{fill(t.charHint, { note: names.note(s.notes[CHAR_DEGREE[s.mode]]) })}</span>
+            <div className="staves">
+              <div className="seg clef-pick" role="group" aria-label={t.clef}>
+                <button type="button" aria-pressed={clef === 'treble'} title={t.clefTreble} aria-label={t.clefTreble} onClick={() => setClef('treble')}>{'\u{1D11E}'}</button>
+                <button type="button" aria-pressed={clef === 'bass'} title={t.clefBass} aria-label={t.clefBass} onClick={() => setClef('bass')}>{'\u{1D122}'}</button>
+              </div>
+              <figure><figcaption>{t.lnChord}</figcaption>
+                <Staff notes={writtenChord(c)} clef={clef} chord label={`${names.chord(c)}: ${c.notes.map(names.note).join(' ')}`} /></figure>
+              <figure><figcaption>{t.lnScale}</figcaption>
+                <Staff notes={written(s).notes} clef={clef} mark={(n) => (n.pc === (char + names.reading.semis) % 12 ? 'char' : undefined)} label={`${scaleLabel(s)}: ${s.notes.map(names.note).join(' ')}`} /></figure>
+            </div>
           </div>
+          {ns && next(ns)}
           <div className="beats" aria-hidden="true">
             {Array.from({ length: info.beats }, (_, i) => <i key={i} className={i === info.beat ? 'on' : ''} />)}
           </div>

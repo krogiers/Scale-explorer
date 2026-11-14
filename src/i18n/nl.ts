@@ -34,7 +34,7 @@ export const nl = {
   tempo: 'Tempo', accompaniment: 'Begeleiding', styles: { comp: 'Recht (bas en akkoord)', sustain: 'Aangehouden (ballad)', swing: 'Swing (walking bass)', shuffle: 'Shuffle / blues', bossa: 'Bossa nova', funk: 'Funk (zestienden)' }, drums: 'Drums',
   metronome: 'Metronoom', countIn: 'Aftellen', countingIn: 'Aftellen',
   nowPlay: 'Speel {scale}', charHint: 'kenmerkende noot {note}', nextUp: 'daarna {chord}', loopIdle: 'Druk op Start loop en speel mee. Tip: met één akkoord krijg je een modale vamp, ideaal om een modus te leren horen.',
-  chordNotes: 'Noten', blue: 'Blue note', blueNote: 'blue note {n}', blueInScale: 'zit al in de modus', blueHelp: 'De blue note is de verlaagde kwint (♭5) van de grondtoon, de typische noot van de bluesladder 1 ♭3 4 ♭5 5 ♭7. Gebruik hem als doorgangsnoot tussen de 4 en de 5.', show: 'Tonen', hide: 'Verbergen',
+  chordNotes: 'Noten', lnChord: 'Akkoord', lnScale: 'Ladder', lnNext: 'Daarna', lnSame: 'zelfde ladder: speel gewoon door', lnChanged: 'anders: {notes}', clef: 'Sleutel', clefTreble: 'Solsleutel', clefBass: 'Fa-sleutel', blue: 'Blue note', blueNote: 'blue note {n}', blueInScale: 'zit al in de modus', blueHelp: 'De blue note is de verlaagde kwint (♭5) van de grondtoon, de typische noot van de bluesladder 1 ♭3 4 ♭5 5 ♭7. Gebruik hem als doorgangsnoot tussen de 4 en de 5.', show: 'Tonen', hide: 'Verbergen',
   penta: 'Pentatonisch', pentaKinds: { major: 'Majeur-pentatonisch', minor: 'Mineur-pentatonisch', locrian: 'Locrisch pentatonisch' },
   pentaDropped: 'Zonder {notes} (gedimd).', pentaChar: 'De kenmerkende noot valt weg: daarom klinkt dezelfde pentatonische ladder ook goed over de buurmodi.',
   pentaBlues: 'Met de blue note {n} erbij heb je de bluesladder.', lgPenta: 'buiten pentatonisch',

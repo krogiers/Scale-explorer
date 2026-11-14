@@ -25,6 +25,17 @@ function add(s: State): State {
 const atEntry = (s: State, p: PathEntry | undefined, focus: number): State =>
   p ? { ...s, root: p.root, mode: p.mode, degree: p.degree, size: p.size, focus } : { ...s, focus: -1 };
 
+/**
+ * Een andere stemming houdt vast wat je leest: je F♯ blijft F♯, en de klank (begeleiding, loop) schuift mee.
+ * De app rekent in concert, dus alle grondtonen (gekozen ladder, schema en de versies voor ongedaan maken) schuiven
+ * `delta` halve tonen omlaag: geschreven = concert + stemming blijft dan gelijk.
+ */
+function keepWritten(s: State, delta: number): State {
+  const down = (root: number) => ((root - delta) % 12 + 12) % 12;
+  const path = (p: PathEntry[]) => p.map((e) => ({ ...e, root: down(e.root) }));
+  return { ...s, root: down(s.root), path: path(s.path), history: s.history.map((h) => ({ ...h, path: path(h.path) })) };
+}
+
 export function reducer(s: State, a: Action): State {
   switch (a.type) {
     case 'setRoot': return { ...s, root: a.root };
@@ -108,7 +119,8 @@ export function reducer(s: State, a: Action): State {
     }
     case 'settings': {
       // je instrument en de klank staan los van elkaar: het een verandert het ander niet
-      return { ...s, ...a.patch, ...(a.patch.bpm !== undefined && { bpm: clampBpm(a.patch.bpm) }) };
+      const next = { ...s, ...a.patch, ...(a.patch.bpm !== undefined && { bpm: clampBpm(a.patch.bpm) }) };
+      return a.patch.reading !== undefined && a.patch.reading !== s.reading ? keepWritten(next, a.patch.reading - s.reading) : next;
     }
   }
 }

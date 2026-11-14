@@ -1,11 +1,12 @@
-import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { scaleOf } from '../../../core';
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { scaleOf, surprise, SURPRISE_SIZES } from '../../../core';
 import { fill } from '../../../i18n';
 import { chordOf, MAX_CHORDS, REPEAT_TIMES, useApp, useLoop, type PathEntry } from '../../../state';
 import { Heading, layoutBars, PlayButton, repeatClass, RepeatSigns, showToast } from '../../../ui';
 import { useChartDrag } from './useChartDrag';
 
 const DURATIONS = [1, 2, 3, 4, 6, 8, 12, 16];
+const SURPRISE_KEY = 'tln-surprise-n';
 
 /**
  * Akkoordenschema: maten met akkoorden, elk met een eigen duur. Klik op een akkoord om het te selecteren en te bewerken.
@@ -25,6 +26,14 @@ export function Chart({ onShowSequences }: { onShowSequences: () => void }) {
     return { p, s, c: chordOf(p) };
   };
   const canUndo = state.history.length > 0;
+  // Verras me: een willekeurig schema met regels (core/surprise) in de ladder waar je bent; het aantal wordt onthouden
+  const [count, setCount] = useState<number>(() => { try { const v = Number(localStorage.getItem(SURPRISE_KEY)); return (SURPRISE_SIZES as readonly number[]).includes(v) ? v : 8; } catch { return 8; } });
+  const pickCount = (v: number) => { setCount(v); try { localStorage.setItem(SURPRISE_KEY, String(v)); } catch { /* niet erg */ } };
+  const surpriseMe = () => {
+    const entries = surprise({ root: state.root, mode: state.mode }, state.size, count, Math.random).map((d) => ({ ...d, beats: state.meter, size: state.size }));
+    dispatch({ type: 'insertPath', entries, replace: true });
+    undoToast(fill(t.toastSurprise, { n: entries.length }));
+  };
   /** De herhaaltekens van een akkoord in woorden, voor schermlezers. */
   const marksText = (p: PathEntry) => [p.repStart && t.repA11yStart, p.repEnd && fill(t.repA11yEnd, { n: p.repEnd }), p.volta && fill(t.voltaA11y, { n: p.volta })].filter(Boolean).map((x) => `, ${x}`).join('');
 
@@ -87,6 +96,14 @@ export function Chart({ onShowSequences }: { onShowSequences: () => void }) {
           <PlayButton id="path" label={t.playPath} onPlay={playPath} />
           <button type="button" className="ghost" disabled={!canUndo} onClick={() => dispatch({ type: 'undo' })} title="Ctrl/⌘+Z">↶ {t.undo}</button>
           <button type="button" className="ghost" disabled={n === 0} onClick={() => { dispatch({ type: 'clearPath' }); undoToast(t.toastCleared); }}>{t.clearChart}</button>
+          <span className="row surprise">
+            <label><span className="sr-only">{t.surpriseN}</span>
+              <select value={count} title={t.surpriseN} onChange={(e) => pickCount(Number(e.target.value))}>
+                {SURPRISE_SIZES.map((v) => <option key={v} value={v}>{fill(t.surpriseCount, { n: v })}</option>)}
+              </select>
+            </label>
+            <button type="button" className="ghost" title={t.surpriseTip} onClick={surpriseMe}>🎲 {t.surprise}</button>
+          </span>
         </div>
       </Heading>
       <div ref={chartRef} className={`chart${drag ? ' dragging' : ''}${drag?.copy ? ' copying' : ''}`}>

@@ -321,6 +321,16 @@ De loop en **Speel progressie** spelen die volgorde. De loop vertaalt elke stap 
 
 **Het "nu"-vak op Oefenen.** Naast het grote akkoord staan de noten van het akkoord, de ladder (kenmerkende noot in paars), de pentatonische ladder en de blue note. Daaronder staan ze op een **notenbalk** (`Staff` in `src/ui`): het akkoord gestapeld, de ladder oplopend, met losse voortekens en in je stemming, met een keuze tussen sol- en fa-sleutel (onthouden in de browser, `tln-clef`). Noten hebben geen octaaf: `placeNotes` zet de grondtoon zo laag mogelijk vanaf C4 (sol) of F2 (fa) en elke volgende noot net erboven. De tekens komen uit Noto Music (alleen die vijf tekens worden geladen). Rechts staat **Daarna**: het volgende akkoord (met de herhalingen meegerekend), zijn ladder, en in rood de noten die anders worden, ook op de notenbalk.
 
+Het vak heeft vaste kolommen (nu · noten en notenbalken · daarna) en elke rij staat er altijd, ook als ze leeg is (blue note "zit al in de modus"). Zo verspringt er tijdens het afspelen niets en hou je houvast. Tijdens **Oefen deze brug** toont de strook de maten van de oefening zelf (zoveel maten de ene modus, dan de andere).
+
+**Verras me** (bij het schema op Opbouw, `surprise` in `src/core/surprise.ts`): een willekeurig schema van 4, 8, 12 of 16 akkoorden in de ladder waar je bent. Toeval met regels:
+- het begint op de tonica en eindigt erop, na een cadens die bij de modus past (Ionisch V → I, anders het kenmerkende akkoord: Dorisch IV → i, Mixolydisch ♭VII → I, …);
+- daartussen volgt elke stap de gewichten van "volgende stap" (kwintval het vaakst, kwint omhoog het minst), nooit twee keer hetzelfde akkoord na elkaar, verminderde akkoorden maar af en toe, en soms een leenakkoord uit een buurmodus (daarna terug naar de eigen ladder).
+
+Het schema wordt vervangen in één stap die je kunt terugdraaien.
+
+**Verzin een melodie** (vinkje ♪ Melodie bij de loop, `makeMelody` in `src/core/melody.ts`): de app verzint een melodie over het schema en de loop speelt ze mee op de partij `lead` (melodieklank, eigen kanaal in het mengpaneel). Ritme: per maat een patroon uit een kleine bibliotheek, in frases van vier maten A A B slot, zodat motiefjes terugkomen. Toonhoogte: op zware tellen een akkoordnoot dicht bij de vorige, daartussen stapjes in de ladder, bij een nieuwe ladder vaak de noot die verandert, en het laatste akkoord eindigt op zijn grondtoon (bereik C4–A5). De melodie hangt aan een zaad (`seededRng`): ze blijft dezelfde tot je **Nieuwe melodie** vraagt, en ze staat op een eigen notenbalk.
+
 **Ritmestijlen.** Naast *Recht* en *Aangehouden* zijn er vier grooves: *Swing*, *Shuffle*, *Bossa nova* en *Funk* (`GROOVES` in `src/audio/loop/grooves.ts`). Elke groove is een patroon van één of twee maten. Het bevat posities in tellen, met per positie een bastoon, een akkoordstoot of een drumslag. De planner neemt per tel de gebeurtenissen die in die tel vallen.
 - **Swing**: in een geswingde stijl valt de "en" (positie x,5) niet halverwege de tel, maar op `swingRatio`. Dat is 2/3 van de tel (triolen) tot 140 BPM, en daarboven iets rechter, zoals echte spelers doen.
 - **Walking bass** (Swing): grondtoon, terts, kwint en septiem, en op de laatste tel van het akkoord een halve toon naast de grondtoon van het volgende akkoord. Die naderingsnoot komt van onder of van boven, afhankelijk van waar de dichtstbijzijnde grondtoon ligt.
@@ -344,7 +354,7 @@ Een tenorsaxofonist leest een B♭-partij, een pianist dezelfde muziek in concer
 | G | 5 | altfluit |
 | D | 10 | trompet in D |
 
-Daarna staan **alle** noten, ladders, akkoorden, het schema en de loop zoals op jouw partij. Concert C Lydisch heet in B♭ D Lydisch, en Cmaj7 heet Dmaj7. Bovenaan staat altijd de stemming (bv. "Stemming B♭"); een klik opent de instellingen. Octaven tellen niet mee (gitaar en baritonsax lezen een octaaf hoger): de nootnamen blijven dezelfde.
+Daarna staan **alle** noten, ladders, akkoorden, het schema en de loop zoals op jouw partij. Concert C Lydisch heet in B♭ D Lydisch, en Cmaj7 heet Dmaj7. Bovenaan staat altijd de stemming (bv. "Stemming B♭"); een klik opent de instellingen. Octaven tellen niet mee (gitaar en baritonsax lezen een octaaf hoger): de nootnamen blijven dezelfde. **Wissel je van stemming, dan blijft staan wat je leest**: je F♯ blijft F♯ en de begeleiding schuift mee. Omdat de app in concert rekent, schuiven bij een wissel alle grondtonen (gekozen ladder, schema, versies voor ongedaan maken) mee met het verschil (`keepWritten` in `state/reducer.ts`).
 
 Het **instrument** kies je op het instrumentpaneel (scherm Oefenen); het bepaalt alleen welke grepen je ziet. Het verandert de stemming niet, maar staat het instrument meestal in een andere stemming (`transpose` in `INSTRUMENTS`), dan zegt een hint dat, met een knop "Lees in …". Oude voorkeuren met alleen een instrument krijgen de stemming van dat instrument (`readingFrom` in `state/persist.ts`).
 

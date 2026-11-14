@@ -3,7 +3,7 @@
  * wisselt, en het scherm Spelen, de bovenbalk en het schema dezelfde loop tonen. Moet binnen AppProvider staan.
  */
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { Spot } from '../core';
+import { makeMelody, scaleOf, seededRng, type MelodyNote, type Spot } from '../core';
 import { audio, progressionVoicings } from '../audio';
 import { LOOP_STYLES, LoopPlayer, type BeatInfo, type LoopOptions, type TimelineItem } from '../audio/loop';
 import { chordOf } from './model';
@@ -14,7 +14,7 @@ const KEY = 'tln-loop';
 const BARS_KEY = 'tln-practice-bars';
 /** Het tempo en de maatsoort zitten in de gedeelde toestand (ook "Speel progressie" gebruikt ze); de rest bewaart de loop zelf. */
 export type LoopSettings = Omit<LoopOptions, 'meter' | 'bpm'>;
-const DEFAULTS: LoopSettings = { metronome: true, drums: true, style: 'comp', countIn: true };
+const DEFAULTS: LoopSettings = { metronome: true, drums: true, style: 'comp', countIn: true, melody: false };
 function load(): LoopSettings {
   try {
     const s = JSON.parse(localStorage.getItem(KEY) ?? '{}');
@@ -23,6 +23,7 @@ function load(): LoopSettings {
       drums: typeof s.drums === 'boolean' ? s.drums : DEFAULTS.drums,
       style: LOOP_STYLES.includes(s.style) ? s.style : 'comp',
       countIn: typeof s.countIn === 'boolean' ? s.countIn : DEFAULTS.countIn,
+      melody: s.melody === true,
     };
   } catch { return DEFAULTS; }
 }
@@ -56,6 +57,10 @@ interface LoopCtx {
   info: BeatInfo | null;
   /** Het akkoord in het schema dat hierna komt, met de herhalingen meegerekend; -1 als er geen is. */
   nextChord: number;
+  /** De verzonnen melodie bij het akkoord dat nu speelt (leeg als de melodie uit staat of niets speelt). */
+  melodyNow: MelodyNote[];
+  /** Een nieuwe melodie verzinnen (dezelfde blijft terugkomen tot je dit vraagt). */
+  newMelody: () => void;
   opts: LoopSettings;
   setOpts: (patch: Partial<LoopSettings>) => void;
   toggle: () => void;
@@ -82,11 +87,16 @@ export function LoopProvider({ children }: { children: ReactNode }) {
   // de tijdlijn speelt de herhalingen uitgeschreven; order[stap] = plaats in het schema
   const timeline = useRef<TimelineItem[]>([]);
   const order = useRef<number[]>([]);
+  // de melodie hangt aan een zaad: zelfde schema en zaad = zelfde melodie; "Nieuwe melodie" kiest een nieuw zaad
+  const [seed, setSeed] = useState(() => Math.floor(Math.random() * 2 ** 31));
   const built = useMemo(() => {
     const ord = playOrder(state.path);
     const voicings = progressionVoicings(ord.map((i) => chordOf(state.path[i])));
-    return { ord, items: ord.map((i, k) => ({ voicing: voicings[k], beats: state.path[i].beats })) };
-  }, [state.path]);
+    const melody = opts.melody
+      ? makeMelody(ord.map((i) => ({ scale: scaleOf(state.path[i].root, state.path[i].mode), chord: chordOf(state.path[i]), beats: state.path[i].beats })), state.meter, seededRng(seed))
+      : null;
+    return { ord, melody, items: ord.map((i, k) => ({ voicing: voicings[k], beats: state.path[i].beats, ...(melody && { melody: melody[k] }) })) };
+  }, [state.path, state.meter, opts.melody, seed]);
   timeline.current = built.items;
   order.current = built.ord;
   const [step, setStep] = useState(-1);
@@ -116,8 +126,9 @@ export function LoopProvider({ children }: { children: ReactNode }) {
 
   const ord = built.ord;
   const nextChord = step >= 0 && ord.length ? ord[(step + 1) % ord.length] : -1;
+  const melodyNow = built.melody && step >= 0 ? built.melody[step % built.melody.length] ?? [] : [];
   const value = useMemo<LoopCtx>(() => ({
-    running, info, nextChord, opts, practice,
+    running, info, nextChord, melodyNow, newMelody: () => setSeed((s) => (s * 1103515245 + 12345) % 2 ** 31), opts, practice,
     startPractice: (a, b) => {
       const p = player.current!;
       if (p.running) p.stop(); // dit wist ook een vorige oefening
@@ -132,7 +143,7 @@ export function LoopProvider({ children }: { children: ReactNode }) {
       const p = player.current!;
       if (p.running) { p.stop(); setRunning(false); } else { p.start(); setRunning(p.running); }
     },
-  }), [running, info, nextChord, opts, practice, bars]);
+  }), [running, info, nextChord, melodyNow, opts, practice, bars]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

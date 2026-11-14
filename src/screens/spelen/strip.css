@@ -11,3 +11,4 @@
 .spelen .loop-chord{font-size:56px}
 .spelen .loop-now{min-height:110px}
 .spelen .kb svg{max-height:40vh;width:auto;max-width:100%;display:block;margin:0 auto}
+.scell.drill{flex-grow:1;cursor:default;font-size:clamp(14px,1.8vw,20px)}

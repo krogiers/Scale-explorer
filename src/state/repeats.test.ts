@@ -77,3 +77,20 @@ describe('herhaaltekens in de reducer', () => {
     expect(c[3].repStart).toBeUndefined();
   });
 });
+
+describe('een andere stemming houdt vast wat je leest', () => {
+  it('schema, gekozen ladder en ongedaan maken schuiven in concert mee; geschreven blijft gelijk', () => {
+    const s0 = { ...st([e(0), { ...e(1), root: 6 }]), root: 6, reading: 0 } as State;
+    const s1 = { ...s0, history: [{ path: [{ ...e(0), root: 6 }], focus: 0, cursor: 1 }] } as State;
+    const s = reducer(s1, { type: 'settings', patch: { reading: 9 } });
+    // concert + stemming = wat je leest, voor en na
+    expect((s.root + 9) % 12).toBe(6);
+    expect(s.path.map((p) => (p.root + 9) % 12)).toEqual([0, 6]);
+    expect((s.history[0].path[0].root + 9) % 12).toBe(6);
+    expect(s.path.map((p) => p.degree)).toEqual([0, 1]);
+  });
+  it('dezelfde stemming opnieuw kiezen verandert niets', () => {
+    const s0 = { ...st([e(0)]), reading: 2 } as State;
+    expect(reducer(s0, { type: 'settings', patch: { reading: 2 } }).path).toBe(s0.path);
+  });
+});

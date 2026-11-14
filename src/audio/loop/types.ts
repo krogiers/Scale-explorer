@@ -11,9 +11,13 @@ export interface LoopOptions {
   countIn: boolean;
   /** Tellen per maat, voor het aftellen en het accent van de metronoom. */
   meter: number;
+  /** Een verzonnen melodie meespelen (in de melodieklank). */
+  melody?: boolean;
 }
-/** Eén akkoord in de loop: zijn ligging (bas eerst) en duur in tellen. */
-export interface TimelineItem { voicing: number[]; beats: number }
+/** Een melodienoot: begin en duur in tellen vanaf het begin van het akkoord. */
+export interface LoopMelodyNote { at: number; dur: number; midi: number }
+/** Eén akkoord in de loop: zijn ligging (bas eerst), duur in tellen, en eventueel een melodie (partij lead). */
+export interface TimelineItem { voicing: number[]; beats: number; melody?: LoopMelodyNote[] }
 /** Wat er op een tel gebeurt; chord = -1 tijdens het aftellen. */
 export interface BeatInfo { chord: number; beat: number; beats: number }
 

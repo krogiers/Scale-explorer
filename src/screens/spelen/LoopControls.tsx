@@ -10,7 +10,7 @@ import { Heading, Staff, useClef } from '../../ui';
 /** Bediening van de meespeelloop (de speler zelf zit in de gedeelde toestand, zie state/loop). */
 export function LoopControls() {
   const { state, dispatch, t, names, scaleLabel } = useApp();
-  const { running, info, nextChord, opts, setOpts: set, toggle, practice, setPracticeBars } = useLoop();
+  const { running, info, nextChord, melodyNow, newMelody, opts, setOpts: set, toggle, practice, setPracticeBars } = useLoop();
   const drill = running ? practice : null;
   const [clef, setClef] = useClef();
   // notenbalken staan in je stemming, zoals de rest: de geschreven noten
@@ -48,13 +48,14 @@ export function LoopControls() {
       const blue = blueNote(s);
       const char = s.notes[CHAR_DEGREE[s.mode]].pc;
       // het volgende akkoord (met de herhalingen meegerekend) en wat er in zijn ladder anders is
-      const np = state.path[nextChord];
-      const ns = np && state.path.length > 1 ? scaleOf(np.root, np.mode) : null;
-      const changed = ns ? ns.notes.filter((n) => !s.pcs.has(n.pc)) : [];
+      // met één akkoord (een vamp) is het volgende hetzelfde: het vak blijft dan toch staan, zodat niets verspringt
+      const np = state.path[nextChord] ?? p;
+      const ns = scaleOf(np.root, np.mode);
+      const changed = ns.notes.filter((n) => !s.pcs.has(n.pc));
       const notes = (ns: Note[], cls?: (n: Note) => string | undefined) => ns.map((n, i) => <span key={i} className={cls?.(n)}>{names.note(n)}</span>);
       const row = (label: string, body: ReactNode) => <><dt>{label}</dt><dd className="tones-big">{body}</dd></>;
       const next = (x: Scale) => (
-        <div className="loop-next">
+        <div className="loop-next" aria-live="off">
           <span className="lbl">{t.lnNext}</span>
           <b className="loop-next-chord">{names.chord(chordOf(np!))}</b>
           <span className="small">{scaleLabel(x)}</span>
@@ -63,16 +64,22 @@ export function LoopControls() {
           <Staff notes={writtenChord(chordOf(np!))} clef={clef} chord mark={(n) => (s.pcs.has((n.pc - names.reading.semis + 12) % 12) ? undefined : 'hot')} label={`${names.chord(chordOf(np!))}: ${chordOf(np!).notes.map(names.note).join(' ')}`} />
         </div>
       );
+      // vaste kolommen (nu · noten en notenbalken · daarna): tijdens het spelen verspringt er niets
       now = (
-        <div className="loop-now">
-          <b className="loop-chord">{names.chord(c)}</b>
+        <div className="loop-now fixed">
+          <div className="ln-now">
+            <b className={`loop-chord${names.chord(c).length > 5 ? ' long' : ''}`}>{names.chord(c)}</b>
+            <div className="beats" aria-hidden="true">
+              {Array.from({ length: info.beats }, (_, i) => <i key={i} className={i === info.beat ? 'on' : ''} />)}
+            </div>
+          </div>
           <div className="loop-what">
             <span className="loop-scale">{fill(t.nowPlay, { scale: scaleLabel(s) })}</span>
             <dl className="loop-notes">
               {row(t.lnChord, notes(c.notes))}
               {row(t.lnScale, notes(s.notes, (n) => (n.pc === char ? 'char' : undefined)))}
               {row(t.penta, notes(penta.notes))}
-              {!blue.inScale && row(t.blue, <span className="bl">{names.note(blue.note)}</span>)}
+              {row(t.blue, blue.inScale ? <span className="muted small">{t.blueInScale}</span> : <span className="bl">{names.note(blue.note)}</span>)}
             </dl>
             <span className="muted small">{fill(t.charHint, { note: names.note(s.notes[CHAR_DEGREE[s.mode]]) })}</span>
             <div className="staves">
@@ -84,12 +91,18 @@ export function LoopControls() {
                 <Staff notes={writtenChord(c)} clef={clef} chord label={`${names.chord(c)}: ${c.notes.map(names.note).join(' ')}`} /></figure>
               <figure><figcaption>{t.lnScale}</figcaption>
                 <Staff notes={written(s).notes} clef={clef} mark={(n) => (n.pc === (char + names.reading.semis) % 12 ? 'char' : undefined)} label={`${scaleLabel(s)}: ${s.notes.map(names.note).join(' ')}`} /></figure>
+              {opts.melody && (() => {
+                // de melodie bij dit akkoord, gespeld zoals in de ladder en in je stemming (met echte octaven)
+                const mn = melodyNow.map((x) => s.notes.find((n) => n.pc === x.midi % 12) ?? s.notes[0]);
+                return (
+                  <figure className="mel"><figcaption>{t.melody}</figcaption>
+                    <Staff notes={mn.map((n) => transposeNote(n, names.reading))} midis={melodyNow.map((x) => x.midi + names.reading.semis)} clef={clef}
+                      label={`${t.melody}: ${mn.map(names.note).join(' ')}`} /></figure>
+                );
+              })()}
             </div>
           </div>
-          {ns && next(ns)}
-          <div className="beats" aria-hidden="true">
-            {Array.from({ length: info.beats }, (_, i) => <i key={i} className={i === info.beat ? 'on' : ''} />)}
-          </div>
+          {next(ns)}
         </div>
       );
     }
@@ -127,6 +140,10 @@ export function LoopControls() {
         {!drill && <label className="check"><input id="drums" type="checkbox" checked={opts.drums} onChange={(e) => set({ drums: e.target.checked })} /> {t.drums}</label>}
         <label className="check"><input id="metro" type="checkbox" checked={opts.metronome} onChange={(e) => set({ metronome: e.target.checked })} /> {t.metronome}</label>
         <label className="check"><input id="countin" type="checkbox" checked={opts.countIn} onChange={(e) => set({ countIn: e.target.checked })} /> {t.countIn}</label>
+        {!drill && <>
+          <label className="check" title={t.melodyHelp}><input id="melody" type="checkbox" checked={!!opts.melody} onChange={(e) => set({ melody: e.target.checked })} /> ♪ {t.melody}</label>
+          {opts.melody && <button type="button" className="ghost" title={t.melodyNewTip} onClick={newMelody}>↻ {t.melodyNew}</button>}
+        </>}
       </div>
       <div aria-live="polite">{now}</div>
     </div>

@@ -20,8 +20,8 @@ const H = 5;
 const CLEFS = {
   // tekens zijn zo groot als de balk (SMuFL: 1 em = 4 tussenruimtes); dy = bijstelling in trappen (het fa-teken van
   // Noto Music staat anders te hoog); top/low = hoe ver het teken boven/onder de balk komt
-  treble: { bottom: 2 + 7 * 4, base: 60, glyph: '\u{1D11E}', line: 2, dy: 0, top: 13, low: -5 },
-  bass: { bottom: 4 + 7 * 2, base: 41, glyph: '\u{1D122}', line: 6, dy: 2.5, top: 11, low: -1 },
+  treble: { bottom: 2 + 7 * 4, base: 60, glyph: '\u{1D11E}', line: 2, dy: 0, top: 13, low: -5 }, // noten van C4 tot A5: trap -2 … 10
+  bass: { bottom: 4 + 7 * 2, base: 41, glyph: '\u{1D122}', line: 6, dy: 2.5, top: 13, low: -3 }, // noten van F2 tot D4: trap -1 … 11
 } as const;
 const ACC: Record<number, string> = { 1: '♯', [-1]: '♭', 0: '' };
 
@@ -29,15 +29,24 @@ const ACC: Record<number, string> = { 1: '♯', [-1]: '♭', 0: '' };
  * Plaatst geschreven noten op de balk. Noten hebben geen octaaf: de eerste komt zo laag mogelijk vanaf `base`, elke volgende
  * net boven de vorige (een ladder loopt op, een akkoord staat in grondligging). Geeft per noot de trap t.o.v. de onderste lijn.
  */
-export function placeNotes(notes: Note[], clef: Clef): number[] {
+export function placeNotes(notes: Note[], clef: Clef, midis?: number[]): number[] {
   const { bottom, base } = CLEFS[clef];
   let prev = -Infinity;
   return notes.map((n, i) => {
-    const midi = i === 0 ? base + mod12(n.pc - base) : prev + (mod12(n.pc - prev) || 12);
+    const midi = midis?.[i] ?? (i === 0 ? base + mod12(n.pc - base) : prev + (mod12(n.pc - prev) || 12));
     prev = midi;
     const octave = (midi - n.acc - LETTER_PC[n.letter]) / 12 - 1;
     return n.letter + 7 * Math.round(octave) - bottom;
   });
+}
+
+/** Een reeks toonhoogtes zoveel octaven verschuiven dat ze rond het midden van de balk liggen (sol: B4, fa: D3). */
+function fitOctaves(midis: number[], clef: Clef): number[] {
+  if (!midis.length) return midis;
+  const mid = clef === 'treble' ? 71 : 50;
+  const avg = midis.reduce((a, b) => a + b, 0) / midis.length;
+  const k = Math.round((mid - avg) / 12) * 12;
+  return midis.map((m) => m + k);
 }
 
 /**
@@ -45,12 +54,15 @@ export function placeNotes(notes: Note[], clef: Clef): number[] {
  * akkoord, anders naast elkaar als ladder. Elke noot krijgt zijn eigen voorteken (geen voortekening).
  * mark geeft een klasse per noot (bv. 'char' voor de kenmerkende noot, 'hot' voor een noot die verandert).
  */
-export function Staff({ notes, clef, chord = false, mark, label }: { notes: Note[]; clef: Clef; chord?: boolean; mark?: (n: Note, i: number) => string | undefined; label: string }) {
+export function Staff({ notes, clef, chord = false, mark, label, midis }: { notes: Note[]; clef: Clef; chord?: boolean; mark?: (n: Note, i: number) => string | undefined; label: string; midis?: number[] }) {
   const c = CLEFS[clef];
-  const ps = placeNotes(notes, clef);
+  // echte toonhoogtes (melodie): in de buurt van de balk brengen, per octaaf, zodat de hele lijn samen verschuift
+  const shifted = midis && fitOctaves(midis, clef);
+  const ps = placeNotes(notes, clef, shifted);
+  // een vaste hoogte per sleutel (alles wat placeNotes kan geven past erin), zodat de balk niet verspringt
   const lo = Math.min(c.low, ...ps.map((p) => p - 2)), hi = Math.max(c.top, ...ps.map((p) => p + 2));
   const y = (p: number) => (hi - p) * H;
-  const clefW = 8 * H, step = 5 * H;
+  const clefW = 8 * H, step = 6 * H; // ruimte voor een voorteken tussen twee noten
   const x = (i: number) => clefW + 4 * H + (chord ? 0 : i * step);
   const width = x(chord ? 0 : notes.length - 1) + 3 * H;
   // hulplijnen onder (trap -2, -4, …) en boven (10, 12, …) de balk

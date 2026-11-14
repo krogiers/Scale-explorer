@@ -108,6 +108,12 @@ export class LoopPlayer {
       if (opts.metronome) this.engine.clickAt(t, beat % opts.meter === 0);
       for (const n of planBeat(item, inChord, beat, opts, timeline[(chord + 1) % timeline.length])) this.engine.noteAt(n.midi, t + n.offset, n.duration, n.vel, n.part);
       if (opts.drums) for (const [o, kind, vel] of planDrums(beat, opts)) this.engine.drumAt(t + o, kind, vel);
+      // de melodie: de noten die in deze tel beginnen, zware tellen iets luider
+      const spb = 60 / opts.bpm;
+      for (const n of item.melody ?? []) {
+        if (Math.floor(n.at) !== inChord) continue;
+        this.engine.noteAt(n.midi, t + (n.at - inChord) * spb, n.dur * spb * 0.92, Number.isInteger(n.at) ? 0.8 : 0.65, 'lead');
+      }
       info = { chord, beat: inChord, beats: item.beats };
     }
     window.setTimeout(() => { if (this.stopTicker !== null) this.onBeat(info); }, Math.max(0, (t - now) * 1000));

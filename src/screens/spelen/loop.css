@@ -33,3 +33,12 @@
 .loop-next-chord{font-family:var(--f-display);font-size:28px;line-height:1.1}
 .loop-next .hot{color:var(--hot);font-weight:700}
 @media (max-width:640px){.loop-now .loop-what{flex-basis:100%}.loop-next{padding-left:0;border-left:0;border-top:1px solid var(--brass);padding-top:var(--sp-2);width:100%}}
+/* het "nu"-vak bij het schema: vaste kolommen, zodat akkoord, noten en "daarna" tijdens het spelen op hun plaats blijven */
+.loop-now.fixed{display:grid;grid-template-columns:12rem minmax(0,1fr) 17rem;align-items:start;gap:var(--sp-4)}
+.loop-now.fixed .ln-now{display:flex;flex-direction:column;gap:var(--sp-3);min-width:0}
+.loop-now.fixed .loop-chord{white-space:nowrap;line-height:1.1;font-size:52px}
+.loop-now.fixed .loop-chord.long{font-size:38px;line-height:calc(52px * 1.1)}
+.loop-now.fixed .loop-next{align-self:stretch}
+.loop-notes dd{white-space:nowrap}
+@media (max-width:900px){.loop-now.fixed{grid-template-columns:9rem minmax(0,1fr)}.loop-now.fixed .loop-next{grid-column:1 / -1;padding-left:0;border-left:0;border-top:1px solid var(--brass);padding-top:var(--sp-2)}}
+@media (max-width:640px){.loop-now.fixed{grid-template-columns:minmax(0,1fr)}.loop-now.fixed .ln-now{flex-direction:row;align-items:center;justify-content:space-between}}

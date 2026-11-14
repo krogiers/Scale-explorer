@@ -49,17 +49,25 @@ const CHORD_SUFFIX: Record<Quality, string> = {
 
 /**
  * Lezen in de toonaard van een transponerend instrument: geschreven = zoveel letters en halve tonen boven concert.
- * B♭ (tenor, sopraan, trompet, klarinet) = grote secunde (1 letter, 2 halve tonen); E♭ (alt, bariton) = grote sext (5, 9).
+ * B♭ (tenor, sopraan, trompet, klarinet) = grote secunde (1 letter, 2 halve tonen); E♭ (alt, bariton) = grote sext (5, 9);
+ * F (hoorn) = kwint (4, 7); A (klarinet in A) = kleine terts (2, 3); G (altfluit) = kwart (3, 5); D (trompet in D) = grote
+ * secunde lager (6 letters omhoog = 1 omlaag, 10).
  */
 export interface Reading { letters: number; semis: number }
 export const CONCERT: Reading = { letters: 0, semis: 0 };
-const LETTERS: Record<number, number> = { 0: 0, 2: 1, 7: 4, 9: 5 };
+const LETTERS: Record<number, number> = { 0: 0, 2: 1, 3: 2, 5: 3, 7: 4, 9: 5, 10: 6 };
+/**
+ * De stemmingen die je kunt kiezen, als halve tonen dat je partij boven concert staat, gangbaarste eerst:
+ * C, B♭, E♭, F, A, G, D. (De naam is de concertnoot van een geschreven C: B♭ = 2, want geschreven C klinkt B♭.)
+ */
+export const READINGS = [0, 2, 9, 7, 3, 5, 10] as const;
+export const isReading = (v: unknown): v is number => (READINGS as readonly unknown[]).includes(v);
 export const readingFor = (semis: number): Reading => ({ letters: LETTERS[mod12(semis)] ?? Math.round((mod12(semis) * 7) / 12) % 7, semis: mod12(semis) });
 
 /**
  * Een concertnoot zoals ze op de partij staat: per interval getransponeerd, zodat een ladder elke letter één keer houdt
- * en de voortekening klopt (concert E♭ → F voor B♭). Alleen een dubbel voorteken wordt omgespeld (F𝄪 → G):
- * dat komt enkel voor bij E♭ in de familie van concert B majeur.
+ * en de voortekening klopt (concert E♭ → F voor B♭). Alleen een dubbel voorteken wordt omgespeld (F𝄪 → G): dat komt
+ * voor bij E♭, A en D in één verre familie (7 à 14 van de 84 modi); daar staat dan één letter twee keer in de ladder.
  */
 export function transposeNote(n: Note, r: Reading): Note {
   if (!r.semis) return n;

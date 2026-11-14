@@ -66,7 +66,7 @@ function LoopPill({ onOpen }: { onOpen: () => void }) {
 
 /** Bovenbalk met de schermen, de huidige ladder en het akkoord (overal zichtbaar), en ⚙. */
 function Layout() {
-  const { state, t, names, concertNames, shift, scale, chords, scaleLabel, playChord, instrumentLabel } = useApp();
+  const { state, t, names, concertNames, shift, scale, chords, scaleLabel, playChord, readingLabel } = useApp();
   const { add } = useChordPick();
   // concert C en hoe jij die leest, voor de uitleg bij het label
   const C = { pc: 0, letter: 0, acc: 0 };
@@ -108,9 +108,9 @@ function Layout() {
           </nav>
           {screen !== 'spelen' && <LoopPill onOpen={() => go('spelen')} />}
           <div className="ctx">
-            {/* je instrument en de toonaard waarin je leest; een klik opent de instellingen om het te wijzigen */}
+            {/* de stemming waarin je leest; een klik opent de instellingen om ze te wijzigen */}
             <button type="button" className="reading" onClick={() => setSettings(true)}
-              title={shift ? fill(t.readingTip, { key: t.readingKeys[shift] ?? '', w: names.note(C), c: concertNames.note(C) }) : t.myInstrumentHelp}>{instrumentLabel}</button>
+              title={shift ? fill(t.readingTip, { key: t.readingKeys[shift] ?? '', w: names.note(C), c: concertNames.note(C) }) : t.tuningHelp}>{readingLabel}</button>
             <button type="button" className="ctx-scale" onClick={() => go('ladder')}>{scaleLabel(scale)}</button>
             <span aria-hidden="true">·</span>
             <b>{names.chord(chords[state.degree])}</b>

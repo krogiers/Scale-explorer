@@ -15,7 +15,9 @@ export interface State extends Position {
   size: ChordSize;
   lang: Lang;
   namer: string;
-  /** Het instrument dat jij speelt: bepaalt in welke toonaard je alles leest en welke grepen je ziet (niet de klank). */
+  /** Stemming: halve tonen dat je partij boven concert staat (0 = C, 2 = B♭, 9 = E♭, …). Alle namen in de app volgen ze. */
+  reading: number;
+  /** Het instrument op het instrumentpaneel (Spelen): welke grepen je ziet. Bepaalt niet de stemming en niet de klank. */
   instrument: string;
   sound: boolean;
   /** Klank van de akkoorden, overal in de app en in de loop (een begeleidingsinstrument). */
@@ -43,7 +45,7 @@ export interface State extends Position {
   history: { path: PathEntry[]; focus: number; cursor: number }[];
 }
 
-export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'instrument' | 'sound' | 'compTimbre' | 'leadTimbre' | 'meter' | 'showBlue' | 'showPenta' | 'bpm' | 'theme' | 'mix'>>;
+export type SettingsPatch = Partial<Pick<State, 'size' | 'lang' | 'namer' | 'reading' | 'instrument' | 'sound' | 'compTimbre' | 'leadTimbre' | 'meter' | 'showBlue' | 'showPenta' | 'bpm' | 'theme' | 'mix'>>;
 
 export const BPM_MIN = 40, BPM_MAX = 220;
 /** Tempo binnen het bereik van de schuif; onzin (NaN, tekst) wordt het standaardtempo. */

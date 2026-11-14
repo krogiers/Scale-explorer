@@ -1,16 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { COMP_TIMBRES, TIMBRES } from '../../audio';
 import { LANGS } from '../../i18n';
-import { INSTRUMENTS } from '../../instruments';
-import { NOTE_NAMERS } from '../../naming';
+import { NOTE_NAMERS, READINGS } from '../../naming';
 import { useApp, type CompTimbre, type SettingsPatch, type Theme, type Timbre } from '../../state';
 import { Mixer } from './Mixer';
 
 const THEMES: Theme[] = ['auto', 'light', 'dark'];
 
 /**
- * Instellingen achter ⚙, als dialoogvenster: wat je één keer instelt (je instrument, taal, nootnamen, geluid, thema)
- * en het mengpaneel. Je instrument staat bovenaan: het bepaalt in welke toonaard de hele app leest. Bij het geluid kies je
+ * Instellingen achter ⚙, als dialoogvenster: wat je één keer instelt (stemming, taal, nootnamen, geluid, thema)
+ * en het mengpaneel. De stemming staat bovenaan: ze bepaalt in welke toonaard de hele app leest. Bij het geluid kies je
  * twee klanken: één voor akkoorden (een begeleidingsinstrument) en één voor losse noten (bv. je eigen instrument).
  * Blue note en pentatonisch staan als chips bij de notenrij, drie- of vierklanken bij de akkoorden.
  */
@@ -32,11 +31,11 @@ export function Settings({ open, onClose }: { open: boolean; onClose: () => void
         <button type="button" className="ghost iconbtn" onClick={onClose} aria-label={t.close} title={t.close}>✕</button>
       </div>
       <div className="settings">
-        <div className="field"><label htmlFor="myinstr">{t.myInstrument}</label>
-          <select id="myinstr" value={state.instrument} aria-describedby="myinstr-help" onChange={(e) => set({ instrument: e.target.value })}>
-            {INSTRUMENTS.map((i) => <option key={i.id} value={i.id}>{t.instruments[i.id]} ({t.readingKeys[i.transpose ?? 0]})</option>)}
-          </select>
-          <p id="myinstr-help" className="muted small">{t.myInstrumentHelp}</p>
+        <div className="field"><span className="lbl" id="tuning-lbl">{t.tuning}</span>
+          <div className="choices" role="group" aria-labelledby="tuning-lbl" aria-describedby="tuning-help" style={{ ['--cols' as string]: READINGS.length }}>
+            {READINGS.map((r) => <button key={r} type="button" aria-pressed={state.reading === r} onClick={() => set({ reading: r })}>{t.readingKeys[r]}</button>)}
+          </div>
+          <p id="tuning-help" className="muted small">{t.tuningHelp}</p>
         </div>
         <div className="field"><span className="lbl">{t.lang}</span>
           <div className="seg" role="group">

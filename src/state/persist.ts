@@ -2,7 +2,8 @@
 import type { ChordSize } from '../core';
 import { isCompTimbre, TIMBRES, validMix, type CompTimbre, type Timbre } from '../audio';
 import { MESSAGES } from '../i18n';
-import { INSTRUMENTS } from '../instruments';
+import { INSTRUMENTS, writtenShift } from '../instruments';
+import { isReading } from '../naming';
 import { clampBpm, type PathEntry, type State } from './model';
 import { validMarks } from './repeats';
 
@@ -41,6 +42,11 @@ export function instrumentFrom(p: { instrument?: unknown; saxKey?: unknown }): s
   return INSTRUMENTS.some((i) => i.id === p.instrument) ? (p.instrument as string) : 'piano';
 }
 
+/** De stemming; vroeger volgde ze uit het instrument (tenorsax = B♭): neem die dan over. */
+export function readingFrom(p: { reading?: unknown; instrument?: unknown; saxKey?: unknown }): number {
+  return isReading(p.reading) ? p.reading : writtenShift(instrumentFrom(p));
+}
+
 const isTimbre = (t: unknown): t is Timbre => (TIMBRES as readonly unknown[]).includes(t);
 
 /**
@@ -75,6 +81,7 @@ export function initial(): State {
     history: [],
     lang: p.lang && p.lang in MESSAGES ? p.lang : 'nl',
     namer: typeof p.namer === 'string' ? p.namer : 'en',
+    reading: readingFrom(p),
     instrument: instrumentFrom(p),
     sound: p.sound !== false,
     theme: p.theme === 'light' || p.theme === 'dark' ? p.theme : 'auto',
@@ -86,7 +93,7 @@ export function initial(): State {
 /** Voorkeuren bewaren (alles behalve het schema en de huidige positie). */
 export function savePrefs(s: State) {
   try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: s.lang, namer: s.namer, size: s.size, sound: s.sound, instrument: s.instrument, compTimbre: s.compTimbre, leadTimbre: s.leadTimbre, meter: s.meter, showBlue: s.showBlue, showPenta: s.showPenta, bpm: s.bpm, theme: s.theme, mix: s.mix }));
+    localStorage.setItem(PREFS_KEY, JSON.stringify({ lang: s.lang, namer: s.namer, size: s.size, sound: s.sound, reading: s.reading, instrument: s.instrument, compTimbre: s.compTimbre, leadTimbre: s.leadTimbre, meter: s.meter, showBlue: s.showBlue, showPenta: s.showPenta, bpm: s.bpm, theme: s.theme, mix: s.mix }));
   } catch { /* opslag niet beschikbaar: geen probleem */ }
 }
 

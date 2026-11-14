@@ -22,7 +22,7 @@ De app bestaat uit kleine pakketjes. Elk pakket is een map met een voordeur (`in
 core  ←  i18n, naming, audio, instruments  ←  state  ←  ui  ←  screens/*  ←  App
 ```
 
-De app heeft drie schermen: **Ladder** (waar ben ik? met de modi en hun bruggen), **Akkoorden** (welke akkoorden en waarheen, met het schema) en **Spelen** (de loop, het schema als strook en een groot instrument). De schermen importeren elkaar niet. `App.tsx` zet ze samen met:
+De app heeft drie schermen (in de code en de URL nog `#ladder`, `#akkoorden`, `#spelen`): **Theorie** (waar ben ik? met de modi en hun bruggen), **Opbouw** (welke akkoorden en waarheen, met het schema) en **Oefenen** (de loop, het schema als strook en een groot instrument). De schermen importeren elkaar niet. `App.tsx` zet ze samen met:
 - een bovenbalk met de tabs, de huidige ladder en het huidige akkoord, en ⚙ voor de instellingen;
 - de navigatie via `#ladder`, `#akkoorden` en `#spelen`, zodat terug en vooruit in de browser werken, met de sneltoetsen 1, 2 en 3;
 - een pilletje in de bovenbalk (■ en het akkoord dat speelt) als de loop speelt terwijl je op een ander scherm bent.
@@ -295,7 +295,7 @@ grondtoon van (k, m):      r = toon(k) + majeur[OFFSET[m]]
 
 **Brugmatrix** (`chordsOnRoot(r)`): op één grondtoon komen 25 drieklanken (31 vierklanken) voor. Elk zit in hoogstens 3 parallelle modi naast elkaar. Een balk over 2 of 3 modi is een brug, een balk over 1 modus is de eigen kleur van die modus.
 
-In de app staat dit op het scherm Ladder, in het paneel "Modi en bruggen". Een klik kiest "naar" en toont de overgang. Pas "Ga naar" verplaatst je echt. "+ in schema" zet de overgang als akkoorden in het schema.
+In de app staat dit op het scherm Theorie, in het paneel "Modi en bruggen". Een klik kiest "naar" en toont de overgang. Pas "Ga naar" verplaatst je echt. "+ in schema" zet de overgang als akkoorden in het schema.
 
 ### 8. Uitbreiden
 
@@ -303,9 +303,9 @@ Omdat alles volgt uit "een verzameling toonklassen plus een spelling", passen ni
 
 ## Akkoord opzoeken en afstand tussen modi
 
-**Akkoord opzoeken** (scherm Akkoorden): typ een akkoord (`parseChord` in `src/naming` leest Engelse, Nederlandse en do-re-mi-namen en gangbare schrijfwijzen zoals m7, -7, maj7, Δ, ø, °7) of kies grondtoon en soort. `chordHomes` in `src/core/modes.ts` geeft alle moederladders waarin het voorkomt, met per modus de rol. Een majeur- of mineurdrieklank en een m7 zitten in 3 moederladders, een maj7 in 2, een 7 en een m7♭5 in 1; aug, °7 en m(maj7) komen in geen kerkmodus voor. Je typt in de toonaard van je instrument; de app rekent terug naar concert.
+**Akkoord opzoeken** (scherm Opbouw): typ een akkoord (`parseChord` in `src/naming` leest Engelse, Nederlandse en do-re-mi-namen en gangbare schrijfwijzen zoals m7, -7, maj7, Δ, ø, °7) of kies grondtoon en soort. `chordHomes` in `src/core/modes.ts` geeft alle moederladders waarin het voorkomt, met per modus de rol. Een majeur- of mineurdrieklank en een m7 zitten in 3 moederladders, een maj7 in 2, een 7 en een m7♭5 in 1; aug, °7 en m(maj7) komen in geen kerkmodus voor. Je typt in de toonaard van je instrument; de app rekent terug naar concert.
 
-**Afstand tussen modi** (scherm Ladder): een tabel met het aantal noten verschil (`diffCount`) tussen elke twee modi, op één grondtoon (7 × 7) of tussen de twaalf moederladders (12 × 12). Het verschil is hoogstens 5: twee ladders een tritonus uit elkaar delen nog twee noten (C Lydisch en C Locrisch delen C en F♯/G♭).
+**Afstand tussen modi** (scherm Theorie): een tabel met het aantal noten verschil (`diffCount`) tussen elke twee modi, op één grondtoon (7 × 7) of tussen de twaalf moederladders (12 × 12). Het verschil is hoogstens 5: twee ladders een tritonus uit elkaar delen nog twee noten (C Lydisch en C Locrisch delen C en F♯/G♭).
 
 ## Akkoordenschema en meespelen
 
@@ -317,7 +317,7 @@ Het schema (`src/screens/akkoorden/chart/Chart.tsx`) bewaart per akkoord zijn du
 - een herhaling loopt van ‖: tot de eerstvolgende :‖; een :‖ zonder ‖: herhaalt vanaf het vorige einde of het begin van het schema, een ‖: zonder einde doet niets, en in elkaar steken kan niet;
 - volta 1 speelt in elke doorgang behalve de laatste, volta 2 alleen in de laatste (staat hij net na :‖, dan speelt hij gewoon na de laatste doorgang).
 
-De loop en **Speel progressie** spelen die volgorde. De loop vertaalt elke stap terug naar de plaats in het schema (`info.chord`), zodat de markering terugspringt bij een herhaling, en `nextChord` geeft het akkoord dat echt hierna komt. Op **Spelen** staat het schema met vier maten per rij (twee op een smal scherm) in een vak dat meescrolt met de maat die speelt, ook terug naar boven.
+De loop en **Speel progressie** spelen die volgorde. De loop vertaalt elke stap terug naar de plaats in het schema (`info.chord`), zodat de markering terugspringt bij een herhaling, en `nextChord` geeft het akkoord dat echt hierna komt. Op **Oefenen** staat het schema met vier maten per rij (twee op een smal scherm) in een vak dat meescrolt met de maat die speelt, ook terug naar boven.
 
 **Ritmestijlen.** Naast *Recht* en *Aangehouden* zijn er vier grooves: *Swing*, *Shuffle*, *Bossa nova* en *Funk* (`GROOVES` in `src/audio/loop/grooves.ts`). Elke groove is een patroon van één of twee maten. Het bevat posities in tellen, met per positie een bastoon, een akkoordstoot of een drumslag. De planner neemt per tel de gebeurtenissen die in die tel vallen.
 - **Swing**: in een geswingde stijl valt de "en" (positie x,5) niet halverwege de tel, maar op `swingRatio`. Dat is 2/3 van de tel (triolen) tot 140 BPM, en daarboven iets rechter, zoals echte spelers doen.
@@ -328,11 +328,25 @@ De loop en **Speel progressie** spelen die volgorde. De loop vertaalt elke stap 
 
 De drums (`planDrums` in `loop/grooves.ts`, klanken in `engine/drums.ts`) worden opgewekt met oscillatoren en ruis, dus zonder opnames. Er zijn een kick, een snare, een hihat, een hihat met de voet, een ride en een rimshot. Akkoorden verslepen kan met de muis en met touch (lange druk, zodat gewoon scrollen blijft werken), of met Alt + ← en → op het toetsenbord. Met Alt of Option ingedrukt maak je een kopie. Een akkoord neemt zijn duur mee, en de maten worden opnieuw ingedeeld. Elke verplaatsing is één stap voor ongedaan maken (actie `movePath`, slepen in `useChartDrag.ts`). Het schema wordt in de browser bewaard (localStorage).
 
-## Lezen in de toonaard van je instrument
+## Lezen in de stemming van je instrument
 
-Een tenorsaxofonist leest een B♭-partij, een pianist dezelfde muziek in concert. In de app staat de speler centraal: in ⚙ Instellingen kies je **Mijn instrument** (piano, gitaar, dwarsfluit in C; klarinet, trompet, sopraan- en tenorsax in B♭; alt- en baritonsax in E♭). Daarna staan **alle** noten, ladders, akkoorden, het schema en de loop zoals op jouw partij. Concert C Lydisch heet voor een tenorsax D Lydisch, en Cmaj7 heet Dmaj7. Bovenaan staat altijd je instrument met zijn toonaard (bv. "Tenorsax · B♭"); een klik opent de instellingen.
+Een tenorsaxofonist leest een B♭-partij, een pianist dezelfde muziek in concert. Veel instrumenten bestaan in meer dan één stemming (trompet in B♭ of C, klarinet in B♭ of A), dus in ⚙ Instellingen kies je niet je instrument maar je **Stemming** (`reading` in de toestand: halve tonen dat je partij boven concert staat):
 
-Je instrument en de klank staan los van elkaar. Het instrument bepaalt wat je leest en welke grepen het instrumentpaneel toont; niets verandert de klank stiekem. Elke klank speelt in concert, dus ze klopt altijd met wat jij speelt.
+| Stemming | `reading` | Voorbeelden |
+|---|---|---|
+| C | 0 | piano, gitaar, dwarsfluit, viool, trombone, trompet in C |
+| B♭ | 2 | trompet, bugel, klarinet, sopraan- en tenorsax |
+| E♭ | 9 | alt- en baritonsax, Es-klarinet, althoorn |
+| F | 7 | hoorn, Engelse hoorn |
+| A | 3 | klarinet in A |
+| G | 5 | altfluit |
+| D | 10 | trompet in D |
+
+Daarna staan **alle** noten, ladders, akkoorden, het schema en de loop zoals op jouw partij. Concert C Lydisch heet in B♭ D Lydisch, en Cmaj7 heet Dmaj7. Bovenaan staat altijd de stemming (bv. "Stemming B♭"); een klik opent de instellingen. Octaven tellen niet mee (gitaar en baritonsax lezen een octaaf hoger): de nootnamen blijven dezelfde.
+
+Het **instrument** kies je op het instrumentpaneel (scherm Oefenen); het bepaalt alleen welke grepen je ziet. Het verandert de stemming niet, maar staat het instrument meestal in een andere stemming (`transpose` in `INSTRUMENTS`), dan zegt een hint dat, met een knop "Lees in …". Oude voorkeuren met alleen een instrument krijgen de stemming van dat instrument (`readingFrom` in `state/persist.ts`).
+
+Stemming, instrument en klank staan los van elkaar; niets verandert de klank stiekem. Elke klank speelt in concert, dus ze klopt altijd met wat jij speelt.
 
 Er zijn twee klanken (in Instellingen; de akkoordklank ook bij de loop):
 - **Akkoordklank** (`compTimbre`, partij `keys`): elk akkoord, bij een klik, in de progressies, het schema en de loop. Alleen instrumenten die akkoorden kunnen spelen (`COMP_TIMBRES`: piano, Rhodes, gitaar, orgel, vibrafoon, strijkers, synthesizer). Een blazer speelt één noot tegelijk; vier saxen in nauwe ligging klinken niet als een sax maar als een vage orgelklank.
@@ -342,7 +356,7 @@ De grondtoon onder een akkoord speelt altijd de contrabas (partij `bass`). Elke 
 
 Alleen de namen veranderen. De app rekent, bewaart en klinkt in concert, dus de begeleiding speelt vanzelf in de juiste toon, en een schema dat je in B♭ maakt staat voor een pianist gewoon in concert. De transpositie zit op één plek, in de naamgeving (`src/naming`, `readingFor`, `transposeNote`):
 
-- **Per interval**: B♭ is een grote secunde hoger (één letter, twee halve tonen), E♭ een grote sext (vijf letters, negen halve tonen). Zo houdt een ladder elke letter één keer en klopt de voortekening: concert E♭ wordt F, concert D♭ wordt E♭, concert C majeur (geen voortekens) wordt D majeur (2♯).
+- **Per interval**: B♭ is een grote secunde hoger (één letter, twee halve tonen), E♭ een grote sext (vijf letters, negen halve tonen), F een kwint (4, 7), A een kleine terts (2, 3), G een kwart (3, 5) en D een grote secunde lager (6 letters omhoog = 1 omlaag, 10). Zo houdt een ladder elke letter één keer en klopt de voortekening: concert E♭ wordt F, concert D♭ wordt E♭, concert C majeur (geen voortekens) wordt D majeur (2♯).
 - **Dubbele voortekens** worden omgespeld (F𝄪 wordt G). Voor B♭ komt dat nooit voor; voor E♭ alleen in de familie van concert B majeur.
 - **Kwintencirkel**: die draait mee, zodat jouw geschreven C bovenaan staat. De voortekening in het midden en in het modirooster is die van jouw partij.
 - **Instrumentpaneel**: toont de grepen van jouw instrument met dezelfde geschreven ladder, zodat de greepkaarten en de rest van de app altijd dezelfde spelling hebben. De vier saxen delen hun grepen; alleen de toonaard verschilt.

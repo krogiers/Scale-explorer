@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { scaleOf, type ModeIndex, type Note } from '../core';
-import { makeNames, namerById, parseChord, readingFor, transposeNote, writtenScale } from '.';
+import { makeNames, namerById, parseChord, READINGS, readingFor, transposeNote, writtenScale } from '.';
 
 const en = namerById('en');
 const n = (pc: number, letter: number, acc: number): Note => ({ pc, letter, acc });
@@ -39,6 +39,18 @@ describe('lezen in de toonaard van je instrument', () => {
       expect(w.notes.every((x) => Math.abs(x.acc) <= 1)).toBe(true);
       expect(w.root).toBe((root + 2) % 12);
     }
+  });
+  it('elke stemming: grondtoon klopt, nooit een dubbel voorteken; F en G houden altijd elke letter één keer', () => {
+    for (const r of READINGS) for (let root = 0; root < 12; root++) for (let m = 0; m < 7; m++) {
+      const w = writtenScale(scaleOf(root, m as ModeIndex), readingFor(r));
+      expect(w.root).toBe((root + r) % 12);
+      expect(w.notes.every((x) => Math.abs(x.acc) <= 1)).toBe(true);
+      if (r === 7 || r === 5) expect(new Set(w.notes.map((x) => x.letter)).size).toBe(7);
+    }
+  });
+  it('A, G, D en F: het juiste interval en de juiste letter', () => {
+    const c = n(0, 0, 0);
+    expect(['A', 'G', 'D', 'F'].map((k) => name(transposeNote(c, readingFor({ A: 3, G: 5, D: 10, F: 7 }[k]!))))).toEqual(['E♭', 'F', 'B♭', 'G']);
   });
   it('makeNames: akkoorden en voortekening zoals je leest', () => {
     const names = makeNames(en, BB);

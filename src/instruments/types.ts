@@ -27,7 +27,7 @@ export interface InstrumentView {
 export interface Instrument {
   id: string;
   component: ComponentType<InstrumentView>;
-  /** Vaste stemming: halve tonen dat de geschreven noot boven de klinkende ligt (B♭-instrumenten: 2). */
+  /** Gebruikelijke stemming: halve tonen dat de geschreven noot boven de klinkende ligt (B♭-instrumenten: 2). */
   transpose?: number;
   /** Welke uitleg bij de grepen hoort, als die gedeeld wordt (de vier saxen: 'sax'); anders de id. */
   help?: string;

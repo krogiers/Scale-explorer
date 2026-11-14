@@ -1,9 +1,8 @@
 /** Provider: houdt de toestand bij, bewaart ze en speelt het geluid dat bij een klik hoort. */
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useSyncExternalStore, type ReactNode } from 'react';
 import { chordsOf, pentatonic, scaleOf, type Chord, type Scale } from '../core';
-import { MESSAGES, type Messages } from '../i18n';
+import { fill, MESSAGES, type Messages } from '../i18n';
 import { makeNames, namerById, readingFor, type Names } from '../naming';
-import { writtenShift } from '../instruments';
 import { audio, chordEvents, compareEvents, playing, playOnly, progressionEvents, scaleEvents, stopCurrent, subscribe } from '../audio';
 import { loopState } from '../audio/loop';
 import { chordOf, type Action, type State } from './model';
@@ -22,7 +21,8 @@ interface Ctx {
   /** Halve tonen dat je partij boven concert staat (0 = concert). */
   shift: number;
   /** Je instrument met zijn toonaard, bv. "Tenorsax · B♭" of "Piano · C". */
-  instrumentLabel: string;
+  /** De stemming waarin je leest, kort (bv. "Stemming B♭"), voor de bovenbalk. */
+  readingLabel: string;
   scale: Scale;
   chords: Chord[];
   /** Naam van een ladder zoals je ze leest, bv. "D Lydisch" voor concert C Lydisch op een B♭-instrument. */
@@ -46,7 +46,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const latest = useRef(state);
   latest.current = state;
   const t = MESSAGES[state.lang];
-  const shift = writtenShift(state.instrument);
+  const shift = state.reading;
   const names = useMemo(() => makeNames(namerById(state.namer), readingFor(shift)), [state.namer, shift]);
   const concertNames = useMemo(() => makeNames(namerById(state.namer)), [state.namer]);
   const scale = scaleOf(state.root, state.mode);
@@ -56,7 +56,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     savePrefs(state);
     document.documentElement.lang = state.lang;
     document.title = t.title;
-  }, [state.lang, state.namer, state.size, state.sound, state.instrument, state.compTimbre, state.leadTimbre, state.meter, state.showBlue, state.showPenta, state.bpm, state.theme, state.mix, t.title]);
+  }, [state.lang, state.namer, state.size, state.sound, state.reading, state.instrument, state.compTimbre, state.leadTimbre, state.meter, state.showBlue, state.showPenta, state.bpm, state.theme, state.mix, t.title]);
 
   useEffect(() => {
     if (state.theme === 'auto') delete document.documentElement.dataset.theme;
@@ -91,7 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     return {
       state, dispatch, t, names, concertNames, shift, scale, chords,
-      instrumentLabel: `${t.instruments[state.instrument] ?? state.instrument} · ${t.readingKeys[shift] ?? ''}`,
+      readingLabel: fill(t.tuningShort, { key: t.readingKeys[shift] ?? '' }),
       scaleLabel: (s: Scale) => `${names.note(s.notes[0])} ${t.modes[s.mode]}`,
       concertLabel: (s: Scale) => `${concertNames.note(s.notes[0])} ${t.modes[s.mode]}`,
       playScale: () => play(scaleEvents(scale, state.showPenta ? pentatonic(scale).notes : scale.notes), 'scale'),

@@ -25,8 +25,9 @@ export interface SheetBar { events: SheetEvent[]; chords: { at: number; chord: C
 
 /**
  * Een duur vanaf `at` in de maat opdelen in schrijfbare waarden (4 = hele, 3 = halve met punt, 2 = halve,
- * 1.5 = kwart met punt, 1 = kwart, 0.5 = achtste). Een waarde mag alleen beginnen waar ze de tel niet verdoezelt:
- * een halve op een even tel, een kwart met punt op een zware tel, een hele en een halve met punt aan het begin.
+ * 1.5 = kwart met punt, 1 = kwart, 0.75 = achtste met punt, 0.5 = achtste, 0.25 = zestiende). Een waarde mag alleen
+ * beginnen waar ze de tel niet verdoezelt: een halve op een even tel, een kwart met punt op een zware tel, een hele en
+ * een halve met punt aan het begin, een achtste met punt op de tel, een achtste op de tel of de "en".
  */
 export function splitDur(at: number, len: number, meter: number, rest = false): number[] {
   const out: number[] = [];
@@ -38,10 +39,12 @@ export function splitDur(at: number, len: number, meter: number, rest = false): 
     if (v === 2) return Number.isInteger(t) && (meter === 3 ? t <= 1 : t % 2 === 0);
     if (v === 1.5) return !rest && Number.isInteger(t) && (meter === 3 ? t === 0 : t % 2 === 0);
     if (v === 1) return Number.isInteger(t);
+    if (v === 0.75) return !rest && Number.isInteger(t);
+    if (v === 0.5) return Number.isInteger(t * 2);
     return true;
   };
   while (left > 1e-9) {
-    const v = [4, 3, 2, 1.5, 1, 0.5].find(ok) ?? Math.min(0.5, left);
+    const v = [4, 3, 2, 1.5, 1, 0.75, 0.5, 0.25].find(ok) ?? Math.min(0.25, left);
     out.push(v);
     t += v; left -= v;
   }
@@ -82,7 +85,8 @@ export function sheetBars(steps: MelodyStep[], notes: MelodyNote[][], meter: num
   };
   for (const n of flat) {
     if (n.at > t + 1e-9) push(t, n.at - t, { rest: true, step: n.step, start: t });
-    const note = steps[n.step].scale.notes.find((x) => x.pc === n.midi % 12) ?? { pc: n.midi % 12, letter: 0, acc: 0 };
+    // de melodie geeft de spelling mee van noten buiten de ladder (naderingsnoot, blue note); anders die uit de ladder
+    const note = n.note ?? steps[n.step].scale.notes.find((x) => x.pc === n.midi % 12) ?? { pc: n.midi % 12, letter: 0, acc: 0 };
     push(n.at, n.dur, { rest: false, midi: n.midi, note, step: n.step, start: n.at });
     t = n.at + n.dur;
   }

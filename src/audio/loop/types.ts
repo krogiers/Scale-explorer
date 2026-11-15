@@ -1,6 +1,6 @@
 import type { Part } from '../types';
 
-export const LOOP_STYLES = ['comp', 'sustain', 'swing', 'shuffle', 'bossa', 'funk'] as const;
+export const LOOP_STYLES = ['comp', 'sustain', 'swing', 'bebop', 'shuffle', 'bossa', 'funk', 'country'] as const;
 export type LoopStyle = (typeof LOOP_STYLES)[number];
 export interface LoopOptions {
   bpm: number;

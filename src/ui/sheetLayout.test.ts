@@ -12,6 +12,9 @@ describe('leadsheet: notenwaarden', () => {
     expect(splitDur(0, 4, 4)).toEqual([4]);
     expect(splitDur(0, 3, 3)).toEqual([3]); // halve met punt in 3/4
     expect(splitDur(0, 1.5, 4, true)).toEqual([1, 0.5]); // rusten zonder punt
+    expect(splitDur(0, 0.75, 4)).toEqual([0.75]); // achtste met punt
+    expect(splitDur(0.25, 0.75, 4)).toEqual([0.25, 0.5]); // zestiende + achtste op de "en"
+    expect(splitDur(0.75, 0.5, 4)).toEqual([0.25, 0.25]); // over de tel heen: twee zestienden
   });
   it('vult gaten met rusten en zet akkoorden op hun tel', () => {
     const bars = sheetBars([step(0, 2), step(4, 2)], [[{ at: 1, dur: 1, midi: 64 }], [{ at: 0, dur: 2, midi: 67 }]], 4);

@@ -7,7 +7,9 @@ const H = 5;
 const BOTTOM = 2 + 7 * 4; // E4 als diatonische trap (letter + 7 × octaaf)
 const HI = 17, LO = -5; // vaste hoogte per regel: akkoorden boven, hulplijnen onder
 const CHORD_P = 14; // basislijn van de akkoordsymbolen
-const BEAT = 46, PAD_L = 22, PAD_R = 10, CLEF_W = 40;
+const PAD_L = 22, PAD_R = 10, CLEF_W = 40;
+/** Breedte van een tel: 46 px; met achtsten 60 en met zestienden 92, zodat een voorteken niet tegen de vorige noot botst. */
+const beatW = (sixteenths: boolean, eighths: boolean) => (sixteenths ? 92 : eighths ? 60 : 46);
 const ACC: Record<number, string> = { 1: '♯', [-1]: '♭', 0: '♮' };
 const y = (p: number) => (HI - p) * H;
 
@@ -15,19 +17,19 @@ const y = (p: number) => (HI - p) * H;
 const place = (n: Note, midi: number) => n.letter + 7 * Math.round((midi - n.acc - LETTER_PC[n.letter]) / 12 - 1) - BOTTOM;
 
 /** Breedte van een maat: vast per maatsoort, zodat de tellen onder elkaar staan. */
-const barW = (meter: number) => PAD_L + meter * BEAT + PAD_R;
+const barW = (meter: number, beat: number) => PAD_L + meter * beat + PAD_R;
 
-/** Hoeveel maten per regel: 4, of 2 als het vak smal is (telefoon). */
-function usePerRow(ref: React.RefObject<HTMLElement | null>) {
-  const [n, setN] = useState(4);
+/** Hoeveel maten per regel: 4, of 2 als het vak smal is (telefoon); met zestienden de helft. */
+function usePerRow(ref: React.RefObject<HTMLElement | null>, wide: boolean) {
+  const [narrow, setNarrow] = useState(false);
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(([e]) => setN(e.contentRect.width < 560 ? 2 : 4));
+    const ro = new ResizeObserver(([e]) => setNarrow(e.contentRect.width < 560));
     ro.observe(el);
     return () => ro.disconnect();
   }, [ref]);
-  return n;
+  return (narrow ? 2 : 4) / (wide ? 2 : 1);
 }
 
 /** Rusten getekend als vormen (geen lettertype nodig). */
@@ -35,8 +37,14 @@ function Rest({ x, dur }: { x: number; dur: number }) {
   if (dur >= 3) return <rect className="rs" x={x - 6} y={y(6)} width={12} height={H} />; // hele rust hangt aan de 4e lijn
   if (dur === 2) return <rect className="rs" x={x - 6} y={y(4) - H} width={12} height={H} />; // halve rust ligt op de middelste lijn
   if (dur === 1) return <path className="rs" d={`M${x - 2} ${y(7.5)} l5 6 l-4 5 l5 6 c-5 -2 -8 1 -4 6 c-8 -4 -5 -10 0 -7 l-6 -7 l4 -4 z`} />;
-  // achtste rust: bolletje met een schuine staart
-  return <g className="rs"><circle cx={x - 2} cy={y(5)} r={2.6} /><path d={`M${x - 2} ${y(5) + 2} q4 1 6 -3 l-5 13`} fill="none" strokeWidth={1.6} /></g>;
+  // achtste rust: bolletje met een schuine staart; zestiende rust: twee bolletjes en een langere staart
+  if (dur === 0.5) return <g className="rs"><circle cx={x - 2} cy={y(5)} r={2.6} /><path d={`M${x - 2} ${y(5) + 2} q4 1 6 -3 l-5 13`} fill="none" strokeWidth={1.6} /></g>;
+  return (
+    <g className="rs">
+      <circle cx={x - 1} cy={y(5)} r={2.4} /><path d={`M${x - 1} ${y(5) + 2} q4 1 6 -3 l-7 22`} fill="none" strokeWidth={1.6} />
+      <circle cx={x - 3.5} cy={y(3)} r={2.4} /><path d={`M${x - 3.5} ${y(3) + 2} q4 1 6.5 -3`} fill="none" strokeWidth={1.6} />
+    </g>
+  );
 }
 
 interface Placed extends SheetEvent { x: number; p: number; w?: Note; acc?: number }
@@ -51,13 +59,16 @@ export function LeadSheet({ steps, notes, meter, spell, semis, chordName, now, l
   steps: MelodyStep[]; notes: MelodyNote[][]; meter: number; spell: (n: Note) => Note; semis: number; chordName: (c: Chord) => string; now: number | null; label: string;
 }) {
   const box = useRef<HTMLDivElement>(null);
-  const perRow = usePerRow(box);
   const bars = sheetBars(steps, notes, meter);
+  const sixteenths = bars.some((b) => b.events.some((e) => !Number.isInteger(e.at * 2) || !Number.isInteger(e.dur * 2)));
+  const eighths = bars.some((b) => b.events.some((e) => !e.rest && e.dur < 1));
+  const BEAT = beatW(sixteenths, eighths);
+  const perRow = usePerRow(box, sixteenths);
   // geschreven toonhoogtes: in je stemming, dan de hele melodie per octaaf rond B4 (midden van de balk)
   const all = bars.flatMap((b) => b.events).filter((e) => !e.rest).map((e) => e.midi! + semis);
   const avg = all.length ? all.reduce((a, b) => a + b, 0) / all.length : 71;
   const shift = Math.round((71 - avg) / 12) * 12 + semis;
-  const bw = barW(meter);
+  const bw = barW(meter, BEAT);
   const width = CLEF_W + perRow * bw;
   const rows = Array.from({ length: Math.ceil(bars.length / perRow) }, (_, r) => bars.slice(r * perRow, (r + 1) * perRow));
   // de regel die nu speelt in beeld houden (ook terug naar boven bij de herhaling)
@@ -91,16 +102,22 @@ export function LeadSheet({ steps, notes, meter, spell, semis, chordName, now, l
         const flat = placed.flat();
         const isOn = (e: Placed) => now != null && !e.rest && Math.floor(e.start) === Math.floor(now % (bars.length * meter));
         const up = (p: number) => p < 4;
-        // achtsten per tel samen balken: twee noten op dezelfde tel (op de tel en de 'en')
-        const beamed = new Set<Placed>();
-        const beams: [Placed, Placed][] = [];
-        placed.forEach((bar) => bar.forEach((e, k) => {
-          const f = bar[k + 1];
-          if (f && !e.rest && !f.rest && e.dur === 0.5 && f.dur === 0.5 && Number.isInteger(e.at) && f.at === e.at + 0.5) {
-            beams.push([e, f]); beamed.add(e); beamed.add(f);
+        // balken per tel: opeenvolgende noten korter dan een kwart binnen dezelfde tel (zonder rust ertussen)
+        const beams: Placed[][] = [];
+        placed.forEach((bar) => {
+          let cur: Placed[] = [];
+          const flush = () => { if (cur.length > 1) beams.push(cur); cur = []; };
+          for (const e of bar) {
+            if (e.rest || e.dur >= 1) { flush(); continue; }
+            if (cur.length && Math.floor(cur[0].at + 1e-9) !== Math.floor(e.at + 1e-9)) flush();
+            cur.push(e);
           }
-        }));
-        const beamUp = (a: Placed, b: Placed) => (a.p + b.p) / 2 < 4;
+          flush();
+        });
+        const groupOf = new Map<Placed, Placed[]>();
+        beams.forEach((g) => g.forEach((e) => groupOf.set(e, g)));
+        const beamed = { has: (e: Placed) => groupOf.has(e) };
+        const beamUp = (g: Placed[]) => g.reduce((a, e) => a + e.p, 0) / g.length < 4;
         const stemX = (e: Placed, u: boolean) => (u ? e.x + 5.6 : e.x - 5.6);
         const lastRow = r === rows.length - 1;
         return (
@@ -121,9 +138,9 @@ export function LeadSheet({ steps, notes, meter, spell, semis, chordName, now, l
             })}
             {flat.map((e, k) => {
               if (e.rest) return <Rest key={k} x={e.x} dur={e.dur} />;
-              const u = beamed.has(e) ? beamUp(...beams.find((pair) => pair.includes(e))!) : up(e.p);
+              const u = beamed.has(e) ? beamUp(groupOf.get(e)!) : up(e.p);
               const hollow = e.dur >= 2;
-              const dotted = e.dur === 1.5 || e.dur === 3;
+              const dotted = e.dur === 0.75 || e.dur === 1.5 || e.dur === 3;
               const next = flat[k + 1];
               const ledgers: number[] = [];
               for (let l = -2; l >= e.p; l -= 2) ledgers.push(l);
@@ -136,7 +153,9 @@ export function LeadSheet({ steps, notes, meter, spell, semis, chordName, now, l
                   <ellipse className={hollow ? 'nh open' : 'nh'} cx={e.x} cy={y(e.p)} rx={H * 1.3} ry={H * 0.95} transform={`rotate(-20 ${e.x} ${y(e.p)})`} />
                   {dotted && <circle className="dot" cx={e.x + 2.6 * H} cy={y(e.p % 2 === 0 ? e.p + 1 : e.p)} r={1.7} />}
                   {e.dur < 4 && !beamed.has(e) && <line className="stem" x1={sx} x2={sx} y1={y(e.p)} y2={tip} />}
-                  {e.dur === 0.5 && !beamed.has(e) && <path className="flag" d={u ? `M${sx} ${tip} c0 6 10 8 8 18 c0 -6 -4 -10 -8 -12 z` : `M${sx} ${tip} c0 -6 10 -8 8 -18 c0 6 -4 10 -8 12 z`} />}
+                  {e.dur < 1 && !beamed.has(e) && (e.dur <= 0.25 ? [0, 7] : [0]).map((d) => (
+                    <path key={d} className="flag" d={u ? `M${sx} ${tip + d} c0 6 10 8 8 18 c0 -6 -4 -10 -8 -12 z` : `M${sx} ${tip - d} c0 -6 10 -8 8 -18 c0 6 -4 10 -8 12 z`} />
+                  ))}
                   {e.tie && (() => {
                     // boog naar de volgende noot (of tot het einde van de regel)
                     const x2 = next && !next.rest ? next.x : CLEF_W + row.length * bw;
@@ -146,17 +165,25 @@ export function LeadSheet({ steps, notes, meter, spell, semis, chordName, now, l
                 </g>
               );
             })}
-            {beams.map(([a, b], k) => {
-              // een balk boven of onder, horizontaal op de uiterste steel
-              const u = beamUp(a, b);
-              const by = u ? Math.min(y(a.p + 7), y(b.p + 7)) : Math.max(y(a.p - 7), y(b.p - 7));
-              const xa = stemX(a, u), xb = stemX(b, u);
-              const on = isOn(a) || isOn(b);
+            {beams.map((g, k) => {
+              // een balk boven of onder, horizontaal op de uiterste steel; zestienden krijgen een tweede balk
+              // (tussen twee zestienden over de hele breedte, bij een losse zestiende een stompje naar zijn buur)
+              const u = beamUp(g);
+              const by = u ? Math.min(...g.map((e) => y(e.p + 7))) : Math.max(...g.map((e) => y(e.p - 7)));
+              const xs = g.map((e) => stemX(e, u));
+              const bh = 4.5, inner = u ? by + 7 : by - 7 - bh;
+              const second: [number, number][] = [];
+              g.forEach((e, j) => {
+                if (e.dur > 0.25) return;
+                const nb = g[j + 1], pv = g[j - 1];
+                if (nb && nb.dur <= 0.25) second.push([xs[j], xs[j + 1]]);
+                else if (!(pv && pv.dur <= 0.25)) second.push(nb ? [xs[j], xs[j] + 8] : [xs[j] - 8, xs[j]]);
+              });
               return (
-                <g key={`b${k}`} className={on ? 'on' : undefined}>
-                  <line className="stem" x1={xa} x2={xa} y1={y(a.p)} y2={by} />
-                  <line className="stem" x1={xb} x2={xb} y1={y(b.p)} y2={by} />
-                  <rect className="beam" x={xa - 0.6} y={u ? by : by - 4.5} width={xb - xa + 1.2} height={4.5} />
+                <g key={`b${k}`} className={g.some(isOn) ? 'on' : undefined}>
+                  {g.map((e, j) => <line key={j} className="stem" x1={xs[j]} x2={xs[j]} y1={y(e.p)} y2={by + (u ? 0 : 0)} />)}
+                  <rect className="beam" x={xs[0] - 0.6} y={u ? by : by - bh} width={xs[xs.length - 1] - xs[0] + 1.2} height={bh} />
+                  {second.map(([a, b], j) => <rect key={j} className="beam" x={a - 0.6} y={inner} width={b - a + 1.2} height={bh} />)}
                 </g>
               );
             })}

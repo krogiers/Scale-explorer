@@ -3,9 +3,12 @@
  * wisselt, en het scherm Spelen, de bovenbalk en het schema dezelfde loop tonen. Moet binnen AppProvider staan.
  */
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { makeMelody, scaleOf, seededRng, type MelodyNote, type MelodyStep, type Spot } from '../core';
+import { makeMelody, scaleOf, seededRng, type MelodyNote, type MelodyStep, type MelodyStyle, type Spot } from '../core';
 import { audio, progressionVoicings } from '../audio';
-import { LOOP_STYLES, LoopPlayer, type BeatInfo, type LoopOptions, type TimelineItem } from '../audio/loop';
+import { LOOP_STYLES, LoopPlayer, type BeatInfo, type LoopOptions, type LoopStyle, type TimelineItem } from '../audio/loop';
+
+/** De verzonnen melodie volgt de stijl van de begeleiding (shuffle = blues). */
+export const MELODY_STYLE: Record<LoopStyle, MelodyStyle> = { comp: 'plain', sustain: 'plain', swing: 'swing', bebop: 'bebop', shuffle: 'blues', bossa: 'bossa', funk: 'funk', country: 'country' };
 import { chordOf } from './model';
 import { playOrder } from './repeats';
 import { useApp } from './store';
@@ -95,11 +98,11 @@ export function LoopProvider({ children }: { children: ReactNode }) {
     const ord = playOrder(state.path);
     const voicings = progressionVoicings(ord.map((i) => chordOf(state.path[i])));
     const steps: MelodyStep[] = ord.map((i) => ({ scale: scaleOf(state.path[i].root, state.path[i].mode), chord: chordOf(state.path[i]), beats: state.path[i].beats }));
-    const melody = opts.melody ? makeMelody(steps, state.meter, seededRng(seed)) : null;
+    const melody = opts.melody ? makeMelody(steps, state.meter, seededRng(seed), MELODY_STYLE[opts.style]) : null;
     const starts: number[] = [];
     steps.reduce((t, s) => { starts.push(t); return t + s.beats; }, 0);
     return { ord, steps, starts, melody, items: ord.map((i, k) => ({ voicing: voicings[k], beats: state.path[i].beats, ...(melody && { melody: melody[k] }) })) };
-  }, [state.path, state.meter, opts.melody, seed]);
+  }, [state.path, state.meter, opts.melody, opts.style, seed]);
   timeline.current = built.items;
   order.current = built.ord;
   const [step, setStep] = useState(-1);

@@ -31,6 +31,17 @@ export const GROOVES: Record<Exclude<LoopStyle, 'comp' | 'sustain'>, Groove> = {
       3: [[0, 'ride', 0.6], [1, 'ride', 0.5], [1.5, 'ride', 0.4], [2, 'ride', 0.5], [1, 'pedal', 0.5], [2, 'pedal', 0.5], [0, 'kick', 0.2]],
     },
   },
+  // bebop: walking bass zoals bij swing, maar de piano laat ruimte voor de solist: korte stoten op de "en" van 2 en 4,
+  // en de drummer speelt de ride met een licht accent op 2 en 4 (zoals bij snelle bop gebruikelijk)
+  bebop: {
+    swing: true, bars: 1,
+    bass: { 4: [[0, 'W', 0.95], [1, 'W', 0.95], [2, 'W', 0.95], [3, 'W', 0.95]], 3: [[0, 'W', 0.95], [1, 'W', 0.95], [2, 'W', 0.95]] },
+    keys: { 4: [[1.5, 0.2, 0.4], [3.5, 0.2, 0.35]], 3: [[1.5, 0.2, 0.4]] },
+    drums: {
+      4: [[0, 'ride', 0.45], [1, 'ride', 0.6], [1.5, 'ride', 0.35], [2, 'ride', 0.45], [3, 'ride', 0.6], [3.5, 'ride', 0.35], [1, 'pedal', 0.55], [3, 'pedal', 0.55], [2.5, 'snare', 0.12]],
+      3: [[0, 'ride', 0.55], [1, 'ride', 0.45], [1.5, 'ride', 0.35], [2, 'ride', 0.45], [1, 'pedal', 0.5], [2, 'pedal', 0.5]],
+    },
+  },
   // geswingde achtsten: boogiebas, akkoord op 2 en 4, shuffle op de hihat
   shuffle: {
     swing: true, bars: 1,
@@ -72,7 +83,25 @@ export const GROOVES: Record<Exclude<LoopStyle, 'comp' | 'sustain'>, Groove> = {
       3: [...every(3, 0.5, (at, i) => [[at, 'hat', i % 2 ? 0.3 : 0.45]]), [0, 'kick', 0.9], [1.5, 'kick', 0.7], [2, 'snare', 0.8], [1.75, 'snare', 0.15]],
     },
   },
+  // country: "boom-chick": grondtoon op 1, kwint op 3, korte akkoorden op 2 en 4; trein-beat met de snare op 2 en 4.
+  // In 3/4 een wals: bas op 1 (om de maat grondtoon en kwint), akkoord op 2 en 3.
+  country: {
+    swing: false, bars: 2,
+    bass: {
+      4: [[0, 'R', 0.8], [2, '5', 0.8], [4, 'R', 0.8], [6, '5', 0.6], [7.5, 'A', 0.4, 0.75]],
+      3: [[0, 'R', 0.9], [3, '5', 0.9]],
+    },
+    keys: { 4: [[1, 0.25], [3, 0.25], [5, 0.25], [7, 0.25]], 3: [[1, 0.25], [2, 0.25], [4, 0.25], [5, 0.25]] },
+    drums: {
+      4: [...every(8, 0.5, (at, i) => [[at, 'hat', i % 2 ? 0.25 : 0.4]]), ...[0, 2, 4, 6].map((at) => [at, 'kick', 0.7] as [number, Drum, number]),
+        ...[1, 3, 5, 7].map((at) => [at, 'snare', 0.55] as [number, Drum, number])],
+      3: [...every(6, 0.5, (at, i) => [[at, 'hat', i % 2 ? 0.2 : 0.35]]), [0, 'kick', 0.7], [3, 'kick', 0.7], ...[1, 2, 4, 5].map((at) => [at, 'snare', 0.3] as [number, Drum, number])],
+    },
+  },
 };
+
+/** Swingt deze stijl (valt de "en" later)? De verzonnen melodie swingt dan mee. */
+export const isSwung = (style: LoopStyle) => style !== 'comp' && style !== 'sustain' && GROOVES[style].swing;
 
 /** Drums bij de rechte en de aangehouden begeleiding. */
 const PLAIN_DRUMS: Record<'comp' | 'sustain', Record<3 | 4, [number, Drum, number][]>> = {

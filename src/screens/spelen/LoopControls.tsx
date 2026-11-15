@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { blueNote, CHAR_DEGREE, pentatonic, scaleOf, type Note, type Scale } from '../../core';
 import { COMP_TIMBRES } from '../../audio';
-import { LOOP_STYLES, type LoopStyle } from '../../audio/loop';
+import { isSwung, LOOP_STYLES, type LoopStyle } from '../../audio/loop';
 import { fill } from '../../i18n';
 import { transposeNote } from '../../naming';
 import { BPM_MAX, BPM_MIN, chordOf, practiceAt, PRACTICE_BARS, useApp, useLoop, type CompTimbre } from '../../state';
@@ -134,7 +134,7 @@ export function LoopControls() {
       <div aria-live="polite">{now}</div>
       {!drill && melody && sheet && (
         <figure className="mel-sheet">
-          <figcaption>{t.melodySheet}</figcaption>
+          <figcaption>{t.melodySheet}{isSwung(opts.style) && <span className="swing-note"> · {t.swingFeel}</span>}</figcaption>
           <LeadSheet steps={melody.steps} notes={melody.notes} meter={state.meter} spell={(n) => transposeNote(n, names.reading)} semis={names.reading.semis} chordName={names.chord} now={beatNow} label={t.melodySheet} />
         </figure>
       )}

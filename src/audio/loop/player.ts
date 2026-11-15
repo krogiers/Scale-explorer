@@ -6,7 +6,7 @@
  */
 import { release, takeOver } from '../transport';
 import type { AudioEngine } from '../types';
-import { planDrums } from './grooves';
+import { isSwung, planDrums, swingRatio } from './grooves';
 import { locate, planBeat } from './plan';
 import type { BeatInfo, LoopOptions, TimelineItem } from './types';
 
@@ -110,9 +110,13 @@ export class LoopPlayer {
       if (opts.drums) for (const [o, kind, vel] of planDrums(beat, opts)) this.engine.drumAt(t + o, kind, vel);
       // de melodie: de noten die in deze tel beginnen, zware tellen iets luider
       const spb = 60 / opts.bpm;
+      const swung = isSwung(opts.style);
       for (const n of item.melody ?? []) {
         if (Math.floor(n.at) !== inChord) continue;
-        this.engine.noteAt(n.midi, t + (n.at - inChord) * spb, n.dur * spb * 0.92, Number.isInteger(n.at) ? 0.8 : 0.65, 'lead');
+        // in een geswingde stijl valt de "en" later (lang-kort), net als bij de begeleiding
+        const frac = n.at - inChord;
+        const off = swung && frac === 0.5 ? swingRatio(opts.bpm) : frac;
+        this.engine.noteAt(n.midi, t + off * spb, n.dur * spb * 0.92, Number.isInteger(n.at) ? 0.8 : 0.65, 'lead');
       }
       info = { chord, beat: inChord, beats: item.beats };
     }

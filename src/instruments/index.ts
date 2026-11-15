@@ -2,7 +2,7 @@
  * Voordeur van de instrumenten: het register. Een instrument toevoegen = één component schrijven
  * (zie types.ts) en hier registreren. Blaasinstrumenten staan in wind/ en delen hun greepkaarten.
  */
-import { Guitar } from './Guitar';
+import { Banjo, Guitar } from './Guitar';
 import { Piano } from './Piano';
 import type { Instrument } from './types';
 import { Clarinet, Flute, Sax, Trumpet } from './wind';
@@ -17,6 +17,7 @@ export type { Instrument, InstrumentView } from './types';
 export const INSTRUMENTS: Instrument[] = [
   { id: 'piano', component: Piano },
   { id: 'guitar', component: Guitar },
+  { id: 'banjo', component: Banjo },
   { id: 'flute', component: Flute },
   { id: 'clarinet', component: Clarinet, transpose: 2 },
   { id: 'trumpet', component: Trumpet, transpose: 2 },

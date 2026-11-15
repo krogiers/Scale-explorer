@@ -1,9 +1,9 @@
 /**
- * Typische progressies, los van een toonsoort, per stijl: klassiek, jazz, pop en rock, blues, modaal en Spaans.
+ * Typische progressies, los van een toonsoort, per stijl: klassiek, jazz, pop en rock, country, blues, modaal en Spaans.
  * Elk akkoord is de eerste trap van een modus op iv halve tonen boven de tonica: een dominant is de I van
  * Mixolydisch, een ii de I van Dorisch. Zo zegt elk akkoord meteen welke ladder je erover speelt.
  * kind: cadens (een slot), turnaround (terug naar het begin), reeks (een akkoordreeks die je herhaalt) of vorm (een heel schema).
- * size: drieklanken (klassiek, pop, modaal) of vierklanken (jazz, blues).
+ * size: drieklanken (klassiek, pop, country, modaal) of vierklanken (jazz, blues).
  * approx = de app kent de ladder die er eigenlijk bij hoort niet (harmonisch mineur, alteratie, lydisch dominant,
  * Frygisch dominant) en toont de dichtstbijzijnde modus.
  */
@@ -13,7 +13,7 @@ import { scaleOf, type ModeIndex } from './scale';
 
 const LYD = 0, ION = 1, MIX = 2, DOR = 3, AEO = 4, PHR = 5, LOC = 6;
 
-export const SEQ_STYLES = ['classical', 'jazz', 'pop', 'blues', 'modal'] as const;
+export const SEQ_STYLES = ['classical', 'jazz', 'pop', 'country', 'blues', 'modal'] as const;
 export type SeqStyle = (typeof SEQ_STYLES)[number];
 export type SeqKind = 'cadence' | 'turnaround' | 'progression' | 'form';
 export interface SeqChord { iv: number; mode: ModeIndex; bars: number; approx?: boolean }
@@ -53,6 +53,13 @@ export const SEQUENCES: Sequence[] = [
   // de iv geleend uit mineur (de Dorische modus op de IV geeft een mineurakkoord)
   q('minorPlagal', 'pop', 'cadence', 3, [c(5, DOR), c(0, ION, 2)]),
   q('rockPlagal', 'pop', 'cadence', 3, [c(10, LYD), c(5, LYD), c(0, ION, 2)]),
+
+  // country: drieklanken, lang op de I, veel I – IV – V; een dominant (I7, II7) staat als de I van Mixolydisch
+  q('countryThree', 'country', 'progression', 3, [c(0, ION, 2), c(5, LYD, 2), c(7, MIX, 2), c(0, ION, 2)]),
+  q('countryII7', 'country', 'turnaround', 3, [c(0, ION, 2), c(2, MIX, 2), c(7, MIX, 2), c(0, ION, 2)]),
+  q('bluegrass', 'country', 'form', 3, [c(0, ION, 2), c(5, LYD), c(0, ION), c(0, ION), c(7, MIX), c(0, ION, 2)]),
+  q('honkyTonk', 'country', 'form', 3, [c(0, ION, 2), c(0, MIX, 2), c(5, LYD, 2), c(0, ION, 2), c(7, MIX, 2), c(0, ION, 2)]),
+  q('bakersfield', 'country', 'progression', 3, [c(0, MIX), c(10, LYD), c(5, LYD), c(0, MIX)]),
 
   q('blues12', 'blues', 'form', 4, [c(0, MIX, 4), c(5, MIX, 2), c(0, MIX, 2), c(7, MIX), c(5, MIX), c(0, MIX), c(7, MIX)]),
   q('bluesCadence', 'blues', 'cadence', 4, [c(7, MIX), c(5, MIX), c(0, MIX, 2)]),

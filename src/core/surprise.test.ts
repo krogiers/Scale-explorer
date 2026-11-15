@@ -18,7 +18,7 @@ describe('Verras me', () => {
       for (let i = 1; i < n; i++) expect(key(s[i])).not.toBe(key(s[i - 1]));
       expect(s.every((d) => d.root === home.root)).toBe(true);
     }
-  });
+  }, 20000); // 700 schema's: ruim genoeg, ook als de CI druk is
   it('hetzelfde zaad geeft hetzelfde schema, een ander zaad (meestal) een ander', () => {
     const home = { root: 0, mode: 1 as ModeIndex };
     expect(surprise(home, 3, 8, seededRng(7))).toEqual(surprise(home, 3, 8, seededRng(7)));

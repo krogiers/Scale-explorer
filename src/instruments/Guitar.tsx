@@ -1,12 +1,25 @@
 import type { InstrumentView } from './types';
 
-/** Gitaarhals in standaardstemming, frets 0 tot 12. Bovenste lijn = hoge E, zoals in een tabulatuur. */
-const STRINGS = [4, 11, 7, 2, 9, 4]; // e B G D A E (toonklassen)
+/**
+ * Een hals met frets 0 tot 12. Bovenste lijn = hoogste snaar, zoals in een tabulatuur.
+ * strings = open snaren (toonklassen); from = vanaf welke fret een snaar begint (de korte vijfde snaar van een banjo
+ * begint op fret 5: daarvoor ligt er geen snaar, en zijn "losse" snaar staat op fret 5).
+ */
+interface Neck { strings: number[]; from?: number[] }
+const GUITAR: Neck = { strings: [4, 11, 7, 2, 9, 4] }; // e B G D A E
+/** Vijfsnarige banjo in open G (g D G B D): van boven d B G D, onderaan de korte hoge g. */
+const BANJO: Neck = { strings: [2, 11, 7, 2, 7], from: [0, 0, 0, 0, 5] };
 const FRETS = 12, FW = 50, SH = 22, LEFT = 34, TOP = 16;
 const MARKERS = [3, 5, 7, 9];
 
-export function Guitar(v: InstrumentView) {
-  const width = LEFT + FRETS * FW + 10, height = TOP + 5 * SH + 30;
+export const Guitar = (v: InstrumentView) => <Fretboard neck={GUITAR} v={v} />;
+export const Banjo = (v: InstrumentView) => <Fretboard neck={BANJO} v={v} />;
+
+function Fretboard({ neck, v }: { neck: Neck; v: InstrumentView }) {
+  const STRINGS = neck.strings;
+  const n = STRINGS.length - 1;
+  const from = (s: number) => neck.from?.[s] ?? 0;
+  const width = LEFT + FRETS * FW + 10, height = TOP + n * SH + 30;
   const blue = v.blue && !v.scale.has(v.blue.pc) ? v.blue : null;
   const gone = (pc: number) => v.dropped?.find((x) => x.pc === pc && !v.scale.has(pc));
   const label = (pc: number) => {
@@ -18,16 +31,17 @@ export function Guitar(v: InstrumentView) {
   return (
     <div className="hscroll">
     <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={v.label}>
-      {MARKERS.map((f) => <circle key={f} className="gt-mark" cx={fretX(f) - FW / 2} cy={TOP + 2.5 * SH} r={5} />)}
-      <circle className="gt-mark" cx={fretX(12) - FW / 2} cy={TOP + 1.5 * SH} r={5} />
-      <circle className="gt-mark" cx={fretX(12) - FW / 2} cy={TOP + 3.5 * SH} r={5} />
+      {MARKERS.map((f) => <circle key={f} className="gt-mark" cx={fretX(f) - FW / 2} cy={TOP + (n / 2) * SH} r={5} />)}
+      <circle className="gt-mark" cx={fretX(12) - FW / 2} cy={TOP + (n / 2 - 1) * SH} r={5} />
+      <circle className="gt-mark" cx={fretX(12) - FW / 2} cy={TOP + (n / 2 + 1) * SH} r={5} />
       {Array.from({ length: FRETS + 1 }, (_, f) => (
-        <line key={f} className={f === 0 ? 'gt-nut' : 'gt-fret'} x1={fretX(f)} x2={fretX(f)} y1={TOP} y2={TOP + 5 * SH} />
+        <line key={f} className={f === 0 ? 'gt-nut' : 'gt-fret'} x1={fretX(f)} x2={fretX(f)} y1={TOP} y2={TOP + n * SH} />
       ))}
-      {STRINGS.map((_, s) => <line key={s} className="gt-str" x1={LEFT} x2={fretX(FRETS)} y1={TOP + s * SH} y2={TOP + s * SH} style={{ strokeWidth: 0.8 + s * 0.3 }} />)}
+      {STRINGS.map((_, s) => <line key={s} className="gt-str" x1={from(s) ? fretX(from(s)) : LEFT} x2={fretX(FRETS)} y1={TOP + s * SH} y2={TOP + s * SH} style={{ strokeWidth: 0.8 + s * 0.3 }} />)}
       {STRINGS.flatMap((open, s) =>
         Array.from({ length: FRETS + 1 }, (_, f) => {
-          const pc = (open + f) % 12;
+          if (f < from(s)) return null; // de korte snaar begint pas op zijn eigen "nul"
+          const pc = (open + f - from(s)) % 12;
           const isBlue = blue?.pc === pc;
           const isGone = !!gone(pc);
           if (!v.scale.has(pc) && !isBlue && !isGone) return null;

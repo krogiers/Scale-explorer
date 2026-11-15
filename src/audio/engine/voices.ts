@@ -14,6 +14,7 @@ export const EXTRA: Partial<Record<Timbre, () => Promise<{ default: Record<numbe
   tenorsax: () => import('../samples/tenorsax'),
   barisax: () => import('../samples/barisax'),
   guitar: () => import('../samples/guitar'),
+  banjo: () => import('../samples/banjo'),
 };
 
 /**
@@ -40,4 +41,6 @@ export const VOICES: Record<string, Voice> = {
   // de baritonopnames duren maar 2 à 2,5 s: korter stuk om te herhalen
   barisax: { attack: 0.03, release: 0.2, level: 0.27, loop: [0.5, 1.6], vibrato: [14, 5.2, 0.35] },
   guitar: { attack: 0, release: 0.3, level: 0.11 },
+  // FluidR3, even luid gemaakt als de vibrafoon; klinkt kort uit zoals een echte banjo
+  banjo: { attack: 0, release: 0.2, level: 0.6 },
 };

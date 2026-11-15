@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { chordsOf } from './chords';
-import { makeMelody, type MelodyStep } from './melody';
+import { makeMelody, MELODY_STYLES, type MelodyStep } from './melody';
 import { scaleOf, type ModeIndex } from './scale';
 import { seededRng } from './surprise';
 
@@ -42,5 +42,34 @@ describe('Verzin een melodie', () => {
     expect(makeMelody(steps, 4, seededRng(9))).toEqual(makeMelody(steps, 4, seededRng(9)));
     const m3 = makeMelody([step(0, 1, 3), step(7, 2, 3)], 3, seededRng(2));
     expect(m3.flat().every((n) => n.at < 3)).toBe(true);
+  });
+});
+
+describe('Verzin een melodie: stijlen', () => {
+  const all = (style: (typeof MELODY_STYLES)[number], seeds = 40) => Array.from({ length: seeds }, (_, k) => makeMelody(steps, 4, seededRng(k + 1), style));
+  it('elke stijl: in het bereik, niets overlapt, eindigt op de grondtoon, noten buiten de ladder dragen hun spelling', () => {
+    const starts = steps.reduce<number[]>((a, _s, i) => [...a, i ? a[i - 1] + steps[i - 1].beats : 0], []);
+    for (const style of MELODY_STYLES) for (const mel of all(style)) {
+      const flat = mel.flatMap((ns, i) => ns.map((n) => ({ ...n, at: starts[i] + n.at, i })));
+      flat.forEach((n, k) => {
+        expect(n.midi).toBeGreaterThanOrEqual(59);
+        expect(n.midi).toBeLessThanOrEqual(82);
+        if (k) expect(flat[k - 1].at + flat[k - 1].dur).toBeLessThanOrEqual(n.at + 1e-9);
+        if (!steps[n.i].scale.pcs.has(n.midi % 12)) expect(n.note?.pc).toBe(n.midi % 12);
+      });
+      expect(flat[flat.length - 1].midi % 12).toBe(0);
+    }
+  });
+  it('bebop loopt in achtsten met chromatiek, funk heeft zestienden, swing en bossa anticiperen', () => {
+    const count = (style: (typeof MELODY_STYLES)[number], f: (n: { at: number; dur: number; note?: unknown }) => boolean) => all(style).flat(2).filter(f).length;
+    expect(count('bebop', (n) => n.dur === 0.5)).toBeGreaterThan(count('bebop', (n) => n.dur !== 0.5) * 3);
+    expect(count('bebop', (n) => !!n.note)).toBeGreaterThan(0);
+    expect(count('funk', (n) => n.dur === 0.25)).toBeGreaterThan(0);
+    expect(count('plain', (n) => !!n.note)).toBe(0);
+    // een anticipatie loopt over het einde van zijn stap heen
+    for (const style of ['swing', 'bossa'] as const) {
+      const over = all(style).flatMap((mel) => mel.flatMap((ns, i) => ns.filter((n) => n.at + n.dur > steps[i].beats + 1e-9)));
+      expect(over.length).toBeGreaterThan(0);
+    }
   });
 });

@@ -305,7 +305,7 @@ Omdat alles volgt uit "een verzameling toonklassen plus een spelling", passen ni
 
 ## Akkoord opzoeken en afstand tussen modi
 
-**Akkoord opzoeken** (scherm Opbouw): typ een akkoord (`parseChord` in `src/naming` leest Engelse, Nederlandse en do-re-mi-namen en gangbare schrijfwijzen zoals m7, -7, maj7, Δ, ø, °7) of kies grondtoon en soort. `chordHomes` in `src/core/modes.ts` geeft alle moederladders waarin het voorkomt, met per modus de rol. Een majeur- of mineurdrieklank en een m7 zitten in 3 moederladders, een maj7 in 2, een 7 en een m7♭5 in 1; aug, °7 en m(maj7) komen in geen kerkmodus voor. Je typt in de toonaard van je instrument; de app rekent terug naar concert.
+**Akkoord opzoeken** (scherm Theorie, tussen de modi en de afstandstabel): typ een akkoord (`parseChord` in `src/naming` leest Engelse, Nederlandse en do-re-mi-namen en gangbare schrijfwijzen zoals m7, -7, maj7, Δ, ø, °7) of kies grondtoon en soort. `chordHomes` in `src/core/modes.ts` geeft alle moederladders waarin het voorkomt, met per modus de rol. Een majeur- of mineurdrieklank en een m7 zitten in 3 moederladders, een maj7 in 2, een 7 en een m7♭5 in 1; aug, °7 en m(maj7) komen in geen kerkmodus voor. Je typt in de toonaard van je instrument; de app rekent terug naar concert.
 
 **Afstand tussen modi** (scherm Theorie): een tabel met het aantal noten verschil (`diffCount`) tussen elke twee modi, op één grondtoon (7 × 7) of tussen de twaalf moederladders (12 × 12). Het verschil is hoogstens 5: twee ladders een tritonus uit elkaar delen nog twee noten (C Lydisch en C Locrisch delen C en F♯/G♭).
 

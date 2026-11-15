@@ -3,6 +3,7 @@ import { chordsOnRoot, sameSpot, scaleOf, type Spot } from '../../core';
 import { fill } from '../../i18n';
 import { useApp } from '../../state';
 import { Heading, Legend, SizeToggle } from '../../ui';
+import { ChordLookup } from './ChordLookup';
 import { CircleOfFifths } from './CircleOfFifths';
 import { BridgeMatrix } from './BridgeMatrix';
 import { JumpCard } from './JumpCard';
@@ -75,7 +76,7 @@ export function ModesPanel() {
 }
 
 /**
- * Scherm Ladder: waar ben ik? Links de cirkel, rechts de modus, daaronder de modi met hun bruggen.
+ * Scherm Ladder: waar ben ik? Links de cirkel, rechts de modus, daaronder de modi met hun bruggen, akkoord opzoeken en de afstand tussen modi.
  * Het instrument staat alleen op Spelen.
  */
 export function LadderScreen() {
@@ -84,6 +85,7 @@ export function LadderScreen() {
       <section className="panel circle"><CirclePanel /></section>
       <section className="panel"><ScalePanel /></section>
       <section className="panel wide modes"><ModesPanel /></section>
+      <section className="panel wide"><ChordLookup /></section>
       <section className="panel wide"><ModeDistance /></section>
     </div>
   );

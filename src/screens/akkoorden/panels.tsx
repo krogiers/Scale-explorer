@@ -3,7 +3,6 @@ import { fill } from '../../i18n';
 import { useApp } from '../../state';
 import { Heading, Legend, SizeToggle } from '../../ui';
 import { Chart } from './chart/Chart';
-import { ChordLookup } from './ChordLookup';
 import { ChordNetwork } from './ChordNetwork';
 import { ChordRow } from './ChordRow';
 import { NextSteps } from './NextSteps';
@@ -65,13 +64,12 @@ export function AkkoordenScreen() {
         <section className="panel"><ChordsPanel /></section>
         <section className="panel" id="volgende-stap"><NextPanel view={view} setView={setView} /></section>
       </div>
-      {/* eigen kolom, even hoog als de linker: het schema blijft staan zolang je daar scrolt, en schuift weg vóór "Akkoord opzoeken" */}
+      {/* eigen kolom, even hoog als de linker: het schema blijft staan zolang je daar scrolt */}
       <div className="chartcol">
         <section className="panel chartpanel">
           <Chart onShowSequences={() => { setView('sequences'); document.getElementById('volgende-stap')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} />
         </section>
       </div>
-      <section className="panel wide"><ChordLookup /></section>
     </div>
   );
 }
